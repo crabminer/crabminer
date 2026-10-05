@@ -1,0 +1,1983 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>The Nodule Crab Economy | ubermicrouser</title>
+<meta name="description" content="A swarm assembly line of crab robots on the sea floor, described as a paper and playable as a game.">
+<style>
+:root{
+  /* THEME: edit these values to recolor the page (light mode). Dark mode values follow below. */
+  color-scheme:light;
+  --serif:"Times New Roman",Times,"Nimbus Roman","Liberation Serif",serif;
+  --sans:Helvetica,Arial,"Liberation Sans",sans-serif;
+  /* water column, surface to floor */
+  --sea-0:#a6e2ea; --sea-1:#2489a6; --sea-2:#0e5f80; --sea-3:#093e59;
+  /* canvas palette */
+  --c-foam:#ecfcff; --c-ray:rgba(255,255,255,.2);
+  --c-sand-back:#b3a37b; --c-sand-front:#dccb9f; --c-sand-line:#f4ead0;
+  --c-nodule:#39362f; --c-weed:#1b7a61; --c-weed-2:#2ba27b;
+  --c-crab:#e8613f; --c-crab-dark:#8c2e1c; --c-metal:#d7e0e4; --c-metal-dark:#56707c; --c-light:#fff3b8;
+  --c-snow:rgba(255,255,255,.55); --c-bubble:rgba(255,255,255,.75);
+  --c-drill:#f0b429; --c-drill-dark:#8a5a00; --c-crush:#6d8fb3; --c-crush-dark:#2f4a66;
+  --c-smelt:#4a505d; --c-smelt-dark:#1d2129; --c-energy:#2fbf8f; --c-energy-dark:#0f6b4c;
+  --c-rock:#4a4250; --c-rock-dark:#231f29; --c-rock-line:#756b7c;
+  --c-lava-hot:#ffd87a; --c-lava:#ff7a1f; --c-lava-deep:#b9300c;
+  --c-bar:#9aa0a9; --c-bar-dark:#555b64; --c-ingot:#ffcf4d; --c-ingot-dark:#a8730c; --c-warn:#e5484d;
+  /* paper */
+  --paper:rgba(245,250,250,.968); --ink:#13222c; --ink-soft:#485b66; --rule:#b7c6cc;
+  --link:#0b5f7f; --mark:#a53f26; --tint:rgba(11,95,127,.08); --shadow:rgba(3,30,46,.45);
+  --bar:#f5fafa; --on-link:#fff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --sea-0:#2f7896; --sea-1:#0f4b69; --sea-2:#082e46; --sea-3:#041826;
+    --c-foam:#bfeaf5; --c-ray:rgba(190,235,255,.1);
+    --c-sand-back:#24404e; --c-sand-front:#365563; --c-sand-line:#5d8494;
+    --c-nodule:#0b1317; --c-weed:#17604f; --c-weed-2:#1f8068;
+    --c-crab:#ff8763; --c-crab-dark:#a8442c; --c-metal:#9fb4be; --c-metal-dark:#2f4753; --c-light:#ffe9a0;
+    --c-snow:rgba(200,235,255,.4); --c-bubble:rgba(200,240,255,.55);
+    --c-drill:#ffc94a; --c-drill-dark:#9a6a10; --c-crush:#86a8cc; --c-crush-dark:#2c4762;
+    --c-smelt:#5d6577; --c-smelt-dark:#1a1d25; --c-energy:#46d9a6; --c-energy-dark:#12805b;
+    --c-rock:#2c2833; --c-rock-dark:#121016; --c-rock-line:#4f4858;
+    --c-lava-hot:#ffd87a; --c-lava:#ff7a1f; --c-lava-deep:#a82a0a;
+    --c-bar:#8a929c; --c-bar-dark:#444a53; --c-ingot:#ffd766; --c-ingot-dark:#b98414; --c-warn:#ff6b6f;
+    --paper:rgba(7,24,36,.95); --ink:#e3edf1; --ink-soft:#a3b7c2; --rule:#2c4a5b;
+    --link:#84d6e8; --mark:#ff9d7d; --tint:rgba(132,214,232,.09); --shadow:rgba(0,0,0,.6);
+    --bar:#0b2231; --on-link:#06202d;
+  }
+}
+:root[data-theme="dark"]{
+    color-scheme:dark;
+    --sea-0:#2f7896; --sea-1:#0f4b69; --sea-2:#082e46; --sea-3:#041826;
+    --c-foam:#bfeaf5; --c-ray:rgba(190,235,255,.1);
+    --c-sand-back:#24404e; --c-sand-front:#365563; --c-sand-line:#5d8494;
+    --c-nodule:#0b1317; --c-weed:#17604f; --c-weed-2:#1f8068;
+    --c-crab:#ff8763; --c-crab-dark:#a8442c; --c-metal:#9fb4be; --c-metal-dark:#2f4753; --c-light:#ffe9a0;
+    --c-snow:rgba(200,235,255,.4); --c-bubble:rgba(200,240,255,.55);
+    --c-drill:#ffc94a; --c-drill-dark:#9a6a10; --c-crush:#86a8cc; --c-crush-dark:#2c4762;
+    --c-smelt:#5d6577; --c-smelt-dark:#1a1d25; --c-energy:#46d9a6; --c-energy-dark:#12805b;
+    --c-rock:#2c2833; --c-rock-dark:#121016; --c-rock-line:#4f4858;
+    --c-lava-hot:#ffd87a; --c-lava:#ff7a1f; --c-lava-deep:#a82a0a;
+    --c-bar:#8a929c; --c-bar-dark:#444a53; --c-ingot:#ffd766; --c-ingot-dark:#b98414; --c-warn:#ff6b6f;
+    --paper:rgba(7,24,36,.95); --ink:#e3edf1; --ink-soft:#a3b7c2; --rule:#2c4a5b;
+    --link:#84d6e8; --mark:#ff9d7d; --tint:rgba(132,214,232,.09); --shadow:rgba(0,0,0,.6);
+    --bar:#0b2231; --on-link:#06202d;
+}
+
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);scroll-padding-bottom:var(--floor,10vh);-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100%;background:var(--sea-2);color:var(--ink);
+  font-family:var(--serif);font-size:1.125rem;line-height:1.42;overflow-x:hidden;
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* ---------- sea ---------- */
+.sea{
+  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:linear-gradient(180deg,var(--sea-0) 0%,var(--sea-1) 20%,var(--sea-2) 58%,var(--sea-3) 100%);
+}
+.sea canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* drawn in front of the paper: the sea floor in the bottom tenth of the screen, and nodules falling to it */
+.floor{position:fixed;inset:0;z-index:2;width:100%;height:100%;display:block;pointer-events:none}
+.rays{position:absolute;inset:0}
+.rays i{
+  position:absolute;top:-12%;height:96%;width:11vw;min-width:70px;
+  background:linear-gradient(180deg,var(--c-ray),transparent 82%);
+  transform-origin:50% 0;filter:blur(7px);
+  animation:ray 11s ease-in-out infinite alternate;
+}
+.rays i:nth-child(1){left:5%;--a:14deg;--b:9deg;animation-duration:12s}
+.rays i:nth-child(2){left:23%;width:7vw;--a:11deg;--b:16deg;animation-duration:9s}
+.rays i:nth-child(3){left:42%;width:14vw;--a:8deg;--b:13deg;animation-duration:14s}
+.rays i:nth-child(4){left:65%;width:8vw;--a:13deg;--b:7deg;animation-duration:10s}
+.rays i:nth-child(5){left:84%;width:12vw;--a:6deg;--b:12deg;animation-duration:13s}
+@keyframes ray{
+  from{transform:rotate(var(--a)) scaleX(1);opacity:.5}
+  to{transform:rotate(var(--b)) scaleX(1.25);opacity:1}
+}
+@media (prefers-reduced-motion:reduce){.rays i{animation:none;transform:rotate(var(--a))}}
+
+/* ---------- cover ---------- */
+.cover{
+  position:relative;z-index:1;min-height:100vh;min-height:100svh;
+  display:grid;place-items:center;text-align:center;color:#fff;
+  padding:clamp(2rem,9vh,6rem) 1.25rem 15vh;
+}
+.titleblock{max-width:58rem}
+h1{
+  font-weight:400;font-size:clamp(1.6rem,1.05rem + 2.3vw,2.85rem);line-height:1.15;
+  margin:0 0 1.5rem;text-wrap:balance;text-shadow:0 2px 20px rgba(3,35,52,.6);
+}
+.author{font-size:clamp(1.15rem,1rem + .5vw,1.4rem);margin:0;text-shadow:0 1px 12px rgba(3,35,52,.6)}
+.affil{font-style:italic;font-size:1rem;margin:.2rem 0 1.7rem;text-shadow:0 1px 12px rgba(3,35,52,.6)}
+.cover p{text-indent:0;text-align:center}
+.jump{
+  display:inline-block;color:#fff;text-decoration:none;font-family:var(--sans);font-size:.95rem;
+  border:1px solid rgba(255,255,255,.8);border-radius:999px;padding:.5rem 1.25rem;
+  background:rgba(4,50,72,.28);
+}
+.jump:hover{background:rgba(4,50,72,.5)}
+:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
+
+/* ---------- paper ---------- */
+.paper{
+  position:relative;z-index:1;max-width:66rem;margin:0 auto;
+  padding:clamp(1.1rem,4.2vw,3.6rem);
+  background:var(--paper);
+  border-radius:4px;box-shadow:0 28px 80px var(--shadow);
+}
+@media (max-width:70rem){.paper{margin:0 .6rem}}
+
+.runhead{
+  display:flex;justify-content:space-between;gap:1rem;
+  font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);
+  border-bottom:1px solid var(--rule);padding-bottom:.45rem;margin-bottom:1.5rem;
+}
+@media (min-width:56.01rem){.cols{column-count:2;column-gap:2.3rem}}
+
+p{margin:0;text-indent:1em;text-align:justify;-webkit-hyphens:auto;hyphens:auto;orphans:2;widows:2}
+@media (max-width:56rem){p{text-align:left}}
+a{color:var(--link);text-underline-offset:2px}
+.c{text-decoration:none;white-space:nowrap}
+.c:hover{text-decoration:underline}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+
+.abstract,.terms{font-weight:700;font-size:.98rem}
+.terms{margin-top:.5rem;text-align:left}
+
+h2{
+  font-size:1.02rem;font-weight:400;text-align:center;font-variant:small-caps;
+  letter-spacing:.05em;margin:1.8rem 0 .55rem;break-after:avoid;
+}
+.cols h2{margin-top:1.3rem}
+h3{font-size:1.125rem;font-weight:400;font-style:italic;margin:1.25rem 0 .3rem;break-after:avoid}
+.runin{font-style:italic}
+
+.dropcap{text-indent:0}
+.dropcap::first-letter{float:left;font-size:3.05em;line-height:.8;padding:.07em .07em 0 0}
+.lead{text-transform:uppercase;letter-spacing:.02em}
+
+.footnote{
+  font-size:.8rem;text-align:left;color:var(--ink-soft);
+  border-top:1px solid var(--rule);margin-top:1.1rem;padding-top:.45rem;break-inside:avoid;
+}
+
+/* ---------- quotations, lists, code ---------- */
+blockquote{margin:.7rem 0;padding:.1rem 0 .1rem .9rem;border-left:3px solid var(--mark);break-inside:avoid}
+blockquote cite{display:block;margin-top:.2rem;font-size:.86rem;font-style:normal;color:var(--ink-soft)}
+.paper ul:not(.refs),.paper ol:not(.refs){margin:.4rem 0 .6rem;padding-left:1.6em}
+.paper li{margin:.15rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.84em}
+pre{
+  margin:.7rem 0;padding:.7rem .85rem;overflow-x:auto;break-inside:avoid;
+  background:var(--tint);border-radius:4px;font-size:.82rem;line-height:1.4;
+}
+pre code{font-size:inherit}
+.paper > p{margin-bottom:.4rem}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;margin:1rem 0 1.5rem}
+table{border-collapse:collapse;width:100%;font-size:.96rem}
+caption{caption-side:top;text-align:center;padding-bottom:.55rem;font-size:.86rem}
+caption span{display:block}
+caption .tnum{letter-spacing:.06em}
+caption .ttitle{font-variant:small-caps;letter-spacing:.04em}
+thead th{
+  font-family:var(--sans);font-size:.76rem;font-weight:700;text-align:left;padding:.45rem .6rem;
+  border-top:3px double var(--ink);border-bottom:1px solid var(--ink);
+}
+tbody td,tbody th{padding:.55rem .6rem;vertical-align:top;text-align:left;border-bottom:1px solid var(--rule)}
+tbody tr:last-child > *{border-bottom:3px double var(--ink)}
+tbody th{font-family:var(--sans);font-size:.78rem;font-weight:700;color:var(--mark);white-space:nowrap}
+tr:target,li:target{background:var(--tint)}
+
+/* ---------- crew panel ---------- */
+.fig.wide svg{max-width:46rem}
+.panel{margin:1.2rem 0 1.5rem}
+.gm{
+  font-family:var(--sans);font-size:.82rem;line-height:1.3;text-align:left;
+  border:1px solid var(--rule);border-radius:6px;overflow:hidden;background:var(--tint);
+}
+.gm button{font:inherit;color:inherit;cursor:pointer}
+.gm button:disabled{opacity:.35;cursor:not-allowed}
+.gm-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2rem 1rem;padding:.5rem .7rem;border-bottom:1px solid var(--rule)}
+.gm-head > span{color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.gm-grid{display:grid;grid-template-columns:minmax(0,1fr)}
+.gm-roles{border-bottom:1px solid var(--rule)}
+@media (min-width:48rem){
+  .gm-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+  .gm-roles{border-bottom:0;border-right:1px solid var(--rule)}
+}
+.gm-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.55rem;padding-left:.7rem;border-bottom:1px solid var(--rule)}
+.gm-row:last-child{border-bottom:0}
+.gm-dot{width:.8rem;height:.8rem;border-radius:50%;border:1px solid var(--ink-soft)}
+.gm-name{color:var(--ink-soft);padding:.3rem 0}
+.gm-name b{display:block;color:var(--ink)}
+.gm-step{display:inline-flex;align-self:stretch;align-items:stretch;border-left:1px solid var(--rule)}
+.gm-step button{width:2.4rem;min-height:2.6rem;border:0;background:transparent;font-size:1.15rem;line-height:1}
+.gm-step button:hover:not(:disabled),.gm-seg button:hover,.gm-btn:hover:not(:disabled){background:var(--tint)}
+.gm-step output{
+  display:grid;place-items:center;min-width:2.2rem;font-weight:700;font-size:1rem;font-variant-numeric:tabular-nums;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+}
+.gm-side{display:flex;flex-direction:column}
+.gm-side > div{padding:.55rem .7rem;border-bottom:1px solid var(--rule)}
+.gm-side > div:last-child{border-bottom:0}
+.gm-live{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem .6rem;color:var(--ink-soft)}
+.gm-live b{display:block;font-size:1.05rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.gm-note{font-style:italic;color:var(--ink-soft)}
+.gm-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.gm-seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.gm-seg button{min-width:2.3rem;height:2.1rem;border:0;border-left:1px solid var(--rule);background:transparent}
+.gm-seg button:first-child{border-left:0}
+.gm-seg button[aria-pressed="true"]{background:var(--link);color:var(--on-link);font-weight:700}
+.gm .gm-run{height:2.1rem;padding:0 .9rem;border:0;border-radius:4px;font-weight:700;background:var(--link);color:var(--on-link)}
+.gm-btn{height:2.1rem;padding:0 .7rem;border:1px solid var(--rule);border-radius:4px;background:transparent}
+.gm-result{font-weight:700}
+.gm-result .gm-btn{margin-left:.4rem;font-weight:400;height:1.8rem}
+.gm-best{color:var(--ink-soft)}
+
+/* ---------- figures, equation ---------- */
+.fig{margin:.9rem 0 1rem;break-inside:avoid;text-align:center}
+.fig svg{width:100%;max-width:30rem;height:auto;color:var(--ink)}
+.fig svg text{font-family:var(--sans);fill:currentColor}
+.fig figcaption{font-size:.84rem;text-align:left;margin-top:.35rem}
+.eq{display:flex;align-items:center;margin:.6rem 0;break-inside:avoid}
+.eq span:first-child{flex:1;text-align:center}
+.eq i{padding:0 .05em}
+
+/* ---------- references ---------- */
+.refs{list-style:none;margin:0;padding:0;counter-reset:r;font-size:.84rem;line-height:1.36}
+.refs li{
+  counter-increment:r;position:relative;padding-left:2.7em;margin-bottom:.34rem;
+  break-inside:avoid;overflow-wrap:anywhere;scroll-margin-top:1rem;
+}
+.refs li::before{content:"[" counter(r) "]";position:absolute;left:0}
+
+/* ---------- viewing window ---------- */
+.window{
+  position:relative;z-index:1;min-height:60vh;
+  display:flex;justify-content:center;align-items:flex-start;padding:2.4rem 1rem 0;
+}
+.plate{
+  max-width:35rem;margin:0;padding:.85rem 1.15rem;font-size:.92rem;
+  background:var(--paper);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);
+  border-radius:4px;box-shadow:0 12px 40px var(--shadow);
+}
+.plate p{text-indent:0;text-align:left}
+.plate .colophon{margin-top:.5rem;font-family:var(--sans);font-size:.74rem;color:var(--ink-soft)}
+#delivered{font-family:var(--sans);font-weight:700;color:var(--mark)}
+
+/* ---------- read aloud: a small flush bar docked on the sea floor ---------- */
+.reader{
+  position:fixed;z-index:5;right:0;bottom:var(--floor,10vh);max-width:100vw;
+  display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:stretch;
+  font-family:var(--sans);font-size:.74rem;line-height:1;color:var(--ink);
+  background:var(--bar);border:1px solid var(--rule);border-right:0;border-bottom:0;
+  border-radius:.45rem 0 0 0;overflow:hidden;
+}
+.reader button,.reader select{
+  height:1.9rem;margin:0;padding:0;border:0;border-radius:0;
+  font:inherit;color:inherit;background:transparent;cursor:pointer;
+}
+.reader :focus-visible{outline-offset:-2px}
+.rd-b{display:inline-grid;place-items:center;width:1.9rem}
+.rd-b:hover,.reader select:hover{background:var(--tint)}
+.reader .rd-main{
+  display:inline-flex;align-items:center;justify-content:center;gap:.25rem;width:auto;
+  padding:0 .55rem 0 .4rem;font-weight:700;background:var(--link);color:var(--on-link);
+}
+.reader.is-open .rd-main{width:1.9rem;padding:0}
+.is-open #rd-play-label{display:none}
+.rd-main:disabled{opacity:.5;cursor:not-allowed}
+.ic{width:.95rem;height:.95rem;fill:currentColor;flex:none}
+.ic-pause{display:none}
+.is-playing .ic-play{display:none}
+.is-playing .ic-pause{display:block}
+.rd-more{display:flex;align-items:stretch}
+.rd-more[hidden],.rd-status[hidden]{display:none}
+.rd-more > *{border-left:1px solid var(--rule)}
+.reader select{padding:0 .15rem;max-width:min(8.5rem,32vw)}
+.reader select option{background:var(--bar);color:var(--ink)}
+.rd-toggle[aria-pressed="true"]{color:var(--link);background:var(--tint)}
+.rd-toggle[aria-pressed="false"] .ic{opacity:.4}
+.rd-status{
+  order:-1;flex-basis:100%;max-width:17rem;margin:0;padding:.25rem .4rem;
+  text-indent:0;text-align:left;font-size:.72rem;line-height:1.25;color:var(--ink-soft);
+  border-bottom:1px solid var(--rule);
+}
+@media (pointer:coarse){
+  .reader button,.reader select{height:2.3rem}
+  .rd-b,.reader.is-open .rd-main{width:2.3rem}
+}
+
+[data-say].saying{background:var(--tint);box-shadow:-.4rem 0 0 var(--tint),.4rem 0 0 var(--tint);border-radius:2px}
+tr[data-say].saying{box-shadow:none}
+.cover [data-say].saying{
+  background:rgba(255,255,255,.16);border-radius:4px;
+  box-shadow:-.5rem 0 0 rgba(255,255,255,.16),.5rem 0 0 rgba(255,255,255,.16);
+}
+@media (hover:hover){
+  .say-click [data-say]{cursor:pointer}
+  .say-click .paper [data-say]:hover{background:var(--tint)}
+}
+
+@media print{
+  .sea,.floor,.jump,.window,.reader{display:none}
+  body{background:#fff}
+  .cover{min-height:0;color:#000;padding:0 0 1rem}
+  h1,.author,.affil{text-shadow:none}
+  .paper{background:#fff;box-shadow:none;max-width:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+</style>
+</head>
+<body>
+<div class="sea" aria-hidden="true">
+  <div class="rays"><i></i><i></i><i></i><i></i><i></i></div>
+  <canvas id="scene"></canvas>
+</div>
+<canvas class="floor" id="floor" aria-hidden="true"></canvas>
+
+<header class="cover">
+  <div class="titleblock">
+    <h1>The Nodule Crab Economy: A Swarm Assembly Line on the Sea Floor</h1>
+    <p class="author">ubermicrouser</p>
+    <p class="affil">Build Systems for Embedded Hardware, United States</p>
+    <p><a class="jump" href="#game">Go to the crew panel</a></p>
+  </div>
+</header>
+
+<main class="paper" id="paper">
+  <div class="runhead"><span>ubermicrouser: The Nodule Crab Economy</span><span>October 2026</span></div>
+
+  <div class="cols">
+    <p class="abstract" id="abstract"><i>Abstract</i>—This page describes, and runs, a small economy of crab robots. Along the foot of the screen, five kinds of crab turn buried nodules into metal ingots. Drill crabs uncover nodules. Hauler crabs stack them. Crusher crabs press them into meltable bars. Smelter crabs refine the bars in a lava cavern. Energy bots carry the lava's heat back to the crew as charge. No crab is given orders. Each follows a short rule that reads only what is in front of it, and the assembly line emerges from those rules. The economy is also a game. A crew has twelve crabs to divide among the five roles, and a scored shift of two simulated minutes counts the ingots it delivers. The simulation is deterministic, so every reader who fields the same crew gets the same score. A search of all 6,188 possible crews found the best score to be 29 ingots.</p>
+    <p class="terms"><i>Index Terms</i>—Assembly line, bottleneck, division of labor, serious games, stigmergy, swarm robotics.</p>
+
+    <h2>I. Introduction</h2>
+    <p class="dropcap"><span class="lead">The</span> sea floor at the foot of this page is a working model. It extends the crab stage of the Micro-Miners proposal, in which small robots prove themselves on the seabed before any attempt underground or in space. Here the crabs do more than gather. They run a complete line from a buried nodule to a finished ingot, and they do it without a foreman.</p>
+    <p>The page has two uses. Read as a paper, it sets out the roles, the rules each role follows, and the arithmetic that limits the line. Used as a game, it asks one question: with twelve crabs, which crew makes the most ingots in one shift? Fig. 1 holds the controls. Outside a scored shift, a click or tap anywhere drops an extra nodule for the haulers.</p>
+  </div>
+
+  <figure class="fig panel" id="game">
+    <div class="gm" data-nospeak>
+      <div class="gm-head"><b>Crew: <span id="gm-used">10 of 12</span> crabs</b><span id="gm-mode">Free play</span></div>
+      <div class="gm-grid">
+        <div class="gm-roles">
+          <div class="gm-row" data-role="drill"><span class="gm-dot" style="background:var(--c-drill)"></span><span class="gm-name"><b>Drill crabs</b> uncover nodules</span><span class="gm-step"><button type="button" data-d="-1" aria-label="One fewer drill crab">−</button><output>2</output><button type="button" data-d="1" aria-label="One more drill crab">+</button></span></div>
+          <div class="gm-row" data-role="haul"><span class="gm-dot" style="background:var(--c-crab)"></span><span class="gm-name"><b>Hauler crabs</b> stack nodules on the ore pile</span><span class="gm-step"><button type="button" data-d="-1" aria-label="One fewer hauler crab">−</button><output>3</output><button type="button" data-d="1" aria-label="One more hauler crab">+</button></span></div>
+          <div class="gm-row" data-role="crush"><span class="gm-dot" style="background:var(--c-crush)"></span><span class="gm-name"><b>Crusher crabs</b> press two nodules into a bar</span><span class="gm-step"><button type="button" data-d="-1" aria-label="One fewer crusher crab">−</button><output>2</output><button type="button" data-d="1" aria-label="One more crusher crab">+</button></span></div>
+          <div class="gm-row" data-role="smelt"><span class="gm-dot" style="background:var(--c-smelt)"></span><span class="gm-name"><b>Smelter crabs</b> refine bars in the lava</span><span class="gm-step"><button type="button" data-d="-1" aria-label="One fewer smelter crab">−</button><output>2</output><button type="button" data-d="1" aria-label="One more smelter crab">+</button></span></div>
+          <div class="gm-row" data-role="energy"><span class="gm-dot" style="background:var(--c-energy)"></span><span class="gm-name"><b>Energy bots</b> recharge the crew</span><span class="gm-step"><button type="button" data-d="-1" aria-label="One fewer energy bot">−</button><output>1</output><button type="button" data-d="1" aria-label="One more energy bot">+</button></span></div>
+        </div>
+        <div class="gm-side">
+          <div class="gm-live">
+            <span><b id="gm-s-sand">0</b> on the sand</span>
+            <span><b id="gm-s-ore">0</b> in the ore pile</span>
+            <span><b id="gm-s-bars">0</b> in the bar stack</span>
+            <span><b id="gm-s-ingots">0</b> ingots delivered</span>
+            <span><b id="gm-s-rate">0</b> in the last minute</span>
+            <span><b id="gm-s-power">100%</b> crew power</span>
+          </div>
+          <div class="gm-note" id="gm-note" role="status">The line is starting up.</div>
+          <div class="gm-actions">
+            <span class="gm-seg" role="group" aria-label="Viewing speed"><button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="2" aria-pressed="false">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></span>
+            <button type="button" class="gm-run" id="gm-run">Run a scored shift</button>
+            <button type="button" class="gm-btn" id="gm-reset">Reset crew</button>
+          </div>
+          <div class="gm-result"><span id="gm-result" role="status">No shift run yet.</span> <button type="button" class="gm-btn" id="gm-copy" hidden>Copy result</button></div>
+          <div class="gm-best" id="gm-best">No best score yet.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>Fig. 1. The crew panel. Change the crew with the plus and minus buttons, watch the line at the foot of the screen, then run a scored shift. The note under the counts names the current bottleneck.</figcaption>
+  </figure>
+
+  <h2>II. The Production Chain</h2>
+  <p>Material moves left to right along the sea floor and changes form three times, as Fig. 2 shows. Table I gives each role's input, output, rule, and task time.</p>
+  <figure class="fig wide">
+    <svg viewBox="0 0 760 132" role="img" aria-label="The chain: a buried nodule is drilled into a nodule on the sand, hauled to the ore pile, crushed two to one into a bar, and smelted into an ingot. Energy bots recharge every crab from the lava's heat.">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="4" y="26" width="112" height="46" rx="6" style="fill:var(--tint)"/>
+        <rect x="164" y="26" width="112" height="46" rx="6" style="fill:var(--tint)"/>
+        <rect x="324" y="26" width="112" height="46" rx="6" style="fill:var(--tint)"/>
+        <rect x="484" y="26" width="112" height="46" rx="6" style="fill:var(--tint)"/>
+        <rect x="644" y="26" width="112" height="46" rx="6" style="fill:var(--tint)"/>
+        <path d="M116 49 H162" marker-end="url(#arr)"/>
+        <path d="M276 49 H322" marker-end="url(#arr)"/>
+        <path d="M436 49 H482" marker-end="url(#arr)"/>
+        <path d="M596 49 H642" marker-end="url(#arr)"/>
+        <rect x="4" y="94" width="752" height="30" rx="6" stroke-dasharray="5 4"/>
+      </g>
+      <g font-size="13" font-weight="700" text-anchor="middle">
+        <text x="60" y="46">Buried</text><text x="60" y="62">nodule</text>
+        <text x="220" y="46">Nodule</text><text x="220" y="62">on the sand</text>
+        <text x="380" y="46">Ore pile</text><text x="380" y="62" font-weight="400" font-size="11">holds 15</text>
+        <text x="540" y="46">Bar stack</text><text x="540" y="62" font-weight="400" font-size="11">holds 10</text>
+        <text x="700" y="54">Ingot</text>
+      </g>
+      <g font-size="11.5" font-style="italic" text-anchor="middle">
+        <text x="139" y="20">drill</text>
+        <text x="299" y="20">haul</text>
+        <text x="459" y="20">crush, 2 to 1</text>
+        <text x="619" y="20">smelt in lava</text>
+        <text x="380" y="113" font-style="normal">Energy bots refill at the lava and recharge every crab along the line</text>
+      </g>
+    </svg>
+    <figcaption>Fig. 2. The production chain. Two nodules make one bar, and one bar makes one ingot. The ore pile and the bar stack are the buffers between stages.</figcaption>
+  </figure>
+  <div class="tablewrap">
+    <table>
+      <caption data-speak="Table 1. The five roles."><span class="tnum">TABLE I</span><span class="ttitle">The Five Roles</span></caption>
+      <thead><tr><th scope="col">Role</th><th scope="col">Takes</th><th scope="col">Makes</th><th scope="col">Rule it follows</th><th scope="col">Task time</th></tr></thead>
+      <tbody>
+        <tr><td>Drill crab</td><td>A buried deposit</td><td>One nodule, or two from three holes in ten</td><td>Walk to a random spot in the field and drill. Rest while 24 nodules lie uncollected.</td><td>2.2 s per hole</td></tr>
+        <tr><td>Hauler crab</td><td>Nodules on the sand</td><td>The ore pile</td><td>Fetch the nearest unclaimed nodule. After three, carry them to the ore pile. Wait if the pile holds 15.</td><td>0.6 s per pick, 0.3 s per stack</td></tr>
+        <tr><td>Crusher crab</td><td>Two nodules</td><td>One meltable bar</td><td>Stand by the ore pile. When it holds two nodules, press them into a bar. Wait if the bar stack holds 10.</td><td>4.5 s per bar</td></tr>
+        <tr><td>Smelter crab</td><td>One bar</td><td>One ingot</td><td>Take a bar, hold it in the lava, and carry the ingot to the collector.</td><td>3.0 s in the lava</td></tr>
+        <tr><td>Energy bot</td><td>The lava's heat</td><td>Four charges</td><td>Find the crab with the lowest battery under 60% and recharge it. When empty, refill at the lava.</td><td>0.8 s per charge, 2.0 s per refill</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>A. Drill Crabs</h3>
+  <div class="cols">
+    <p>The drill crab is yellow and carries a bit under its shell. It picks a spot in the nodule field, walks there, and drives the bit into the sand. The crab shakes, sand sprays, and the water it churns turns in a spiral over the hole. The nodule appears as the spiral dies away. Three holes in ten strike a rich pocket and give a second nodule. Drill crabs stop when 24 nodules already lie on the sand, because more would only be litter.</p>
+  </div>
+
+  <h3>B. Hauler Crabs</h3>
+  <div class="cols">
+    <p>The hauler is the orange crab with a hopper on its back. It walks to the nearest nodule that no other hauler has claimed, lifts it, and looks for the next. With three aboard it walks to the ore pile and stacks them one at a time into a pyramid five nodules wide. The pile holds 15. A hauler that arrives at a full pile waits beside it, and the waiting is itself a signal, as Section III explains.</p>
+  </div>
+
+  <h3>C. Crusher Crabs</h3>
+  <div class="cols">
+    <p>The crusher is steel blue with oversized claws. It stands beside the ore pile and never walks the field. When the pile holds two nodules, it takes both and hammers them between its claws until they fuse into one grey bar. It sets the bar on the bar stack, which holds 10. Crushing is the slowest single task on the line at 4.5 seconds. It also halves the count of items, so one crusher keeps pace with two or three haulers.</p>
+  </div>
+
+  <h3>D. Smelter Crabs and the Lava Cavern</h3>
+  <div class="cols">
+    <p>At the right end of the floor a basalt outcrop opens into a cavern, and the cavern holds a pool of lava. The pool swells, bubbles, and throws embers, and its light falls on whatever stands at the rim. The smelter crab is charcoal, with glowing claws and a visor. It takes a bar from the stack, walks to the rim, and holds the bar in the lava for three seconds. The bar brightens and comes out as an ingot. The smelter carries the ingot back to the collector's chute, and the collector sends it up the riser to the surface. Each ingot that leaves is one point.</p>
+  </div>
+
+  <h3>E. Energy Bots</h3>
+  <div class="cols">
+    <p>Every working crab carries a battery, shown as a small gauge on its shell. A full battery lasts 40 seconds of activity. Below 20% the gauge flashes red and the crab drops to about a third of its speed. The energy bot is the small green machine with four charge cells on its back. It finds the crab with the lowest battery under 60%, runs to it, and passes one charge across in a bright arc. After four charges it returns to the lava to refill from the heat.</p>
+    <p>Energy bots make nothing, yet a crew without them fails. In the search described in Section V, the best crew scored 29 with its two energy bots, 21 with one, and 13 with none.</p>
+  </div>
+
+  <h2>III. Swarm Rules</h2>
+  <div class="cols">
+    <p>No crab knows the plan, and nothing in the program schedules the line. Each crab runs the one rule in Table I, and each rule reads only local facts: the nearest nodule, the height of a pile, the level of a battery. The piles do the coordinating. A full ore pile stops the haulers. An empty one stops the crushers. A full bar stack stops the crushers again from the other side. This is stigmergy, the name Grassé gave to coordination through traces left in the shared workplace <a class="c" href="#ref-1">[1]</a>, and it is a founding idea of swarm intelligence <a class="c" href="#ref-2">[2]</a>.</p>
+    <p>The roles here are fixed, which is the simplest form of division of labor. Insect colonies do something subtler: each worker has a threshold for each task and takes it up when the need rises past that threshold <a class="c" href="#ref-3">[3]</a>. Robots have been built to allocate foraging work in the same ant-like way <a class="c" href="#ref-4">[4]</a>. In this model the reader plays the part of the threshold. When a pile overflows, the reader moves a crab to the stage behind it.</p>
+    <p>Local rules suit the sea floor for a practical reason. A crew that needs no central controller needs no constant link to one, and it keeps working when a member is lost. Remove a crab in Fig. 1 while the line is running and the others carry on.</p>
+  </div>
+
+  <h2>IV. The Economy</h2>
+  <div class="cols">
+    <p>The currency is the ingot. Two nodules make one bar and one bar makes one ingot, so an ingot costs two nodules. The line can deliver no faster than its slowest stage, a point made for factories in <i>The Goal</i> <a class="c" href="#ref-5">[5]</a>. The stock in front of each stage shows which stage that is, and Table II lists the signs.</p>
+    <p>Distance is a cost as well. The track is 1,000 units long. The nodule field runs from 20 to 600, the ore pile stands at 660, and the lava begins at 880. Working crabs walk 60 units a second and energy bots 95. A hauler loaded in the middle of the field needs about five seconds to reach the pile, so hauling takes more crabs than its short task times suggest.</p>
+    <p>Power is the overhead. Every energy bot is a crab that carries nothing, and every crab left uncharged works at a third of its pace. The best crew is the one that balances the four stages and then spends just enough on power.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <caption data-speak="Table 2. Reading the line."><span class="tnum">TABLE II</span><span class="ttitle">Reading the Line</span></caption>
+      <thead><tr><th scope="col">What you see</th><th scope="col">The bottleneck</th><th scope="col">What to try</th></tr></thead>
+      <tbody>
+        <tr><td>Nodules cover the sand and the drill crabs rest</td><td>Hauling</td><td>Move a crab to hauling</td></tr>
+        <tr><td>The ore pile is full and haulers wait beside it</td><td>Crushing</td><td>Move a crab to crushing</td></tr>
+        <tr><td>The bar stack is full and crushers hold finished bars</td><td>Smelting</td><td>Move a crab to smelting</td></tr>
+        <tr><td>The sand and the ore pile are both nearly empty</td><td>Drilling</td><td>Move a crab to drilling</td></tr>
+        <tr><td>Gauges flash red and the whole crew slows</td><td>Power</td><td>Add an energy bot</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>V. The Game</h2>
+  <div class="cols">
+    <p><span class="runin">Crew.</span> A crew has at most twelve crabs. Any split among the five roles is allowed, including none in a role. The plus and minus buttons in Fig. 1 change the crew while the line runs. A new crab sinks from the surface and lands in a puff of sand.</p>
+    <p><span class="runin">Shift.</span> A scored shift lasts two simulated minutes. It starts from the same state every time: eight nodules on the sand, empty piles, and full batteries. The crew is locked until the shift ends, and clicks do not drop nodules. The score is the number of ingots delivered.</p>
+    <p><span class="runin">Fairness.</span> The economy runs on its own fixed track, in fixed steps of a sixtieth of a second, with its own seeded random numbers. The screen only draws it. The same crew therefore earns the same score on a phone and on a desktop, and at every viewing speed. The speed buttons change how fast the shift is shown, and a shift at four times speed takes thirty seconds.</p>
+    <p><span class="runin">Medals.</span> Bronze is 20 ingots, silver is 25, and gold is 28. The starting crew of ten scores 22. A search of every crew of up to twelve crabs, 6,188 in all, found the highest possible score to be 29, and exactly one crew reaches it.</p>
+    <p><span class="runin">Competition.</span> After a shift the panel shows a result line such as <q>D2 H3 C2 S2 E1 = 22 ingots</q>. The letters are the five roles in order. Because the score depends only on the crew, two players can compare result lines directly, and anyone can check a claim by fielding the same crew.</p>
+  </div>
+
+  <h2>VI. What Is Real and What Is Not</h2>
+  <div class="cols">
+    <p>The nodules are real. Polymetallic nodules lie on abyssal plains and consist mainly of manganese and iron oxides, with nickel, copper, and cobalt in smaller amounts <a class="c" href="#ref-6">[6]</a>. The lava is real too: basaltic lava erupts on the sea floor at roughly 1,100 to 1,200 °C.</p>
+    <p>The smelting is a game rule. Copper melts at 1,085 °C, which basaltic lava can reach. Manganese melts at 1,246 °C and nickel at 1,455 °C, which it cannot. Turning an oxide ore into metal also takes chemistry, a reducing agent, and heat alone will not do it. The deposits in the model never run out, the crabs never break, and sunlight reaches a floor that in life is dark. The model is honest about one thing: how a line of simple workers behaves when its stages are out of balance.</p>
+  </div>
+
+  <h2>VII. Conclusion</h2>
+  <div class="cols">
+    <p>Five rules and two piles are enough to produce an assembly line that looks managed and is not. The same arrangement makes a fair game, because a deterministic line has one best crew and many near misses. The reader who finds the crew that scores 29 has learned what the model has to teach: find the stage that sets the pace, feed it, and pay for power last.</p>
+  </div>
+
+  <h2>Acknowledgment</h2>
+  <div class="cols">
+    <p>Claude assisted with the simulation, the crew search, and the drafting of this page.</p>
+  </div>
+
+  <section data-nospeak>
+    <h2>References</h2>
+    <div class="cols">
+      <ol class="refs">
+        <li id="ref-1">P.-P. Grassé, “La reconstruction du nid et les coordinations interindividuelles chez <i>Bellicositermes natalensis</i> et <i>Cubitermes</i> sp. La théorie de la stigmergie,” <i>Insectes Sociaux</i>, vol. 6, no. 1, pp. 41–80, 1959.</li>
+        <li id="ref-2">E. Bonabeau, M. Dorigo, and G. Theraulaz, <i>Swarm Intelligence: From Natural to Artificial Systems</i>. New York, NY, USA: Oxford Univ. Press, 1999.</li>
+        <li id="ref-3">E. Bonabeau, G. Theraulaz, and J.-L. Deneubourg, “Quantitative study of the fixed threshold model for the regulation of division of labour in insect societies,” <i>Proc. R. Soc. Lond. B</i>, vol. 263, no. 1376, pp. 1565–1569, 1996.</li>
+        <li id="ref-4">M. J. B. Krieger, J.-B. Billeter, and L. Keller, “Ant-like task allocation and recruitment in cooperative robots,” <i>Nature</i>, vol. 406, pp. 992–995, 2000.</li>
+        <li id="ref-5">E. M. Goldratt and J. Cox, <i>The Goal: A Process of Ongoing Improvement</i>. Croton-on-Hudson, NY, USA: North River Press, 1984.</li>
+        <li id="ref-6">J. R. Hein, K. Mizell, A. Koschinsky, and T. A. Conrad, “Deep-ocean mineral deposits as a source of critical metals for high- and green-technology applications: Comparison with land-based resources,” <i>Ore Geol. Rev.</i>, vol. 51, pp. 1–14, 2013.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<section class="window" aria-label="Closing view of the sea">
+  <figure class="plate">
+    <p>Fig. 3. The line at the foot of the screen, live. <span id="motion-note">Ingots delivered since the line last started: <span id="delivered">0</span>.</span></p>
+    <p class="colophon">Plain HTML, CSS, and JavaScript. No external dependencies.</p>
+  </figure>
+</section>
+
+<div class="reader" id="reader" role="region" aria-label="Read aloud">
+  <button class="rd-b rd-main" id="rd-play" type="button" title="Listen, or click any paragraph">
+    <svg class="ic ic-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4l10 6-10 6z"/></svg>
+    <svg class="ic ic-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 4h4v12H5zM11 4h4v12h-4z"/></svg>
+    <span id="rd-play-label">Listen</span>
+  </button>
+  <div class="rd-more" id="rd-more" hidden>
+    <button class="rd-b" id="rd-prev" type="button" aria-label="Previous passage" title="Previous passage"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h2.4v12H4zM16 4v12L7.5 10z"/></svg></button>
+    <button class="rd-b" id="rd-next" type="button" aria-label="Next passage" title="Next passage"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M13.6 4H16v12h-2.4zM4 4v12l8.5-6z"/></svg></button>
+    <button class="rd-b" id="rd-stop" type="button" aria-label="Stop reading" title="Stop reading"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5h10v10H5z"/></svg></button>
+    <select id="rd-rate" aria-label="Speed" title="Speed">
+      <option value="0.85">0.85×</option>
+      <option value="1">1×</option>
+      <option value="1.15">1.15×</option>
+      <option value="1.3">1.3×</option>
+      <option value="1.5">1.5×</option>
+    </select>
+    <select id="rd-voice" aria-label="Voice" title="Voice"><option>Default voice</option></select>
+    <button class="rd-b rd-toggle" id="rd-click" type="button" aria-pressed="true" aria-label="Click text to play" title="Click text to play"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3l10.5 6.3-4.4 1 2.6 5-1.9 1-2.6-5.1L5 14.6z"/></svg></button>
+  </div>
+  <p class="rd-status" id="rd-status" role="status" hidden></p>
+</div>
+
+
+<!-- ===== SCRIPT 1 of 3: the economy (rules, timings, scoring). Tune the game here. ===== -->
+<script>
+// ===== The crab economy: a deterministic simulation =====
+// Everything here runs on a fixed track 1000 units long, in fixed time steps, with its own seeded
+// random numbers. The same crew therefore produces the same result on every screen and at every
+// viewing speed. Drawing code reads this state and never changes it.
+function CrabSim() {
+  'use strict';
+  var K = {
+    BUDGET: 12,          // crabs a crew may use
+    SHIFT: 120,          // length of a scored shift, in simulated seconds
+    STEP: 1 / 60,        // simulation time step
+    SEED: 20261005,
+    // places along the track, left to right
+    FIELD0: 20, FIELD1: 600, HAUL_STAND: 632, ORE: 660, CRUSH: 715, BAR: 770, GRAB: 792,
+    CHUTE: 806, COLLECTOR: 835, RIM: 872, LAVA: 880, END: 1000, PARK: 640,
+    // movement
+    SPEED: 60, ESPEED: 95, DSPEED: 0.9,
+    // stock limits
+    ORE_CAP: 15, BAR_CAP: 10, FIELD_CAP: 24, CARRY: 3, START_NODULES: 8,
+    // task times, in seconds
+    T_DRILL: 2.2, T_PICK: 0.6, T_STACK: 0.3, T_CRUSH: 4.5, T_GRAB: 0.3, T_SMELT: 3.0, T_DROP: 0.3,
+    T_CHARGE: 0.8, T_REFILL: 2.0,
+    // recipe and energy
+    NOD_PER_BAR: 2, BONUS_NODULE: 0.3, DRAIN: 0.025, LOW: 0.2, SLOW: 0.35, CHARGES: 4, CHARGE_BELOW: 0.6,
+    ROLES: ['drill', 'haul', 'crush', 'smelt', 'energy'],
+    DEFAULT: { drill: 2, haul: 3, crush: 2, smelt: 2, energy: 1 }
+  };
+
+  var seed = K.SEED, S = null, events = [], dt = K.STEP;
+  function sr() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+  function srr(a, b) { return a + sr() * (b - a); }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function emit(type, a, b) { events.push({ type: type, a: a, b: b }); }
+  function slow(c) { return c.bat < K.LOW ? K.SLOW : 1; }
+
+  function reset(cfg, scored) {
+    var i, r;
+    seed = K.SEED;
+    events = [];
+    S = { t: 0, nodules: [], ore: 0, bars: 0, ingots: 0, log: [], crabs: [], scored: !!scored, done: false, nextId: 1 };
+    for (i = 0; i < K.START_NODULES; i++) {
+      S.nodules.push({ x: srr(K.FIELD0 + 20, K.FIELD1 - 20), d: srr(0.1, 0.9), alive: true, eddy: -1, by: null });
+    }
+    for (r = 0; r < K.ROLES.length; r++) {
+      for (i = 0; i < (cfg[K.ROLES[r]] || 0); i++) addCrab(K.ROLES[r]);
+    }
+    return S;
+  }
+
+  function rank() {                       // each crab's number within its own role
+    var seen = {}, i, c;
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; seen[c.role] = seen[c.role] || 0; c.k = seen[c.role]++; }
+  }
+  function count(role) {
+    var n = 0, i;
+    for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].role === role) n++;
+    return n;
+  }
+  function counts() {
+    var o = {}, i;
+    for (i = 0; i < K.ROLES.length; i++) o[K.ROLES[i]] = count(K.ROLES[i]);
+    return o;
+  }
+  function addCrab(role) {
+    var c = {
+      id: S.nextId++, role: role, x: 0, d: 0.5, dir: 1, bat: 1, state: 'init', timer: 0, load: 0, carry: null,
+      target: null, claimedBy: null, charges: K.CHARGES, moving: false, working: false, heat: 0, nod: null, k: 0, born: S.t
+    };
+    if (role === 'drill' || role === 'haul') { c.x = srr(K.FIELD0 + 40, K.FIELD1 - 40); c.d = srr(0.1, 0.9); }
+    else if (role === 'crush') { c.x = K.CRUSH; c.d = 0.3; }
+    else if (role === 'smelt') { c.x = K.GRAB; c.d = 0.3; }
+    else { c.x = K.PARK; c.d = 0.9; }
+    S.crabs.push(c);
+    rank();
+    emit('join', c);
+    return c;
+  }
+  function removeCrab(role) {
+    var i, c = null, j;
+    for (i = S.crabs.length - 1; i >= 0; i--) if (S.crabs[i].role === role) { c = S.crabs[i]; break; }
+    if (!c) return;
+    c.gone = true;
+    if (c.nod) { j = S.nodules.indexOf(c.nod); if (j >= 0) S.nodules.splice(j, 1); }
+    if (c.role === 'haul' && c.target) c.target.by = null;
+    if (c.role === 'energy' && c.target) c.target.claimedBy = null;
+    if (c.claimedBy) { c.claimedBy.target = null; c.claimedBy.state = 'idle'; }
+    S.crabs.splice(i, 1);
+    rank();
+    emit('leave', c);
+  }
+  function setCount(role, n) {
+    while (count(role) < n) addCrab(role);
+    while (count(role) > n) removeCrab(role);
+  }
+
+  // walk along the track (x) and up or down the sand face (d); true once there
+  function moveTo(c, tx, td, speed) {
+    var k = slow(c), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = K.DSPEED * k * dt, there = true;
+    if (Math.abs(dx) > 0.5) {
+      c.dir = dx > 0 ? 1 : -1;
+      c.x += Math.abs(dx) <= mv ? dx : c.dir * mv;
+      c.moving = true;
+      if (Math.abs(tx - c.x) > 0.5) there = false;
+    }
+    if (Math.abs(dd) > 0.02) {
+      c.d += Math.abs(dd) <= md ? dd : (dd > 0 ? md : -md);
+      c.moving = true;
+      if (Math.abs(td - c.d) > 0.02) there = false;
+    }
+    return there;
+  }
+  function nearestNodule(c) {
+    var best = null, bd = 1e9, i, n, d;
+    for (i = 0; i < S.nodules.length; i++) {
+      n = S.nodules[i];
+      if (!n.alive || (n.by && n.by !== c)) continue;
+      d = Math.abs(n.x - c.x) + Math.abs(n.d - c.d) * 60;
+      if (d < bd) { bd = d; best = n; }
+    }
+    return best;
+  }
+
+  // ----- one rule set per role; no crab is told what the others are doing -----
+  function drill(c) {
+    if (c.state === 'init' || c.state === 'pick') {
+      c.state = 'pick';
+      if (S.nodules.length >= K.FIELD_CAP) return;          // the sand is littered: rest
+      c.tx = srr(K.FIELD0 + 10, K.FIELD1 - 10); c.td = srr(0.05, 1); c.state = 'go';
+    }
+    if (c.state === 'go') {
+      if (moveTo(c, c.tx, c.td, K.SPEED)) {
+        c.state = 'drill'; c.timer = K.T_DRILL;
+        c.nod = { x: c.x, d: c.d, alive: false, eddy: 0, by: null };
+        S.nodules.push(c.nod);
+      }
+    } else if (c.state === 'drill') {
+      c.working = true;
+      c.timer -= dt * slow(c);
+      c.nod.eddy = clamp(1 - c.timer / K.T_DRILL, 0, 1);
+      if (c.timer <= 0) {
+        c.nod.alive = true; c.nod.eddy = -1; emit('uncover', c.nod);
+        if (sr() < K.BONUS_NODULE) {                         // a rich pocket holds a second nodule
+          var n2 = { x: clamp(c.x + srr(-14, 14), K.FIELD0, K.FIELD1), d: clamp(c.d + srr(-0.25, 0.25), 0.05, 1), alive: true, eddy: -1, by: null };
+          S.nodules.push(n2); emit('uncover', n2);
+        }
+        c.nod = null; c.state = 'pick';
+      }
+    }
+  }
+  function haul(c) {
+    if (c.state === 'init') c.state = 'seek';
+    if (c.state === 'seek') {
+      if (c.load >= K.CARRY) { c.state = 'haul'; return; }
+      if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
+      if (c.target) {
+        if (moveTo(c, c.target.x, c.target.d, K.SPEED)) { c.state = 'pick'; c.timer = K.T_PICK; }
+      } else if (c.load > 0) {
+        c.state = 'haul';
+      }
+    } else if (c.state === 'pick') {
+      c.working = true;
+      c.timer -= dt * slow(c);
+      if (c.timer <= 0) {
+        if (c.target && !c.target.taken) {
+          c.target.taken = true;
+          var i = S.nodules.indexOf(c.target);
+          if (i >= 0) S.nodules.splice(i, 1);
+          c.load++; emit('take', c);
+        }
+        c.target = null; c.state = 'seek';
+      }
+    } else if (c.state === 'haul') {
+      if (moveTo(c, K.HAUL_STAND, 0.15 + 0.22 * (c.k % 4), K.SPEED)) { c.state = 'stack'; c.timer = K.T_STACK; }
+    } else if (c.state === 'stack') {
+      if (S.ore >= K.ORE_CAP) return;                        // the ore pile is full: wait
+      c.working = true;
+      c.timer -= dt * slow(c);
+      if (c.timer <= 0) {
+        S.ore++; c.load--; emit('stack', c);
+        c.timer = K.T_STACK;
+        if (c.load <= 0) c.state = 'seek';
+      }
+    }
+  }
+  function crush(c) {
+    if (c.state === 'init') c.state = 'home';
+    if (c.state === 'home') {
+      if (moveTo(c, K.CRUSH - (c.k >= 3 ? 14 : 0), 0.12 + 0.3 * (c.k % 3), K.SPEED)) c.state = 'wait';
+    } else if (c.state === 'wait') {
+      if (S.ore >= K.NOD_PER_BAR) { S.ore -= K.NOD_PER_BAR; emit('feed', c); c.state = 'crush'; c.timer = K.T_CRUSH; }
+    } else if (c.state === 'crush') {
+      c.working = true;
+      c.timer -= dt * slow(c);
+      if (c.timer <= 0) c.state = 'hold';
+    } else if (c.state === 'hold') {
+      if (S.bars < K.BAR_CAP) { S.bars++; emit('bar', c); c.state = 'wait'; }   // else the bar stack is full: wait
+    }
+  }
+  function smelt(c) {
+    if (c.state === 'init') c.state = 'toBar';
+    if (c.state === 'toBar') {
+      if (moveTo(c, K.GRAB, 0.15 + 0.28 * (c.k % 3), K.SPEED)) { c.state = 'grab'; c.timer = K.T_GRAB; }
+    } else if (c.state === 'grab') {
+      if (c.carry !== 'bar') {
+        if (S.bars <= 0) return;                             // nothing to smelt yet: wait
+        S.bars--; c.carry = 'bar'; emit('grab', c); c.timer = K.T_GRAB;
+      }
+      c.working = true;
+      c.timer -= dt * slow(c);
+      if (c.timer <= 0) c.state = 'toLava';
+    } else if (c.state === 'toLava') {
+      if (moveTo(c, K.RIM, 0.25 + 0.3 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = K.T_SMELT; c.heat = 0; }
+    } else if (c.state === 'smelt') {
+      c.working = true;
+      c.timer -= dt * slow(c);
+      c.heat = clamp(1 - c.timer / K.T_SMELT, 0, 1);
+      if (c.timer <= 0) { c.carry = 'ingot'; c.state = 'toChute'; }
+    } else if (c.state === 'toChute') {
+      if (moveTo(c, K.CHUTE, 0.3 + 0.2 * (c.k % 3), K.SPEED)) { c.state = 'drop'; c.timer = K.T_DROP; }
+    } else if (c.state === 'drop') {
+      c.working = true;
+      c.timer -= dt * slow(c);
+      if (c.timer <= 0) { c.carry = null; c.heat = 0; S.ingots++; S.log.push(S.t); emit('ingot', c); c.state = 'toBar'; }
+    }
+  }
+  function energy(c) {
+    var i, w, best = null;
+    if (c.state === 'init') c.state = 'idle';
+    if (c.state === 'idle') {
+      if (c.charges <= 0) { c.state = 'toLava'; return; }
+      for (i = 0; i < S.crabs.length; i++) {
+        w = S.crabs[i];
+        if (w.role === 'energy' || w.claimedBy || w.bat >= K.CHARGE_BELOW) continue;
+        if (!best || w.bat < best.bat) best = w;
+      }
+      if (best) { best.claimedBy = c; c.target = best; c.state = 'go'; }
+      else moveTo(c, K.PARK + 18 * c.k, 0.9, K.ESPEED);
+    } else if (c.state === 'go' || c.state === 'charge') {
+      w = c.target;
+      if (!w || w.gone) { c.target = null; c.state = 'idle'; return; }
+      moveTo(c, w.x - 12, w.d, K.ESPEED);
+      if (c.state === 'go') {
+        if (Math.abs(w.x - 12 - c.x) <= 4 && Math.abs(w.d - c.d) <= 0.25) { c.state = 'charge'; c.timer = K.T_CHARGE; }
+      } else {
+        c.working = true;
+        c.timer -= dt;
+        if (c.timer <= 0) {
+          w.bat = 1; w.claimedBy = null; emit('charge', c, w);
+          c.target = null; c.charges--;
+          c.state = c.charges > 0 ? 'idle' : 'toLava';
+        }
+      }
+    } else if (c.state === 'toLava') {
+      if (moveTo(c, K.RIM - 8 - 10 * (c.k % 3), 0.92, K.ESPEED)) { c.state = 'refill'; c.timer = K.T_REFILL; }
+    } else if (c.state === 'refill') {
+      c.working = true;
+      c.timer -= dt;
+      if (c.timer <= 0) { c.charges = K.CHARGES; c.state = 'idle'; }
+    }
+  }
+  var RULES = { drill: drill, haul: haul, crush: crush, smelt: smelt, energy: energy };
+
+  function step() {
+    if (S.done) return;
+    var i, c;
+    S.t += dt;
+    for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i];
+      c.moving = false; c.working = false;
+      RULES[c.role](c);
+      if (c.role !== 'energy' && (c.moving || c.working)) c.bat = Math.max(0, c.bat - K.DRAIN * dt);
+    }
+    if (S.scored && S.t >= K.SHIFT - 1e-9) { S.done = true; emit('shiftEnd'); }
+  }
+  function rate() {                        // ingots in the last simulated minute
+    var n = 0, i;
+    for (i = S.log.length - 1; i >= 0 && S.log[i] > S.t - 60; i--) n++;
+    return n;
+  }
+  function addDropped(x, d) {
+    S.nodules.push({ x: clamp(x, 2, K.END - 2), d: clamp(d, 0.05, 1), alive: true, eddy: -1, by: null, dropped: true });
+  }
+  function drain() { var e = events; events = []; return e; }
+
+  return {
+    K: K, reset: reset, step: step, setCount: setCount, counts: counts, rate: rate,
+    addDropped: addDropped, drain: drain, state: function () { return S; }
+  };
+}
+if (typeof module !== 'undefined') module.exports = CrabSim;
+</script>
+<!-- ===== SCRIPT 2 of 3: drawing, the lava cavern, and the crew panel ===== -->
+<script>
+(function () {
+  'use strict';
+  var cv = document.getElementById('scene');
+  var fv = document.getElementById('floor');
+  if (!cv || !fv || !cv.getContext || typeof CrabSim !== 'function') return;
+  var bg = cv.getContext('2d');   // water, light, weeds: behind the paper
+  var fg = fv.getContext('2d');   // sea floor, crabs, cavern, falling nodules: in front of the paper
+  var ctx = bg;                   // the layer currently being drawn
+  var root = document.documentElement;
+  var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var mqDark = window.matchMedia('(prefers-color-scheme: dark)');
+  var TAU = Math.PI * 2;
+  var FLOOR_SHARE = 0.10; // part of the screen height given to the sea floor
+  var FLOOR_MIN = 56;     // pixels; keeps the crabs legible in very short windows
+  var MEDALS = [[29, 'Perfect: the best score any crew can reach'], [28, 'Gold'], [25, 'Silver'], [20, 'Bronze']];
+
+  var sim = CrabSim(), K = sim.K, S = null;
+  var W = 0, H = 0, DPR = 1, T = 0, last = 0, raf = 0, running = false, acc = 0, speed = 1;
+  var F = 0, SC = 1, CS = 1, weedH = 0, surfH = 0, maxOff = 10, lavaL = 0, prevTop = 0, frontPath = null, backPath = null;
+  var LX = [], PX = [];           // track units -> screen pixels, piecewise
+  var pal = {};
+  var falling = [], puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [];
+  var cfg = {}, best = null, lastResult = null, uiTick = 0;
+
+  function rr(a, b) { return a + Math.random() * (b - a); }   // decoration only; the economy has its own numbers
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function cssVar(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+  function readPalette() {
+    var names = ['foam', 'sand-back', 'sand-front', 'sand-line', 'nodule', 'weed', 'weed-2', 'crab', 'crab-dark', 'metal',
+      'metal-dark', 'light', 'snow', 'bubble', 'drill', 'drill-dark', 'crush', 'crush-dark', 'smelt', 'smelt-dark',
+      'energy', 'energy-dark', 'rock', 'rock-dark', 'rock-line', 'lava-hot', 'lava', 'lava-deep', 'bar', 'bar-dark',
+      'ingot', 'ingot-dark', 'warn'];
+    pal = {};
+    names.forEach(function (n) { pal[n.replace(/-(\w)/g, function (m, c) { return c.toUpperCase(); })] = cssVar('--c-' + n); });
+  }
+  var STYLE = {
+    haul: function () { return [pal.crab, pal.crabDark]; },
+    drill: function () { return [pal.drill, pal.drillDark]; },
+    crush: function () { return [pal.crush, pal.crushDark]; },
+    smelt: function () { return [pal.smelt, pal.smeltDark]; },
+    energy: function () { return [pal.energy, pal.energyDark]; }
+  };
+
+  // ----- terrain and track -----
+  function frontY(x) { return H - F * 0.5 - 4 * Math.sin(x * 0.0061 + 1.3) - 2.5 * Math.sin(x * 0.0173 + 0.4); }
+  function backY(x) { return H - F * 0.8 - 5 * Math.sin(x * 0.0043 + 2.1) - 2.5 * Math.sin(x * 0.0131); }
+  function dunePath(fn) {
+    var p = new Path2D();
+    p.moveTo(-10, H + 10);
+    for (var x = -10; x <= W + 10; x += 10) p.lineTo(x, fn(x));
+    p.lineTo(W + 10, H + 10);
+    p.closePath();
+    return p;
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function X(lx) {                 // track position -> pixel
+    for (var i = 1; i < LX.length; i++) {
+      if (lx <= LX[i]) return PX[i - 1] + (PX[i] - PX[i - 1]) * (lx - LX[i - 1]) / (LX[i] - LX[i - 1]);
+    }
+    return PX[PX.length - 1];
+  }
+  function Xinv(px) {              // pixel -> track position
+    for (var i = 1; i < PX.length; i++) {
+      if (px <= PX[i]) return LX[i - 1] + (LX[i] - LX[i - 1]) * (px - PX[i - 1]) / Math.max(1e-6, PX[i] - PX[i - 1]);
+    }
+    return LX[LX.length - 1];
+  }
+  function groundY(px, d) { return frontY(px) + 3 + d * maxOff; }
+  // Where a crab is drawn. Crushers share one spot on the track, so they are fanned out on screen only.
+  function crabX(c) { return X(c.x) + (c.role === 'crush' ? [-13, 13, 0][c.k % 3] * CS : 0); }
+
+  // ----- layout -----
+  function measure() {
+    var w = cv.clientWidth, h = cv.clientHeight, sp, lw;
+    if (!w || !h) return;
+    var widthChanged = w !== W;
+    W = w; H = h;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    F = Math.max(FLOOR_MIN, Math.round(H * FLOOR_SHARE));
+    SC = clamp(F / 85, 0.7, 1.12);
+    CS = SC * (W < 600 ? 0.8 : 1);                 // crabs draw a little smaller on phones
+    weedH = clamp(H * 0.17, 70, 170);
+    surfH = clamp(H * 0.12, 54, 120);
+    maxOff = Math.max(8, F * 0.5 - 14);
+    cv.width = fv.width = Math.round(W * DPR);
+    cv.height = fv.height = Math.round(H * DPR);
+    bg.setTransform(DPR, 0, 0, DPR, 0, 0);
+    fg.setTransform(DPR, 0, 0, DPR, 0, 0);
+    root.style.setProperty('--floor', F + 'px');
+    prevTop = 0;
+    frontPath = dunePath(frontY);
+    backPath = dunePath(backY);
+    // The stations keep their pixel spacing near the cavern; the nodule field takes the rest of the width.
+    lw = clamp(W * 0.15, 80, 200);
+    lavaL = W - lw;
+    sp = SC * clamp((lavaL - 0.36 * W) / 280, 0.45, 1);   // on narrow screens the stations close up to leave a field
+    LX = [0, K.FIELD0, K.FIELD1, K.HAUL_STAND, K.ORE, K.CRUSH, K.BAR, K.GRAB, K.CHUTE, K.COLLECTOR, K.RIM, K.LAVA, K.END];
+    PX = [0, 14, lavaL - 280 * sp, lavaL - 256 * sp, lavaL - 226 * sp, lavaL - 186 * sp, lavaL - 150 * sp, lavaL - 130 * sp,
+      lavaL - 116 * sp, lavaL - 58 * sp, lavaL - 14 * sp, lavaL, W];
+    if (widthChanged) decorate();
+  }
+  function decorate() {
+    var i, j, n;
+    weeds = [];
+    n = clamp(Math.round(W / 250), 2, 7);
+    for (i = 0; i < n; i++) {
+      var bx = rr(20, lavaL - 60), stalks = 2 + Math.floor(Math.random() * 3);
+      for (j = 0; j < stalks; j++) weeds.push({ x: bx + rr(-16, 16), h: rr(0.4, 1.05), ph: rr(0, TAU), amp: rr(9, 18), w: rr(3, 5) });
+    }
+    snow = [];
+    n = clamp(Math.round(W * H / 26000), 20, 90);
+    for (i = 0; i < n; i++) snow.push({ x: rr(0, W), y: rr(0, 1), r: rr(0.6, 1.6), vy: rr(5, 14), ph: rr(0, TAU) });
+    lavaBub = [];
+    for (i = 0; i < 5; i++) lavaBub.push({ u: rr(0.1, 0.95), t: rr(0, 1), dur: rr(0.9, 2), r: rr(2, 4.5) });
+    falling = []; bubbles = [];
+  }
+
+  // ----- small effects -----
+  function burst(x, y, k) {
+    for (var i = 0; i < k; i++) bubbles.push({ x: x + rr(-6, 6), y: y + rr(-4, 4), r: rr(1.4, 4.2), vy: rr(22, 46), ph: rr(0, TAU) });
+  }
+  function poof(x, y, k, power, color) {
+    for (var i = 0; i < k; i++) puffs.push({
+      x: x + rr(-4, 4), y: y + rr(-2, 2), vx: rr(-38, 38) * power, vy: rr(-40, -8) * power,
+      r: rr(2, 4.5), gr: rr(7, 14), life: 0, max: rr(0.6, 1.15), color: color || (Math.random() < 0.5 ? pal.sandLine : pal.sandBack)
+    });
+  }
+  function clawPos(c, side) { var px = crabX(c); return { x: px + side * 15 * CS, y: groundY(px, c.d) - 12 * CS }; }
+  function oreSlot(i) {            // the ore pile is a pyramid five nodules wide
+    var row = 0, size = 5, k = i, rp = 4 * CS, px = X(K.ORE);
+    while (k >= size && size > 1) { k -= size; size--; row++; }
+    return { x: px + (k - (size - 1) / 2) * rp * 2.3, y: groundY(px, 0.12) - rp * 0.8 - row * rp * 1.45 };
+  }
+  function barSlot(i) {            // bars are stacked like bricks, two wide
+    var px = X(K.BAR);
+    return { x: px + ((i % 2) - 0.5) * 9 * CS, y: groundY(px, 0.1) - 2 * CS - Math.floor(i / 2) * 4.1 * CS };
+  }
+  function collectorBase() { var px = X(K.COLLECTOR); return { x: px, y: frontY(px) + 5 }; }
+  function chuteMouth() { var b = collectorBase(); return { x: b.x - 30 * CS, y: b.y - 16 * CS }; }
+  function riserPoint(t) {         // a point along the riser, 0 at the collector and 1 at the surface
+    var b = collectorBase(), x0 = b.x + 6 * CS, y0 = b.y - 34 * CS;
+    var cx = b.x + 6 + Math.sin(T * 0.35) * 16, cy = H * 0.45, x1 = b.x + 2 + Math.sin(T * 0.22 + 1) * 10, y1 = -10, u = 1 - t;
+    return { x: u * u * x0 + 2 * u * t * cx + t * t * x1, y: u * u * y0 + 2 * u * t * cy + t * t * y1 };
+  }
+
+  // ----- the economy's events become things you can see -----
+  function fly(kind, from, to, dur, extra) {
+    var f = { kind: kind, x0: from.x, y0: from.y, to: to, t: 0, dur: dur };
+    if (extra) for (var k in extra) f[k] = extra[k];
+    flights.push(f);
+  }
+  function incoming(tag) { var n = 0; for (var i = 0; i < flights.length; i++) if (flights[i].tag === tag) n++; return n; }
+  function handle(e) {
+    var a = e.a, p, m;
+    if (e.type === 'uncover') { p = X(a.x); poof(p, groundY(p, a.d), 7, 0.7); }
+    else if (e.type === 'stack') fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore' });
+    else if (e.type === 'feed') {
+      fly('nod', oreSlot(S.ore + 1), clawPos(a, -1), 0.3);
+      fly('nod', oreSlot(S.ore), clawPos(a, -1), 0.36);
+    }
+    else if (e.type === 'bar') { p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars' }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); }
+    else if (e.type === 'grab') fly('bar', barSlot(S.bars), clawPos(a, -1), 0.26);
+    else if (e.type === 'ingot') { m = chuteMouth(); fly('ingot', clawPos(a, 1), m, 0.34, { lift: true }); }
+    else if (e.type === 'charge') { p = clawPos(e.b, 0); for (m = 0; m < 6; m++) sparks.push({ x: p.x + rr(-8, 8), y: p.y + rr(-8, 4), vx: rr(-30, 30), vy: rr(-50, -10), life: 0, max: rr(0.25, 0.5) }); }
+    else if (e.type === 'join') { a.vfall = running ? 1 : 0; }
+    else if (e.type === 'leave') { p = X(a.x); burst(p, groundY(p, a.d) - 10, 6); }
+    else if (e.type === 'shiftEnd') finishShift();
+  }
+
+  // ----- click to drop a nodule (free play only) -----
+  function drop(x, y) {
+    if (!S || S.scored) return;                    // a scored shift is hands-off
+    var n = {
+      x: clamp(x, 8, W - 8), y: Math.min(y, H - F * 1.7), vx: rr(-24, 24), vy: rr(-30, 10),
+      r: rr(2.8, 4.8), rot: rr(0, TAU), vr: rr(-3, 3), off: rr(3, maxOff), ph: rr(0, TAU), bounced: false
+    };
+    if (!running) { land(n); draw(); return; }     // reduced motion: place it without the fall
+    falling.push(n);
+    burst(n.x, n.y, 2);
+  }
+  function land(n) {
+    if (n.x > lavaL + 6) {                         // dropped into the lava: gone in a hiss
+      poof(n.x, H - F * 0.42, 8, 0.8, pal.lavaHot); burst(n.x, H - F * 0.5, 4);
+      return;
+    }
+    if (S && !S.scored) sim.addDropped(Xinv(n.x), n.off / maxOff);
+  }
+  function stepFalling(dt) {
+    for (var i = falling.length - 1; i >= 0; i--) {
+      var n = falling[i], gy;
+      n.vy += 560 * dt; n.vy -= n.vy * 1.7 * dt; n.vx -= n.vx * 1.2 * dt;
+      n.x = clamp(n.x + (n.vx + Math.sin(T * 3 + n.ph) * 10) * dt, 6, W - 6);
+      n.y += n.vy * dt; n.rot += n.vr * dt;
+      if (Math.random() < dt * 5) bubbles.push({ x: n.x, y: n.y - 4, r: rr(1, 2.2), vy: rr(26, 44), ph: rr(0, TAU) });
+      gy = n.x > lavaL + 6 ? H - F * 0.42 : frontY(n.x) + n.off;
+      if (n.y >= gy) {
+        n.y = gy;
+        if (!n.bounced && n.vy > 90 && n.x <= lavaL + 6) { n.bounced = true; n.vy = -n.vy * 0.25; n.vr *= 0.4; poof(n.x, gy, 10, 1); }
+        else { if (n.x <= lavaL + 6) poof(n.x, gy, n.bounced ? 4 : 10, 0.6); land(n); falling.splice(i, 1); }
+      }
+    }
+  }
+
+  // ----- per-frame update -----
+  function update(dtReal) {
+    var i, n, e, steps = 0, dtSim, c, px;
+    acc += dtReal * speed;
+    while (acc >= K.STEP && steps < 24) { sim.step(); acc -= K.STEP; steps++; }
+    if (steps >= 24) acc = 0;
+    dtSim = steps * K.STEP;
+    e = sim.drain();
+    for (i = 0; i < e.length; i++) handle(e[i]);
+
+    for (i = 0; i < S.crabs.length; i++) {         // view-only state hung on each crab
+      c = S.crabs[i]; px = crabX(c);
+      if (c.vpx === undefined) { c.vpx = px; c.vd = c.d; c.vgait = rr(0, TAU); c.vph = rr(0, TAU); if (c.vfall === undefined) c.vfall = 0; }
+      c.vgait += (Math.abs(px - c.vpx) + Math.abs(c.d - c.vd) * maxOff) * 0.32;
+      c.vpx = px; c.vd = c.d;
+      if (c.vfall > 0) { c.vfall = Math.max(0, c.vfall - dtReal / 0.9); if (c.vfall === 0) poof(px, groundY(px, c.d), 8, 0.8); }
+      if (c.state === 'drill' && Math.random() < dtReal * 14) poof(px + rr(-5, 5), groundY(px, c.d), 1, 0.7);
+      if (c.state === 'crush' && Math.random() < dtReal * 5) poof(px, groundY(px, c.d) - 3 * CS, 1, 0.35, pal.barDark);
+      if (c.state === 'smelt' && Math.random() < dtReal * 6) embers.push({ x: px + 20 * CS, y: groundY(px, c.d) - 6 * CS, vx: rr(-10, 10), vy: rr(-40, -14), life: 0, max: rr(0.4, 0.9) });
+    }
+
+    for (i = flights.length - 1; i >= 0; i--) {
+      n = flights[i]; n.t += dtSim / n.dur;
+      if (n.t >= 1) { flights.splice(i, 1); if (n.lift) { lifts.push({ t: 0 }); burst(n.to.x, n.to.y - 10, 1); } }
+    }
+    for (i = lifts.length - 1; i >= 0; i--) { lifts[i].t += dtSim / 1.6; if (lifts[i].t >= 1) lifts.splice(i, 1); }
+    stepFalling(dtReal);
+
+    for (i = puffs.length - 1; i >= 0; i--) {
+      n = puffs[i]; n.life += dtReal;
+      if (n.life >= n.max) { puffs.splice(i, 1); continue; }
+      n.vx -= n.vx * 2.2 * dtReal; n.vy -= n.vy * 2.2 * dtReal; n.vy -= 5 * dtReal;
+      n.x += n.vx * dtReal; n.y += n.vy * dtReal; n.r += n.gr * dtReal;
+    }
+    for (i = sparks.length - 1; i >= 0; i--) { n = sparks[i]; n.life += dtReal; if (n.life >= n.max) { sparks.splice(i, 1); continue; } n.x += n.vx * dtReal; n.y += n.vy * dtReal; }
+    if (Math.random() < dtReal * 3) embers.push({ x: rr(lavaL + 12, W - 6), y: H - F * 0.44, vx: rr(-8, 8), vy: rr(-34, -12), life: 0, max: rr(0.5, 1.2) });
+    for (i = embers.length - 1; i >= 0; i--) { n = embers[i]; n.life += dtReal; if (n.life >= n.max) { embers.splice(i, 1); continue; } n.x += n.vx * dtReal; n.y += n.vy * dtReal; }
+    for (i = 0; i < lavaBub.length; i++) { n = lavaBub[i]; n.t += dtReal / n.dur; if (n.t >= 1) { n.t = 0; n.u = rr(0.1, 0.95); n.dur = rr(0.9, 2); n.r = rr(2, 4.5); } }
+
+    for (i = 0; i < snow.length; i++) {
+      n = snow[i];
+      n.y += (n.vy * dtReal) / H; n.x += Math.sin(T * 0.5 + n.ph) * 6 * dtReal;
+      if (n.y * H > H - F * 0.8) { n.y = surfH / H; n.x = rr(0, W); }
+    }
+    if (Math.random() < dtReal * 0.55) burst(rr(0, lavaL), H - F * rr(0.4, 0.8), 1);
+    if (Math.random() < dtReal * 1.6) burst(rr(lavaL + 10, W - 4), H - F * 0.9, 1);   // heat rising off the cavern
+    for (i = bubbles.length - 1; i >= 0; i--) {
+      n = bubbles[i];
+      n.y -= n.vy * dtReal; n.x += Math.sin(T * 2.2 + n.ph) * 9 * dtReal;
+      if (n.y < surfH * 0.7) bubbles.splice(i, 1);
+    }
+  }
+
+  // ----- drawing: water -----
+  var LAYERS = [[0.42, 7, 0.0120, 0.90, 0.0, 0.22], [0.66, 9, 0.0080, -0.62, 1.7, 0.15], [0.92, 11, 0.0055, 0.44, 3.1, 0.11]];
+  function waveY(L, x) {
+    return surfH * L[0] + L[1] * Math.sin(x * L[2] + T * L[3] + L[4]) + L[1] * 0.45 * Math.sin(x * L[2] * 2.7 - T * L[3] * 1.6 + L[4] * 2);
+  }
+  function drawSurface() {
+    var i, x, L;
+    ctx.fillStyle = pal.foam;
+    for (i = 0; i < LAYERS.length; i++) {
+      L = LAYERS[i];
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      for (x = 0; x <= W + 12; x += 12) ctx.lineTo(x, waveY(L, x));
+      ctx.lineTo(W + 12, 0); ctx.closePath();
+      ctx.globalAlpha = L[5]; ctx.fill();
+    }
+    L = LAYERS[2];
+    ctx.beginPath();
+    for (x = 0; x <= W + 12; x += 12) { if (x === 0) ctx.moveTo(x, waveY(L, x)); else ctx.lineTo(x, waveY(L, x)); }
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.6;
+    ctx.setLineDash([22, 30]); ctx.lineDashOffset = -T * 22; ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+  function drawSnow() {
+    ctx.fillStyle = pal.snow;
+    for (var i = 0; i < snow.length; i++) { ctx.beginPath(); ctx.arc(snow[i].x, snow[i].y * H, snow[i].r, 0, TAU); ctx.fill(); }
+  }
+  function drawWeeds() {
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (var i = 0; i < weeds.length; i++) {
+      var w = weeds[i], by = backY(w.x) + 8, h = w.h * weedH, pass, seg, f;
+      for (pass = 0; pass < 2; pass++) {
+        ctx.beginPath(); ctx.moveTo(w.x, by);
+        for (seg = 1; seg <= 9; seg++) { f = seg / 9; ctx.lineTo(w.x + Math.sin(T * 0.8 + w.ph + f * 2.4) * w.amp * f * f + (pass ? 1.2 : 0), by - h * f); }
+        ctx.strokeStyle = pass ? pal.weed2 : pal.weed; ctx.lineWidth = pass ? w.w * 0.35 : w.w; ctx.globalAlpha = pass ? 0.7 : 0.92;
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawBubbles() {
+    ctx.strokeStyle = pal.bubble; ctx.lineWidth = 1;
+    for (var i = 0; i < bubbles.length; i++) { ctx.beginPath(); ctx.arc(bubbles[i].x, bubbles[i].y, bubbles[i].r, 0, TAU); ctx.stroke(); }
+  }
+  function drawRiser() {
+    var a = riserPoint(0), b = collectorBase();
+    ctx.strokeStyle = pal.metalDark; ctx.globalAlpha = 0.7; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y);
+    ctx.quadraticCurveTo(b.x + 6 + Math.sin(T * 0.35) * 16, H * 0.45, b.x + 2 + Math.sin(T * 0.22 + 1) * 10, -10);
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+
+  // ----- drawing: stations -----
+  function drawCollector() {
+    var b = collectorBase(), busy = lifts.length > 0, blink = Math.sin(T * (busy ? 14 : 3.2)) > 0.3 ? 1 : 0.2;
+    ctx.save(); ctx.translate(b.x, b.y); ctx.scale(CS, CS);
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-16, -10); ctx.lineTo(-24, 4); ctx.moveTo(16, -10); ctx.lineTo(24, 4); ctx.stroke();
+    ctx.fillStyle = pal.metalDark;
+    ctx.beginPath(); ctx.moveTo(-22, -26); ctx.lineTo(-42, -8); ctx.lineTo(-22, -8); ctx.closePath(); ctx.fill();
+    roundRect(-24, -36, 48, 28, 6); ctx.fillStyle = pal.metal; ctx.fill(); ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.55; ctx.fillRect(-16, -28, 20, 4); ctx.fillRect(-16, -20, 12, 4);
+    ctx.fillStyle = pal.light; ctx.globalAlpha = blink * 0.3; ctx.beginPath(); ctx.arc(14, -41, 7, 0, TAU); ctx.fill();
+    ctx.globalAlpha = blink; ctx.beginPath(); ctx.arc(14, -41, 2.8, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+  function drawSandDetail() {
+    var x, j, y;
+    ctx.strokeStyle = pal.sandLine; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    for (x = -10; x <= W + 10; x += 10) { if (x === -10) ctx.moveTo(x, frontY(x)); else ctx.lineTo(x, frontY(x)); }
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    for (j = 0; j < 3; j++) {
+      ctx.globalAlpha = 0.16 + 0.1 * Math.sin(T * 0.7 + j * 1.9);
+      ctx.beginPath();
+      for (x = -10; x <= W + 10; x += 14) { y = frontY(x) + F * 0.13 + j * F * 0.13 + 2.5 * Math.sin(x * 0.03 + T * 0.9 + j * 1.7); if (x === -10) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  // The lava cavern: a basalt outcrop at the right end of the floor with a pool of lava inside it.
+  function lavaY(x) { return H - F * 0.44 + 1.6 * Math.sin(x * 0.09 + T * 1.7) + 1.1 * Math.sin(x * 0.21 - T * 2.3); }
+  function drawCavern() {
+    var yT = H - F, u = CS, x, i, g, b, t, bx, by;
+    // rock mass
+    ctx.fillStyle = pal.rock;
+    ctx.beginPath();
+    ctx.moveTo(lavaL - 20 * u, H + 2);
+    ctx.lineTo(lavaL - 13 * u, frontY(lavaL - 13 * u) + 1);
+    ctx.lineTo(lavaL - 3 * u, yT + F * 0.3);
+    ctx.lineTo(lavaL + 9 * u, yT + F * 0.1);
+    for (x = lavaL + 9 * u, i = 0; x < W; x += 16, i++) ctx.lineTo(x + 8, yT + F * (0.03 + 0.05 * ((i * 7) % 3) / 2));
+    ctx.lineTo(W + 2, yT + F * 0.04); ctx.lineTo(W + 2, H + 2);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.rockLine; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.8; ctx.stroke(); ctx.globalAlpha = 1;
+    // the cave mouth
+    ctx.fillStyle = pal.rockDark;
+    ctx.beginPath();
+    ctx.moveTo(lavaL + 3 * u, H);
+    ctx.lineTo(lavaL + 5 * u, yT + F * 0.5);
+    ctx.quadraticCurveTo(lavaL + 12 * u, yT + F * 0.2, lavaL + 30 * u, yT + F * 0.2);
+    ctx.lineTo(W - 12, yT + F * 0.17);
+    ctx.quadraticCurveTo(W + 2, yT + F * 0.22, W + 2, yT + F * 0.5);
+    ctx.lineTo(W + 2, H); ctx.closePath(); ctx.fill();
+    // stalactites
+    ctx.fillStyle = pal.rock;
+    for (x = lavaL + 34 * u, i = 0; x < W - 14; x += 26 * u, i++) {
+      ctx.beginPath(); ctx.moveTo(x - 5 * u, yT + F * 0.18); ctx.lineTo(x + 5 * u, yT + F * 0.18);
+      ctx.lineTo(x + (i % 2 ? 1 : -1) * u, yT + F * (0.3 + 0.06 * (i % 3))); ctx.closePath(); ctx.fill();
+    }
+    // lava pool
+    g = ctx.createLinearGradient(0, H - F * 0.46, 0, H);
+    g.addColorStop(0, pal.lavaHot); g.addColorStop(0.3, pal.lava); g.addColorStop(1, pal.lavaDeep);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(lavaL + 4 * u, H);
+    for (x = lavaL + 4 * u; x <= W + 4; x += 6) ctx.lineTo(x, lavaY(x));
+    ctx.lineTo(W + 4, H); ctx.closePath(); ctx.fill();
+    // bright skin on the surface
+    ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    for (x = lavaL + 4 * u; x <= W + 4; x += 6) { if (x === lavaL + 4 * u) ctx.moveTo(x, lavaY(x)); else ctx.lineTo(x, lavaY(x)); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    // cooling crust drifting on the pool
+    ctx.fillStyle = pal.rockDark;
+    for (i = 0; i < 3; i++) {
+      t = (T * 0.035 + i * 0.37) % 1; bx = lavaL + 10 * u + t * (W - lavaL - 10 * u);
+      ctx.globalAlpha = 0.5 * Math.sin(Math.PI * t);
+      ctx.beginPath(); ctx.ellipse(bx, lavaY(bx) + F * (0.1 + 0.08 * i), 9 * u, 2.4 * u, 0, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // bubbles that swell and burst
+    for (i = 0; i < lavaBub.length; i++) {
+      b = lavaBub[i]; bx = lavaL + 8 * u + b.u * (W - lavaL - 10 * u); by = lavaY(bx);
+      if (b.t < 0.8) {
+        ctx.fillStyle = pal.lavaHot; ctx.globalAlpha = 0.95;
+        ctx.beginPath(); ctx.arc(bx, by, b.r * u * (b.t / 0.8), Math.PI, TAU); ctx.fill();
+      } else {
+        ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.2; ctx.globalAlpha = 1 - (b.t - 0.8) / 0.2;
+        ctx.beginPath(); ctx.arc(bx, by, b.r * u * (1 + (b.t - 0.8) * 4), Math.PI, TAU); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    // the rim the smelters stand on
+    ctx.fillStyle = pal.rock;
+    ctx.beginPath();
+    ctx.moveTo(lavaL - 16 * u, H + 2); ctx.lineTo(lavaL - 8 * u, H - F * 0.4);
+    ctx.quadraticCurveTo(lavaL + 2 * u, H - F * 0.5, lavaL + 9 * u, H - F * 0.36);
+    ctx.lineTo(lavaL + 22 * u, H + 2); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.rockLine; ctx.lineWidth = 1; ctx.globalAlpha = 0.7; ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  function drawGlow() {            // light from the lava spilling over whatever stands near it
+    var rx = (W - lavaL) * 0.85, ry = F * 0.95, g;
+    ctx.save();
+    ctx.translate((lavaL + W) / 2, H - F * 0.4);
+    ctx.scale(1, ry / rx);
+    g = ctx.createRadialGradient(0, 0, 4, 0, 0, rx);
+    g.addColorStop(0, 'rgba(255,150,50,' + (0.3 + 0.06 * Math.sin(T * 2.1)).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(255,120,30,0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, rx, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  // ----- drawing: goods -----
+  function drawNod(x, y, r, a, rot) {
+    ctx.globalAlpha = a; ctx.fillStyle = pal.nodule;
+    ctx.beginPath(); ctx.ellipse(x, y, r * 1.25, r * 0.85, rot || 0, 0, TAU); ctx.fill();
+    ctx.globalAlpha = a * 0.25; ctx.fillStyle = pal.sandLine;
+    ctx.beginPath(); ctx.ellipse(x - r * 0.35, y - r * 0.3, r * 0.45, r * 0.22, rot || 0, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  function drawBar(x, y, s, heat) {
+    roundRect(x - 4.4 * s, y - 2 * s, 8.8 * s, 4 * s, 1.2 * s);
+    ctx.fillStyle = pal.bar; ctx.fill();
+    ctx.strokeStyle = pal.barDark; ctx.lineWidth = 0.8; ctx.stroke();
+    if (heat > 0) { ctx.globalAlpha = heat; ctx.fillStyle = pal.lavaHot; ctx.fill(); ctx.globalAlpha = 1; }
+  }
+  function drawIngot(x, y, s) {
+    ctx.fillStyle = pal.ingot; ctx.globalAlpha = 0.3;
+    ctx.beginPath(); ctx.arc(x, y, 6.5 * s, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(x - 4.6 * s, y + 2 * s); ctx.lineTo(x - 3.2 * s, y - 2 * s); ctx.lineTo(x + 3.2 * s, y - 2 * s); ctx.lineTo(x + 4.6 * s, y + 2 * s); ctx.closePath();
+    ctx.fill(); ctx.strokeStyle = pal.ingotDark; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+  function drawEddy(n, px, y) {    // water churned by the drill, turning on the sand
+    var e = n.eddy, strength = Math.sin(Math.PI * e), R = (10 + 8 * strength) * CS, arm, k, f, th;
+    ctx.strokeStyle = pal.foam; ctx.lineCap = 'round'; ctx.lineWidth = 1.4;
+    for (arm = 0; arm < 3; arm++) {
+      ctx.beginPath();
+      for (k = 0; k <= 14; k++) { f = k / 14; th = arm * 2.094 + e * 11 + f * 3.6; if (k) ctx.lineTo(px + Math.cos(th) * R * f, y + Math.sin(th) * R * f * 0.42); else ctx.moveTo(px, y); }
+      ctx.globalAlpha = strength * 0.8; ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawGroundNodule(n) {
+    var px = X(n.x), y = frontY(px) + 3 + n.d * maxOff, a;
+    if (n.vr === undefined) n.vr = 2.8 + ((n.x * 7.31) % 1) * 1.8;
+    if (n.eddy >= 0) { drawEddy(n, px, y); a = clamp((n.eddy - 0.5) / 0.5, 0, 1); if (a > 0) drawNod(px, y, n.vr * CS * (0.7 + 0.3 * a), a, 0); }
+    else drawNod(px, y, n.vr * CS, 1, 0);
+  }
+  function drawOrePile() {
+    var n = Math.max(0, S.ore - incoming('ore')), i, s;
+    for (i = 0; i < n; i++) { s = oreSlot(i); drawNod(s.x, s.y, (3.6 + ((i * 37) % 7) / 10) * CS, 1, ((i * 53) % 9) / 10 - 0.4); }
+  }
+  function drawBarStack() {
+    var n = Math.max(0, S.bars - incoming('bars')), i, s;
+    for (i = 0; i < n; i++) { s = barSlot(i); drawBar(s.x, s.y, CS, 0); }
+  }
+  function drawFlights() {
+    for (var i = 0; i < flights.length; i++) {
+      var f = flights[i], t = clamp(f.t, 0, 1), x = f.x0 + (f.to.x - f.x0) * t, y = f.y0 + (f.to.y - f.y0) * t - Math.sin(Math.PI * t) * 10 * CS;
+      if (f.kind === 'nod') drawNod(x, y, 3.8 * CS, 1, t * 4);
+      else if (f.kind === 'bar') drawBar(x, y, CS, 0);
+      else drawIngot(x, y, CS * (1 - 0.3 * t));
+    }
+  }
+  function drawLifts() {
+    for (var i = 0; i < lifts.length; i++) {
+      var p = riserPoint(lifts[i].t);
+      ctx.fillStyle = pal.ingot; ctx.globalAlpha = 0.35 * (1 - lifts[i].t * 0.5);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(p.x, p.y, 2.6, 0, TAU); ctx.fill();
+    }
+  }
+  function drawParticles() {
+    var i, p;
+    for (i = 0; i < puffs.length; i++) {
+      p = puffs[i]; ctx.globalAlpha = (1 - p.life / p.max) * 0.5; ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
+    }
+    ctx.fillStyle = pal.lavaHot;
+    for (i = 0; i < embers.length; i++) { p = embers[i]; ctx.globalAlpha = 1 - p.life / p.max; ctx.beginPath(); ctx.arc(p.x, p.y, 1.3, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = pal.light;
+    for (i = 0; i < sparks.length; i++) { p = sparks[i]; ctx.globalAlpha = 1 - p.life / p.max; ctx.beginPath(); ctx.arc(p.x, p.y, 1.6, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    for (i = 0; i < falling.length; i++) drawNod(falling[i].x, falling[i].y, falling[i].r, 1, falling[i].rot);
+  }
+
+  // ----- drawing: crabs -----
+  function drawCrab(c) {
+    var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
+    var s = CS * (role === 'energy' ? 0.84 : 1);
+    var px = crabX(c), gy = groundY(px, c.d), moving = c.moving;
+    var low = role !== 'energy' && c.bat < K.LOW;
+    var i, side, ph, lift, hx, fx, ax, ay, hit, by, bob, w, col;
+    if (c.vfall > 0) gy -= c.vfall * c.vfall * (F * 1.4 + 60);
+    if (c.state === 'drill') px += Math.sin(T * 61) * 0.7;
+    if (c.state === 'crush') px += Math.sin(T * 47) * 0.35;
+    bob = moving ? Math.sin(c.vgait * 2) * 0.7 : 0;
+    by = gy - 9 * s + bob;
+    ctx.save(); ctx.translate(px, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    // legs
+    ctx.strokeStyle = dark; ctx.lineWidth = 1.7 * s;
+    for (side = -1; side <= 1; side += 2) for (i = 0; i < 3; i++) {
+      ph = c.vgait + i * 2.094 + (side > 0 ? 0 : Math.PI);
+      lift = moving ? Math.max(0, Math.sin(ph)) * 3.2 * s : 0;
+      hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s + (moving ? Math.cos(ph) * 2.4 * s * c.dir : 0);
+      ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke();
+    }
+
+    // the drill bit, under the body
+    if (role === 'drill') {
+      var ext = c.state === 'drill' ? 8 * s : -1 * s;
+      ctx.fillStyle = pal.metal; ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(-4.2 * s, by + 3 * s); ctx.lineTo(4.2 * s, by + 3 * s); ctx.lineTo(0, gy + ext); ctx.closePath(); ctx.fill(); ctx.stroke();
+      for (i = 0; i < 3; i++) {
+        w = ((i / 3 + (c.state === 'drill' ? T * 3 : 0)) % 1);
+        ctx.beginPath(); ctx.moveTo(-4.2 * s * (1 - w), by + 3 * s + (gy + ext - by - 3 * s) * w); ctx.lineTo(4.2 * s * (1 - w) * 0.6, by + 3 * s + (gy + ext - by - 3 * s) * Math.min(1, w + 0.12)); ctx.stroke();
+      }
+    }
+
+    // claws
+    for (side = -1; side <= 1; side += 2) {
+      ax = side * 17 * s; ay = by - 3 * s; w = 2.9;
+      if (role === 'haul') {
+        if (c.state === 'pick' && side === c.dir) ay += Math.abs(Math.sin(c.timer * 7)) * 7 * s;
+        if (c.state === 'stack' && side === 1) ay -= Math.abs(Math.sin(c.timer * 9)) * 5 * s;
+      } else if (role === 'crush') {
+        w = 4.6;
+        if (c.state === 'crush') { hit = Math.abs(Math.sin(T * 9 + c.vph)); ax = side * (5 + 9 * hit) * s; ay = gy - 5 * s - hit * 7 * s; }
+      } else if (role === 'smelt') {
+        w = 2.4;
+        if (c.state === 'smelt' && side === 1) { ax = 22 * s; ay = by + 3 * s + Math.sin(T * 3) * 0.8; }
+      } else if (role === 'energy') {
+        w = 2; ax = side * 13 * s;
+        if (c.state === 'charge' && side === 1) { ax = 15 * s; ay = by - 6 * s; }
+      } else { w = 2.3; ax = side * 14 * s; }
+      ctx.strokeStyle = dark; ctx.lineWidth = (role === 'crush' ? 2.6 : 2) * s;
+      ctx.beginPath(); ctx.moveTo(side * 8 * s, by - 1 * s); ctx.lineTo((side * 8 * s + ax) / 2 + side * 1.5 * s, Math.min(by - 6.5 * s, ay - 2 * s)); ctx.lineTo(ax, ay); ctx.stroke();
+      ctx.fillStyle = role === 'smelt' ? pal.lava : body;
+      ctx.beginPath(); ctx.arc(ax, ay, w * s, 0, TAU); ctx.fill();
+      ctx.strokeStyle = dark; ctx.lineWidth = 1 * s;
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + side * w * s, ay + 1.2 * s); ctx.stroke();
+      // what the smelter carries in its leading claw
+      if (role === 'smelt' && c.carry && side === (c.state === 'smelt' ? 1 : c.dir)) {
+        if (c.carry === 'bar') drawBar(ax + side * 5 * s, ay + 1 * s, s, c.state === 'smelt' ? c.heat : 0);
+        else drawIngot(ax + side * 5 * s, ay, s);
+      }
+    }
+    if (role === 'crush' && c.state === 'crush') drawNod(0, gy - 3 * s, 3.4 * s * (1 - 0.4 * (1 - c.timer / K.T_CRUSH)), 1, T * 2);
+
+    // gear on the back
+    if (role === 'haul') {
+      roundRect(-6.5 * s, by - 14 * s, 13 * s, 8 * s, 2 * s); ctx.fillStyle = pal.metal; ctx.fill(); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = pal.nodule;
+      for (i = 0; i < c.load; i++) { ctx.beginPath(); ctx.arc((-3.6 + i * 3.6) * s, by - 10.4 * s, 1.35 * s, 0, TAU); ctx.fill(); }
+    } else if (role === 'drill') {
+      roundRect(-5 * s, by - 13 * s, 10 * s, 7 * s, 1.5 * s); ctx.fillStyle = dark; ctx.fill();
+      ctx.fillStyle = pal.metal; ctx.fillRect(-3 * s, by - 11.5 * s, 6 * s, 1.6 * s);
+    } else if (role === 'crush') {
+      roundRect(-7 * s, by - 12.5 * s, 14 * s, 6.5 * s, 1.5 * s); ctx.fillStyle = dark; ctx.fill();
+      ctx.fillStyle = pal.metal; ctx.fillRect(-5 * s, by - 14.5 * s, 3 * s, 3 * s); ctx.fillRect(2 * s, by - 14.5 * s, 3 * s, 3 * s);
+    } else if (role === 'smelt') {
+      ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(0, by - 5 * s, 8 * s, Math.PI, TAU); ctx.fill();
+      ctx.fillStyle = pal.lava; ctx.globalAlpha = 0.5 + 0.5 * (c.state === 'smelt' ? 1 : 0.3); ctx.fillRect(-4 * s, by - 10.5 * s, 8 * s, 1.6 * s); ctx.globalAlpha = 1;
+    } else {
+      roundRect(-7 * s, by - 15 * s, 14 * s, 9 * s, 2 * s); ctx.fillStyle = dark; ctx.fill();
+      for (i = 0; i < K.CHARGES; i++) { ctx.fillStyle = i < c.charges ? pal.light : pal.metalDark; ctx.fillRect((-5.4 + i * 2.9) * s, by - 13 * s, 2 * s, 5 * s); }
+      ctx.fillStyle = pal.metal; ctx.fillRect(-1.5 * s, by - 16.6 * s, 3 * s, 1.8 * s);
+      if (c.state === 'refill') { ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(7 * s, by - 10 * s); ctx.lineTo(20 * s, by - 2 * s + Math.sin(T * 9) * 1.5); ctx.stroke(); }
+    }
+    // antenna lamp
+    if (role !== 'energy') {
+      ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(5 * s, by - 13 * s); ctx.lineTo(7.5 * s, by - 19 * s); ctx.stroke();
+      ctx.fillStyle = low ? pal.warn : pal.light; ctx.globalAlpha = Math.sin(T * (low ? 12 : 4) + c.vph) > 0 ? 1 : 0.25;
+      ctx.beginPath(); ctx.arc(7.5 * s, by - 19.5 * s, 1.5 * s, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    }
+
+    // shell and eyes
+    ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, by, 11 * s, 6.6 * s, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = dark; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.22; ctx.beginPath(); ctx.ellipse(-2 * s, by - 2.6 * s, 6 * s, 1.9 * s, -0.12, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = role === 'smelt' ? pal.lavaHot : pal.light;
+    for (side = -1; side <= 1; side += 2) { ctx.beginPath(); ctx.arc(side * 3.4 * s, by + 0.6 * s, 1.5 * s, 0, TAU); ctx.fill(); }
+
+    // battery gauge on the shell
+    if (role !== 'energy') {
+      col = c.bat < K.LOW ? pal.warn : (c.bat < 0.5 ? pal.ingot : pal.energy);
+      ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(-5 * s, by + 3.2 * s, 10 * s, 1.8 * s);
+      if (!(low && Math.sin(T * 12) < 0)) { ctx.fillStyle = col; ctx.fillRect(-5 * s, by + 3.2 * s, 10 * s * Math.max(0.06, c.bat), 1.8 * s); }
+    }
+    ctx.restore();
+
+    // the charge arc from an energy bot to the crab it is topping up
+    if (role === 'energy' && c.state === 'charge' && c.target) {
+      var tx = X(c.target.x), ty = groundY(tx, c.target.d) - 10 * CS, sx = px + 15 * s, sy = by - 6 * s;
+      ctx.strokeStyle = pal.light; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.moveTo(sx, sy);
+      for (i = 1; i < 5; i++) ctx.lineTo(sx + (tx - sx) * i / 5 + rr(-3, 3), sy + (ty - sy) * i / 5 + rr(-3, 3));
+      ctx.lineTo(tx, ty); ctx.stroke(); ctx.globalAlpha = 1;
+    }
+  }
+
+  function draw() {
+    if (!W || !H || !S) return;
+    var i, list = [], top, px;
+    ctx = bg;
+    ctx.clearRect(0, 0, W, H);
+    drawSurface(); drawSnow(); drawWeeds(); drawRiser(); drawLifts(); drawBubbles();
+
+    ctx = fg;
+    top = falling.length ? 0 : H - F - 90;         // repaint the full height only while something is sinking
+    for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].vfall > 0) top = 0;
+    ctx.clearRect(0, Math.min(top, prevTop), W, H);
+    prevTop = top;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, top, W, H - top); ctx.clip();
+    ctx.fillStyle = pal.sandBack; ctx.fill(backPath);
+    ctx.save();                                    // on this layer the riser shows only where it leaves the collector
+    ctx.beginPath(); ctx.rect(0, H - F - 6, W, F + 6); ctx.clip();
+    drawRiser();
+    ctx.restore();
+    drawCollector();
+    ctx.fillStyle = pal.sandFront; ctx.fill(frontPath);
+    drawSandDetail();
+    drawCavern();
+    // everything standing on the sand face, back to front
+    for (i = 0; i < S.nodules.length; i++) { px = X(S.nodules[i].x); list.push({ k: groundY(px, S.nodules[i].d), kind: 0, o: S.nodules[i] }); }
+    for (i = 0; i < S.crabs.length; i++) { px = crabX(S.crabs[i]); list.push({ k: groundY(px, S.crabs[i].d) + 0.01, kind: 1, o: S.crabs[i] }); }
+    list.push({ k: groundY(X(K.ORE), 0.12), kind: 2 });
+    list.push({ k: groundY(X(K.BAR), 0.1), kind: 3 });
+    list.sort(function (a, b) { return a.k - b.k; });
+    for (i = 0; i < list.length; i++) {
+      if (list[i].kind === 0) drawGroundNodule(list[i].o);
+      else if (list[i].kind === 1) drawCrab(list[i].o);
+      else if (list[i].kind === 2) drawOrePile();
+      else drawBarStack();
+    }
+    drawFlights(); drawGlow(); drawParticles();
+    ctx.restore();
+    ctx = bg;
+  }
+
+  // ===== the control panel =====
+  var $ = function (id) { return document.getElementById(id); };
+  var ui = { used: $('gm-used'), mode: $('gm-mode'), note: $('gm-note'),
+    sand: $('gm-s-sand'), ore: $('gm-s-ore'), bars: $('gm-s-bars'), ingots: $('gm-s-ingots'), rate: $('gm-s-rate'), power: $('gm-s-power'), run: $('gm-run'), reset: $('gm-reset'),
+    result: $('gm-result'), best: $('gm-best'), copy: $('gm-copy'), rows: document.querySelectorAll('.gm-row'),
+    speeds: document.querySelectorAll('[data-speed]'), count: $('delivered') };
+  var LETTER = { drill: 'D', haul: 'H', crush: 'C', smelt: 'S', energy: 'E' };
+  function total(c) { var n = 0; K.ROLES.forEach(function (r) { n += c[r]; }); return n; }
+  function code(c) { return K.ROLES.map(function (r) { return LETTER[r] + c[r]; }).join(' '); }
+  function medal(score) { for (var i = 0; i < MEDALS.length; i++) if (score >= MEDALS[i][0]) return MEDALS[i][1]; return ''; }
+  function loadBest() { try { best = JSON.parse(localStorage.getItem('crab-best') || 'null'); } catch (e) { best = null; } }
+  function saveBest() { try { localStorage.setItem('crab-best', JSON.stringify(best)); } catch (e) { /* storage may be unavailable */ } }
+  function fmt(t) { t = Math.max(0, Math.ceil(t)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }
+
+  function renderPanel() {
+    var used = total(cfg), locked = S.scored && !S.done, i, row, role, btns;
+    if (ui.used) ui.used.textContent = used + ' of ' + K.BUDGET;
+    for (i = 0; i < ui.rows.length; i++) {
+      row = ui.rows[i]; role = row.getAttribute('data-role'); btns = row.querySelectorAll('button');
+      row.querySelector('output').textContent = cfg[role];
+      btns[0].disabled = locked || cfg[role] <= 0;
+      btns[1].disabled = locked || used >= K.BUDGET;
+    }
+    for (i = 0; i < ui.speeds.length; i++) ui.speeds[i].setAttribute('aria-pressed', String(parseFloat(ui.speeds[i].getAttribute('data-speed')) === speed));
+    if (ui.run) ui.run.textContent = locked ? 'Cancel shift' : 'Run a scored shift';
+    if (ui.reset) ui.reset.disabled = locked;
+    if (ui.mode) ui.mode.textContent = locked ? 'Scored shift, ' + fmt(K.SHIFT - S.t) + ' left' : 'Free play';
+    if (ui.best) ui.best.textContent = best ? 'Your best: ' + best.score + ' ingots with ' + best.code + '.' : 'No best score yet.';
+  }
+  function renderLive() {
+    var bat = 0, n = 0, i, c, note = '';
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role !== 'energy') { bat += c.bat; n++; } }
+    bat = n ? bat / n : 1;
+    if (ui.sand) ui.sand.textContent = String(S.nodules.length);
+    if (ui.ore) ui.ore.textContent = S.ore + '/' + K.ORE_CAP;
+    if (ui.bars) ui.bars.textContent = S.bars + '/' + K.BAR_CAP;
+    if (ui.ingots) ui.ingots.textContent = String(S.ingots);
+    if (ui.rate) ui.rate.textContent = String(sim.rate());
+    if (ui.power) ui.power.textContent = Math.round(bat * 100) + '%';
+    if (ui.count) ui.count.textContent = String(S.ingots);
+    if (ui.mode && S.scored && !S.done) ui.mode.textContent = 'Scored shift, ' + fmt(K.SHIFT - S.t) + ' left';
+    // the foreman's note: read the stock in front of each stage
+    if (S.bars >= K.BAR_CAP - 1) note = 'The bar stack is full. Smelting is the bottleneck.';
+    else if (S.ore >= K.ORE_CAP - 1) note = 'The ore pile is full. Crushing is the bottleneck.';
+    else if (S.nodules.length >= K.FIELD_CAP - 2) note = 'Nodules are piling up on the sand. Hauling is the bottleneck.';
+    else if (bat < 0.3) note = 'Batteries are low and the crew has slowed. Power is the bottleneck.';
+    else if (S.t > 20 && S.ore <= 1 && S.nodules.length <= 2) note = 'The sand and the ore pile are nearly empty. Drilling is the bottleneck.';
+    else if (S.t > 20 && S.bars === 0 && S.ore <= 1) note = 'Smelters are waiting for bars.';
+    else note = 'The line is flowing.';
+    if (ui.note) ui.note.textContent = note;
+  }
+  function clearVisuals() { flights = []; lifts = []; falling = []; sparks = []; }
+  function freePlay() { S = sim.reset(cfg, false); clearVisuals(); acc = 0; renderPanel(); renderLive(); }
+  function startShift() {
+    S = sim.reset(cfg, true); clearVisuals(); acc = 0;
+    if (ui.result) ui.result.textContent = 'Shift under way with ' + code(cfg) + '.';
+    renderPanel(); renderLive();
+    if (!running) {                                 // reduced motion: work the whole shift out at once
+      while (!S.done) sim.step();
+      var e = sim.drain(), i; for (i = 0; i < e.length; i++) if (e[i].type === 'shiftEnd') finishShift();
+      draw();
+    }
+  }
+  function finishShift() {
+    var score = S.ingots, c = code(cfg), m = medal(score), text;
+    lastResult = c + ' = ' + score + ' ingots';
+    text = 'Shift result: ' + score + ' ingots with ' + c + '.' + (m ? ' ' + m + '.' : '');
+    if (!best || score > best.score) { best = { score: score, code: c }; saveBest(); text += ' A new best for you.'; }
+    if (ui.result) ui.result.textContent = text;
+    if (ui.copy) ui.copy.hidden = false;
+    S.scored = false; S.done = false;               // the same crew carries on in free play
+    renderPanel();
+  }
+  function wirePanel() {
+    var i;
+    for (i = 0; i < ui.rows.length; i++) (function (row) {
+      var role = row.getAttribute('data-role');
+      row.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('button') : null;
+        if (!b || b.disabled) return;
+        var d = parseInt(b.getAttribute('data-d'), 10);
+        if (d > 0 && total(cfg) >= K.BUDGET) return;
+        cfg[role] = clamp(cfg[role] + d, 0, K.BUDGET);
+        sim.setCount(role, cfg[role]);
+        var ev = sim.drain(), j; for (j = 0; j < ev.length; j++) handle(ev[j]);
+        renderPanel(); if (!running) draw();
+      });
+    })(ui.rows[i]);
+    for (i = 0; i < ui.speeds.length; i++) ui.speeds[i].addEventListener('click', function () { speed = parseFloat(this.getAttribute('data-speed')) || 1; renderPanel(); });
+    if (ui.run) ui.run.addEventListener('click', function () { if (S.scored && !S.done) { freePlay(); if (ui.result) ui.result.textContent = 'Shift cancelled.'; } else startShift(); });
+    if (ui.reset) ui.reset.addEventListener('click', function () { K.ROLES.forEach(function (r) { cfg[r] = K.DEFAULT[r]; }); freePlay(); if (!running) draw(); });
+    if (ui.copy) ui.copy.addEventListener('click', function () {
+      if (!lastResult) return;
+      var done = function () { ui.copy.textContent = 'Copied'; setTimeout(function () { ui.copy.textContent = 'Copy result'; }, 1400); };
+      try { navigator.clipboard.writeText(lastResult).then(done, function () {}); } catch (e) { /* clipboard may be blocked */ }
+    });
+  }
+
+  // ----- loop and lifecycle -----
+  function frame(now) {
+    if (!running) return;
+    var dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now; T += dt;
+    update(dt); draw();
+    uiTick += dt;
+    if (uiTick > 0.25) { uiTick = 0; renderLive(); }
+    raf = requestAnimationFrame(frame);
+  }
+  function start() { if (running || mqReduce.matches || document.hidden) return; running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
+  function stop() { running = false; cancelAnimationFrame(raf); }
+  function sync() {
+    if (mqReduce.matches) {
+      stop(); if (T === 0) T = 2.4; draw();
+      var note = $('motion-note');
+      if (note) note.textContent = 'The animation is paused because your system asks for reduced motion. A scored shift still works: its result is worked out at once.';
+    } else start();
+  }
+  function onChange(mq, fn) { if (mq.addEventListener) mq.addEventListener('change', fn); else if (mq.addListener) mq.addListener(fn); }
+
+  var resizeQueued = false;
+  window.addEventListener('resize', function () {
+    if (resizeQueued) return;
+    resizeQueued = true;
+    requestAnimationFrame(function () { resizeQueued = false; measure(); if (!running) draw(); });
+  });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else sync(); });
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest || t.closest('a, button, select, input, textarea, label, summary, .reader')) return;
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (sel && !sel.isCollapsed) return;
+    drop(e.clientX, e.clientY);
+  });
+  onChange(mqReduce, sync);
+  onChange(mqDark, function () { readPalette(); if (!running) draw(); });
+  if (window.MutationObserver) {
+    new MutationObserver(function () { readPalette(); if (!running) draw(); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  K.ROLES.forEach(function (r) { cfg[r] = K.DEFAULT[r]; });
+  readPalette();
+  measure();
+  loadBest();
+  S = sim.reset(cfg, false);
+  sim.drain().forEach(handle);
+  wirePanel();
+  renderPanel(); renderLive();
+  sync();
+})();
+</script>
+<!-- ===== SCRIPT 3 of 3: read aloud ===== -->
+<script>
+(function () {
+  'use strict';
+  var bar = document.getElementById('reader');
+  if (!bar) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var playBtn = $('rd-play'), playLabel = $('rd-play-label'), more = $('rd-more');
+  var prevBtn = $('rd-prev'), nextBtn = $('rd-next'), stopBtn = $('rd-stop');
+  var rateSel = $('rd-rate'), voiceSel = $('rd-voice'), clickBtn = $('rd-click'), statusEl = $('rd-status');
+
+  var synth = window.speechSynthesis, Utter = window.SpeechSynthesisUtterance;
+  function status(msg) { statusEl.textContent = msg || ''; statusEl.hidden = !msg; }
+  if (!synth || !Utter) {
+    playBtn.disabled = true;
+    status('Read-aloud is not available in this browser.');
+    return;
+  }
+
+  function load(k, d) { try { var v = localStorage.getItem('reader-' + k); return v === null ? d : v; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem('reader-' + k, v); } catch (e) { /* storage may be unavailable */ } }
+
+  // ----- what gets read, in document order -----
+  // Add data-nospeak to an element (or a parent) to keep it silent.
+  // Add data-speak="..." to an element to say something other than what is written.
+  var SELECTOR = '.titleblock h1, .titleblock .author, .titleblock .affil, ' +
+    '.paper h2, .paper h3, .paper p, .paper li, .paper blockquote, .paper .eq, ' +
+    '.paper caption, .paper tbody tr, .paper figcaption';
+  var found = Array.prototype.filter.call(document.querySelectorAll(SELECTOR), function (el) {
+    return !el.closest('[data-nospeak]');
+  });
+  var blocks = found.filter(function (el) { // keep the innermost block when two are nested
+    return !found.some(function (other) { return other !== el && el.contains(other); });
+  });
+  blocks.forEach(function (el, i) { el.setAttribute('data-say', String(i)); });
+
+  // ----- pronunciation: [pattern, spoken form]. Add your own terms here. -----
+  var SAY = [
+    [/\bFig\.\s*/g, 'Figure '],
+    [/\bet al\./g, 'and colleagues'],
+    [/\be\.g\.,?/g, 'for example,'],
+    [/\bi\.e\.,?/g, 'that is,'],
+    [/\bU\.S\./g, 'US'],
+    [/\bIEEE\b/g, 'I triple E'],
+    [/\s*°C/g, ' degrees Celsius'],
+    [/(\d) s\b/g, '$1 seconds'],
+    [/\bTable II\b/g, 'Table 2'],
+    [/\bTable I\b/g, 'Table 1']
+  ];
+
+  var ROMAN = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10 };
+  function stop1(s) { s = s.trim(); return /[.!?]$/.test(s) ? s : s + '.'; }
+  function clean(el) { // text of an element without citations, drawings, or silent parts
+    var copy = el.cloneNode(true), drop = copy.querySelectorAll('.c, svg, [data-nospeak]'), i;
+    for (i = 0; i < drop.length; i++) drop[i].parentNode.removeChild(drop[i]);
+    return copy.textContent;
+  }
+  function rawText(el) {
+    var custom = el.getAttribute('data-speak');
+    if (custom) return custom;
+    if (el.tagName === 'TR') { // read a table row cell by cell
+      return Array.prototype.map.call(el.children, function (c) {
+        return c.hasAttribute('data-nospeak') ? '' : clean(c).trim();
+      }).filter(Boolean).map(stop1).join(' ');
+    }
+    var m, t = clean(el);
+    if (el.tagName === 'H2') {
+      m = /^\s*([IVX]+)\.\s+(.*)$/.exec(t);
+      if (m && ROMAN[m[1]]) t = 'Section ' + ROMAN[m[1]] + '. ' + m[2];
+    }
+    if (/^(H[123]|LI|BLOCKQUOTE)$/.test(el.tagName) || el.classList.contains('author') || el.classList.contains('affil')) t = stop1(t);
+    return t;
+  }
+  function normalize(t) {
+    t = t.replace(/\s+/g, ' ').replace(/\u2011/g, '-').replace(/^ ?(Abstract|Index Terms)—/, '$1. ');
+    SAY.forEach(function (pair) { t = t.replace(pair[0], pair[1]); });
+    return t.replace(/(\d)–(\d)/g, '$1 to $2')
+      .replace(/\s*—\s*/g, ', ')
+      .replace(/\s+([,.;:!?])/g, '$1')
+      .replace(/,(\s*,)+/g, ',')
+      .replace(/,\s*([.;:])/g, '$1')
+      .trim();
+  }
+  // One utterance per sentence keeps start-up fast and avoids the long-utterance cut-off in some browsers.
+  function sentences(t) {
+    var out = [], start = 0, i, j, ch;
+    for (i = 0; i < t.length; i++) {
+      ch = t.charAt(i);
+      if (ch === '.' || ch === '!' || ch === '?') {
+        j = i + 1;
+        while (j < t.length && /["”’')\]]/.test(t.charAt(j))) j++;
+        if (j >= t.length || t.charAt(j) === ' ') { out.push(t.slice(start, j).trim()); start = j; i = j - 1; }
+      }
+    }
+    if (start < t.length && t.slice(start).trim()) out.push(t.slice(start).trim());
+
+    var merged = [], buf = '';
+    out.forEach(function (s) {
+      if (!buf) buf = s;
+      else if (buf.length < 28 && buf.length + s.length < 200) buf += ' ' + s;
+      else { merged.push(buf); buf = s; }
+    });
+    if (buf) merged.push(buf);
+
+    var fin = [];
+    merged.forEach(function (s) {
+      while (s.length > 200) {
+        var cut = s.lastIndexOf(', ', 190);
+        if (cut < 70) cut = s.lastIndexOf(' ', 190);
+        if (cut < 1) break;
+        fin.push(s.slice(0, cut + 1).trim());
+        s = s.slice(cut + 1).trim();
+      }
+      if (s) fin.push(s);
+    });
+    return fin;
+  }
+
+  // ----- voices: pick the best one the device offers -----
+  var voices = [], voice = null;
+  var NOVELTY = /\b(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Junior|Kathy|Ralph|Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)\b/i;
+  function score(v) {
+    var n = v.name || '', l = (v.lang || '').replace('_', '-').toLowerCase(), s = 0;
+    if (/natural|neural/i.test(n)) s += 50;
+    if (/premium/i.test(n)) s += 45;
+    if (/enhanced/i.test(n)) s += 40;
+    if (/siri/i.test(n)) s += 38;
+    if (/google/i.test(n)) s += 30;
+    if (/\b(Samantha|Ava|Allison|Evan|Zoe|Nathan|Tom|Susan|Karen|Daniel|Serena|Moira|Tessa)\b/i.test(n)) s += 20;
+    if (/espeak/i.test(n)) s -= 30;
+    if (NOVELTY.test(n)) s -= 45;
+    if (l === 'en-us') s += 8; else if (l === 'en-gb') s += 4;
+    if (v.default) s += 3;
+    return s;
+  }
+  function loadVoices() {
+    var all = synth.getVoices() || [];
+    if (!all.length) return;
+    var en = all.filter(function (v) { return /^en([-_]|$)/i.test(v.lang || ''); });
+    voices = (en.length ? en : all).slice().sort(function (a, b) { return score(b) - score(a); }).slice(0, 14);
+    var wanted = load('voice', ''), pick = voices[0];
+    voiceSel.textContent = '';
+    voices.forEach(function (v, i) {
+      var o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = v.name.replace(/^Microsoft\s+/, '').replace(/\s*-\s*English.*$/, '') + ' (' + (v.lang || '').replace('_', '-') + ')';
+      voiceSel.appendChild(o);
+      if (v.name === wanted) pick = v;
+    });
+    voice = pick;
+    voiceSel.value = String(voices.indexOf(pick));
+  }
+  loadVoices();
+  if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices);
+  else synth.onvoiceschanged = loadVoices;
+
+  // ----- playback -----
+  var state = 'idle', idx = -1, sidx = 0, queue = [], gen = 0, current = null, watch = 0, failures = 0;
+  var rate = parseFloat(load('rate', '1')) || 1;
+  var clickOn = load('click', '1') === '1';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  rateSel.value = String(rate);
+  if (rateSel.selectedIndex < 0) { rate = 1; rateSel.value = '1'; }
+
+  function render() {
+    var open = state !== 'idle';
+    bar.classList.toggle('is-open', open);
+    bar.classList.toggle('is-playing', state === 'playing');
+    more.hidden = !open;
+    var label = state === 'playing' ? 'Pause' : (state === 'paused' ? 'Resume' : 'Listen');
+    playLabel.textContent = label;
+    playBtn.setAttribute('aria-label', label);
+    playBtn.title = state === 'idle' ? (clickOn ? 'Listen, or click any paragraph' : 'Listen') : label;
+    clickBtn.setAttribute('aria-pressed', clickOn ? 'true' : 'false');
+    document.body.classList.toggle('say-click', clickOn);
+  }
+  function mark(i) {
+    var old = document.querySelector('[data-say].saying');
+    if (old) old.classList.remove('saying');
+    if (i < 0 || i >= blocks.length) return;
+    var el = blocks[i], r = el.getBoundingClientRect();
+    el.classList.add('saying');
+    var floorH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--floor')) || 0;
+    var foot = floorH + 50; // sea floor strip plus the control bar
+    if (r.top < 70 || r.bottom > window.innerHeight - foot) {
+      el.scrollIntoView({ block: 'center', behavior: reduce.matches ? 'auto' : 'smooth' });
+    }
+  }
+  function loadBlock(i) {
+    idx = i; sidx = 0;
+    queue = sentences(normalize(rawText(blocks[i])));
+    mark(i);
+  }
+  function speakNext() {
+    if (state !== 'playing') return;
+    while (sidx >= queue.length) {
+      if (idx + 1 >= blocks.length) { finish(); return; }
+      loadBlock(idx + 1);
+    }
+    var my = ++gen, started = false, u = new Utter(queue[sidx]);
+    if (voice) { u.voice = voice; u.lang = voice.lang; } else { u.lang = 'en-US'; }
+    u.rate = rate;
+    u.onstart = function () { if (my === gen) { started = true; failures = 0; status(''); } };
+    u.onend = function () { if (my === gen) { sidx++; speakNext(); } };
+    u.onerror = function (e) {
+      if (my !== gen) return;
+      if (e && (e.error === 'interrupted' || e.error === 'canceled')) return;
+      if (e && e.error === 'not-allowed') { state = 'paused'; render(); status('The browser blocked audio. Press Resume to try again.'); return; }
+      // A real engine failure. Online voices can drop out, so fall back once to a voice stored on the device.
+      failures++;
+      var local = voices.filter(function (v) { return v.localService && v !== voice; })[0];
+      if (failures === 1 && voice && voice.localService === false && local) {
+        voice = local;
+        voiceSel.value = String(voices.indexOf(local));
+        speakNext();
+        return;
+      }
+      state = 'paused'; halt(); render();
+      status('The speech engine could not play this' + (e && e.error ? ' (' + e.error + ')' : '') + '. Pick another voice, then press Resume.');
+    };
+    current = u; // keep a reference so the utterance is not collected mid-speech
+    synth.speak(u);
+    clearTimeout(watch);
+    watch = setTimeout(function () {
+      if (my === gen && !started && state === 'playing') status('No sound yet. Check your volume, or pick another voice.');
+    }, 4000);
+  }
+  // Start (or restart) speech at the current position.
+  function kick() {
+    gen++;
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+      setTimeout(function () { if (state === 'playing') speakNext(); }, 90);
+    } else {
+      speakNext();
+    }
+  }
+  function halt() { gen++; clearTimeout(watch); synth.cancel(); }
+  function startAt(i) { state = 'playing'; failures = 0; status(''); loadBlock(i); render(); kick(); }
+  function pause() { state = 'paused'; halt(); render(); }
+  function resume() { state = 'playing'; failures = 0; status(''); render(); kick(); }
+  function stop() { state = 'idle'; halt(); mark(-1); idx = -1; status(''); render(); }
+  function finish() { state = 'idle'; halt(); mark(-1); idx = -1; render(); status('Finished.'); }
+  function firstVisible() {
+    for (var i = 0; i < blocks.length; i++) {
+      var r = blocks[i].getBoundingClientRect();
+      if (r.height > 0 && r.bottom > 90) return i;
+    }
+    return 0;
+  }
+
+  // ----- controls -----
+  playBtn.addEventListener('click', function () {
+    if (state === 'idle') startAt(firstVisible());
+    else if (state === 'playing') pause();
+    else resume();
+  });
+  stopBtn.addEventListener('click', stop);
+  nextBtn.addEventListener('click', function () {
+    if (idx + 1 >= blocks.length) { finish(); return; }
+    startAt(idx + 1);
+  });
+  prevBtn.addEventListener('click', function () { startAt(sidx > 0 ? idx : Math.max(0, idx - 1)); });
+  rateSel.addEventListener('change', function () {
+    rate = parseFloat(rateSel.value) || 1;
+    save('rate', String(rate));
+    if (state === 'playing') kick();
+  });
+  voiceSel.addEventListener('change', function () {
+    voice = voices[parseInt(voiceSel.value, 10)] || voice;
+    if (voice) save('voice', voice.name);
+    if (state === 'playing') kick();
+  });
+  clickBtn.addEventListener('click', function () {
+    clickOn = !clickOn;
+    save('click', clickOn ? '1' : '0');
+    render();
+  });
+
+  // Click any passage to hear it from there. Clicking the passage being read pauses or resumes it.
+  document.addEventListener('click', function (e) {
+    if (!clickOn) return;
+    var t = e.target;
+    if (!t || !t.closest || t.closest('a, button, select, input, label, .reader')) return;
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (sel && !sel.isCollapsed) return; // the reader is selecting text, not asking for audio
+    var b = t.closest('[data-say]');
+    if (!b) return;
+    var i = parseInt(b.getAttribute('data-say'), 10);
+    if (i === idx && state === 'playing') pause();
+    else if (i === idx && state === 'paused') resume();
+    else startAt(i);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state !== 'idle') stop(); });
+  window.addEventListener('pagehide', function () { synth.cancel(); });
+
+  synth.cancel(); // clear anything left over from a previous visit
+  render();
+})();
+</script>
+</body>
+</html>

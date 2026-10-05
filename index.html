@@ -23,6 +23,7 @@
   --c-drill:#f0b429; --c-drill-dark:#8a5a00; --c-crush:#6d8fb3; --c-crush-dark:#2f4a66;
   --c-smelt:#4a505d; --c-smelt-dark:#1d2129; --c-energy:#2fbf8f; --c-energy-dark:#0f6b4c;
   --c-scout:#a77bd9; --c-scout-dark:#4d2a7c; --c-repair:#9fb0b8; --c-repair-dark:#3c4d56; --c-hat:#ffc928;
+  --c-mech:#c9824a; --c-mech-dark:#5e3315; --c-vent:rgba(255,190,120,.25);
   --c-rock:#4a4250; --c-rock-dark:#231f29; --c-rock-line:#756b7c;
   --c-lava-hot:#ffd87a; --c-lava:#ff7a1f; --c-lava-deep:#b9300c;
   --c-bar:#9aa0a9; --c-bar-dark:#555b64; --c-ingot:#ffcf4d; --c-ingot-dark:#a8730c; --c-warn:#e5484d;
@@ -45,6 +46,7 @@
     --c-drill:#ffc94a; --c-drill-dark:#9a6a10; --c-crush:#86a8cc; --c-crush-dark:#2c4762;
     --c-smelt:#5d6577; --c-smelt-dark:#1a1d25; --c-energy:#46d9a6; --c-energy-dark:#12805b;
     --c-scout:#b993e6; --c-scout-dark:#4f2f80; --c-repair:#a9bcc5; --c-repair-dark:#33454e; --c-hat:#ffd44d;
+    --c-mech:#dc9a62; --c-mech-dark:#6a3a18; --c-vent:rgba(255,190,120,.25);
     --c-rock:#2c2833; --c-rock-dark:#121016; --c-rock-line:#4f4858;
     --c-lava-hot:#ffd87a; --c-lava:#ff7a1f; --c-lava-deep:#a82a0a;
     --c-bar:#8a929c; --c-bar-dark:#444a53; --c-ingot:#ffd766; --c-ingot-dark:#b98414; --c-warn:#ff6b6f;
@@ -65,6 +67,7 @@
     --c-drill:#ffc94a; --c-drill-dark:#9a6a10; --c-crush:#86a8cc; --c-crush-dark:#2c4762;
     --c-smelt:#5d6577; --c-smelt-dark:#1a1d25; --c-energy:#46d9a6; --c-energy-dark:#12805b;
     --c-scout:#b993e6; --c-scout-dark:#4f2f80; --c-repair:#a9bcc5; --c-repair-dark:#33454e; --c-hat:#ffd44d;
+    --c-mech:#dc9a62; --c-mech-dark:#6a3a18; --c-vent:rgba(255,190,120,.25);
     --c-rock:#2c2833; --c-rock-dark:#121016; --c-rock-line:#4f4858;
     --c-lava-hot:#ffd87a; --c-lava:#ff7a1f; --c-lava-deep:#a82a0a;
     --c-bar:#8a929c; --c-bar-dark:#444a53; --c-ingot:#ffd766; --c-ingot-dark:#b98414; --c-warn:#ff6b6f;
@@ -99,7 +102,7 @@ button:disabled{opacity:.38;cursor:not-allowed}
 /* heads-up bar: a strip of paper across the top */
 .hud{
   grid-column:1 / -1;position:relative;z-index:3;
-  display:flex;flex-wrap:wrap;align-items:center;gap:.35rem 1.1rem;
+  display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .9rem;
   padding:.4rem .8rem calc(.4rem + 2px);padding-top:max(.4rem,env(safe-area-inset-top));
   background:var(--paper);box-shadow:0 6px 22px var(--shadow);font-size:.8rem;line-height:1.2;
 }
@@ -109,7 +112,8 @@ button:disabled{opacity:.38;cursor:not-allowed}
 .hud-item b{font-size:1.08rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .hud-money b{font-size:1.35rem;color:var(--mark)}
 .hud-rate{color:var(--ink-soft);font-weight:400;font-size:.78rem}
-.hud-rank{flex:1 1 11rem;max-width:17rem}
+.hud-rank{flex:1 1 9rem;max-width:13rem}
+@media (max-width:110rem){.hud-brand{display:none}}
 .meter{height:.42rem;border-radius:999px;background:var(--tint);border:1px solid var(--rule);overflow:hidden;margin-top:.2rem}
 .meter i{display:block;height:100%;width:0;background:var(--link);border-radius:999px;transition:width .4s}
 .hud-reserve{display:flex;align-items:center;gap:.25rem}
@@ -168,7 +172,9 @@ button:disabled{opacity:.38;cursor:not-allowed}
 
 @media (max-width:40rem){
   .hud{gap:.3rem .8rem;padding:.35rem .6rem;font-size:.74rem}
-  .hud-brand,#h-rank-next,#h-trend,.hud-item small{display:none}
+  .hud-brand,#h-rank-next,#h-trend,#h-flow-note,#h-shift-left,.hud-item small{display:none}
+  .oc{min-height:1.8rem;padding:.1rem .45rem}
+  .bigbtn{min-height:1.8rem;padding:.1rem .45rem}
   .hud-item b{font-size:.95rem}
   .hud-money b{font-size:1.1rem}
   .hud-rank{flex:1 1 6rem}
@@ -176,6 +182,45 @@ button:disabled{opacity:.38;cursor:not-allowed}
   .seg button{min-width:1.9rem;height:1.8rem}
   .mini{width:1.55rem;height:1.55rem}
 }
+
+/* overclock and big-field buttons in the top bar */
+.oc,.bigbtn{
+  display:inline-flex;flex-direction:column;justify-content:center;gap:.15rem;min-height:2.2rem;padding:.2rem .6rem;
+  border:1px solid var(--rule);border-radius:6px;background:transparent;font-weight:700;font-size:.8rem;white-space:nowrap;
+}
+.oc .meter{width:100%;margin:0}
+.oc[aria-pressed="true"],.bigbtn[aria-pressed="true"]{background:var(--mark);border-color:var(--mark);color:#fff}
+.oc[aria-pressed="true"] .meter i{background:#fff}
+.oc:hover:not(:disabled),.bigbtn:hover{filter:brightness(1.08);background-color:var(--tint)}
+.hud-day b{font-size:.95rem}
+.shifts{margin:0 0 .6rem}
+.shifts .seg{display:flex}
+.shifts .seg button{flex:1;font-size:.78rem;padding:0 .2rem}
+.shifts .note{margin:.3rem 0 0}
+.gap{margin:.3rem 0 0;font-size:.76rem;color:var(--mark);font-weight:700}
+
+/* big playfield: the stage takes the whole screen and the controls sit in a dock on it */
+.dock{display:none}
+body.big .game{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+body.big .panel{display:none}
+body.big .dock{
+  display:flex;flex-direction:column;grid-area:2 / 1;position:absolute;z-index:4;left:.6rem;bottom:.6rem;
+  width:min(24rem,calc(100% - 1.2rem));max-height:min(26rem,44%);
+  background:var(--paper);border-radius:6px;box-shadow:0 12px 36px var(--shadow);font-size:.8rem;line-height:1.25;
+}
+.dock-tabs{display:flex;border-bottom:1px solid var(--rule)}
+.dock-tabs button{flex:1;height:2.1rem;border:0;background:transparent;font-weight:700;border-bottom:3px solid transparent}
+.dock-tabs button[aria-selected="true"]{border-bottom-color:var(--link);color:var(--link)}
+.dock-body{overflow-y:auto;padding:.5rem .6rem;min-height:0}
+.dock .role{padding:.2rem 0;gap:.4rem}
+.dock .role-name span{display:none}
+.dock .role-name b{font-size:.8rem}
+.dock .hire{height:1.7rem;min-width:3.8rem;font-size:.78rem}
+.dock .mini{width:1.6rem;height:1.6rem}
+.dock-view{display:flex;align-items:center;gap:.5rem}
+.dock-view[hidden]{display:none}
+.dock-view input{flex:1}
+body.big .toasts{top:.6rem}
 
 /* the side panel: crew, build, and ledger tabs on a sheet of paper */
 .panel{
@@ -227,7 +272,7 @@ button:disabled{opacity:.38;cursor:not-allowed}
 .ledger h3:first-child{margin-top:.1rem}
 .ltable{width:100%;border-collapse:collapse;font-size:.8rem}
 .ltable td,.ltable th{padding:.28rem .2rem;border-bottom:1px solid var(--rule);text-align:left;font-weight:400;vertical-align:middle}
-.ltable td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ltable td.n{text-align:right;font-variant-numeric:tabular-nums}
 .ltable tr.slow th{font-weight:700}
 .ltable tr.total td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
 .cap{position:relative;height:.6rem;min-width:4rem;background:transparent}
@@ -401,8 +446,9 @@ tr[data-say].saying{box-shadow:none}
         <h2>Here is how you play</h2>
         <ol>
           <li><b>Hire crabs</b> in the Crew tab. Each kind does one job: <span class="dot" style="background:var(--c-scout)"></span>scouts flag metal, <span class="dot" style="background:var(--c-drill)"></span>drills dig it up, <span class="dot" style="background:var(--c-crab)"></span>haulers carry it, <span class="dot" style="background:var(--c-crush)"></span>crushers press it into bars, and <span class="dot" style="background:var(--c-smelt)"></span>smelters melt the bars into ingots.</li>
-          <li><b>Keep them running.</b> <span class="dot" style="background:var(--c-energy)"></span>Energy bots charge the crew from a Stirling engine beside the lava. <span class="dot" style="background:var(--c-repair)"></span>Repair bots fix broken drill bits and worn energy bots, and every repair uses up one ingot from your stockpile.</li>
-          <li><b>Sell metal upward.</b> The riser sends your stockpile to the surface and pays the market price. Choose how many ingots to keep back for repairs.</li>
+          <li><b>Keep them running.</b> <span class="dot" style="background:var(--c-energy)"></span>Energy bots charge the crew and plug back in at their base by the lava. Bits snap and legs fall off. <span class="dot" style="background:var(--c-repair)"></span>Repair bots forge new bits from ingots and <span class="dot" style="background:var(--c-mech)"></span>maintenance bots forge new legs from bars, both in the lava.</li>
+          <li><b>Sell metal upward.</b> The riser sends your stockpile to the surface at the market price. Steady deliveries build a flow bonus and bank overclock: press ⚡ for a burst of speed.</li>
+          <li><b>Run shifts.</b> Crabs that never rest wear out. Switch to A and B shifts or three-shift relief, and make sure every job has somebody on duty in every shift.</li>
           <li><b>Grow.</b> Spend profit on more crabs, a bigger den, the middle and back dunes, and better gear. The advisor tells you which stage is slowest.</li>
         </ol>
       </section>
@@ -411,8 +457,9 @@ tr[data-say].saying{box-shadow:none}
         <ul>
           <li>It's a tiny city builder on the sea floor. You watch a whole production line come together from nothing.</li>
           <li>No crab takes orders. Each one follows a simple rule, and you balance the crew. Fix the slowest stage and money starts flowing.</li>
-          <li>Mining is a gamble. Some holes come up dry, bits snap, and metal prices rise and fall, so no two runs are the same.</li>
-          <li>The crabs are very expressive. They stick their tongues out while drilling, sweat at the lava, grumble at a dry hole, and dance when you rank up.</li>
+          <li>Mining is a gamble. Some holes come up dry, bits snap, legs fall off, and metal prices rise and fall, so no two runs are the same.</li>
+          <li>Crabs ride a thermal vent up the lava column with the bubbles, then swim down and sideways across the dunes. It's quicker than walking, and it's a ride.</li>
+          <li>Crabs pull faces. They stick their tongues out while drilling, sweat at the lava, say "ouch!" when a leg comes off, snore through the night shift, and dance when you rank up.</li>
           <li>Climb six ranks from Sand Scraper to Crab Tycoon, then try to get there faster.</li>
         </ul>
       </section>
@@ -443,7 +490,7 @@ tr[data-say].saying{box-shadow:none}
       <a href="#paper" id="readmore">Read the rules and the economy review</a>
     </div>
     <p class="rd-status" id="rd-status" role="status" hidden></p>
-    <p class="fine">Tip: use 2× or 4× speed once the line is running. Space pauses. Click a crab to see what it is doing.</p>
+    <p class="fine">Tip: use 2× or 4× speed once the line is running. Space pauses, O overclocks, and B switches to the big field. Click a crab to see what it is doing.</p>
   </div>
 </div>
 
@@ -465,8 +512,13 @@ tr[data-say].saying{box-shadow:none}
     <span class="hud-brand">crabminer</span>
     <div class="hud-item hud-money"><small>Credits</small><b id="h-credits">$0</b><span class="hud-rate" id="h-rate">+$0 a minute</span></div>
     <div class="hud-item hud-rank"><small id="h-rank-label">Rank</small><b id="h-rank">Sand Scraper</b><div class="meter" aria-hidden="true"><i id="h-rank-bar"></i></div><span class="hud-rate" id="h-rank-next"></span></div>
+    <div class="hud-item hud-day"><small>Shift</small><b id="h-shift">Day 1 · All hands</b><span class="hud-rate" id="h-shift-left"></span></div>
+    <div class="hud-item"><small>Flow bonus</small><b id="h-flow">×1.00</b><span class="hud-rate" id="h-flow-note">deliver steadily</span></div>
+    <button type="button" class="oc" id="oc-btn" aria-pressed="false" title="Overclock the crew (O): every delivery banks seconds of speed">
+      <span>⚡ <span id="oc-label">Overclock 0 s</span></span><span class="meter" aria-hidden="true"><i id="oc-bar"></i></span>
+    </button>
     <div class="hud-item"><small>Metal price</small><b id="h-price">$12</b><span class="hud-rate" id="h-trend">steady</span></div>
-    <div class="hud-item"><small>Stockpile · keep for repairs</small>
+    <div class="hud-item"><small>Stockpile · keep back</small>
       <span class="hud-reserve"><b id="h-stock">0</b><span class="hud-rate">ingots ·</span>
         <button type="button" class="mini" id="r-minus" aria-label="Keep one fewer ingot for repairs">−</button>
         <b id="h-reserve">2</b>
@@ -476,6 +528,7 @@ tr[data-say].saying{box-shadow:none}
       <span class="seg" role="group" aria-label="Game speed">
         <button type="button" data-speed="0" aria-pressed="false" aria-label="Pause">❚❚</button><button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="2" aria-pressed="false">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button>
       </span>
+      <button type="button" class="bigbtn" id="big-btn" aria-pressed="false" title="Big playfield (B): the sand fills half the screen">Big field</button>
       <button type="button" class="mini" id="help" aria-label="How to play" title="How to play">?</button>
     </div>
   </header>
@@ -488,6 +541,25 @@ tr[data-say].saying{box-shadow:none}
   </div>
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
+  <!-- the big field's dock: controls on the field, or out of the way with the view tab -->
+  <div class="dock" id="dock" aria-label="Field controls">
+    <div class="dock-tabs">
+      <button type="button" data-dtab="ctl" aria-selected="true">Controls</button>
+      <button type="button" data-dtab="view" aria-selected="false">View</button>
+    </div>
+    <div id="dock-ctl" class="dock-body">
+      <div class="shifts">
+        <span class="seg" role="group" aria-label="Shift pattern"><button type="button" data-shift="all" aria-pressed="true">All hands</button><button type="button" data-shift="ab" aria-pressed="false">A/B</button><button type="button" data-shift="relief" aria-pressed="false">3-shift</button></span>
+      </div>
+      <div id="dock-roles"></div>
+    </div>
+    <div id="dock-view" class="dock-body dock-view" hidden>
+      <button type="button" class="mini" id="pan-l" aria-label="Scroll the field left">◀</button>
+      <input type="range" id="pan-range" min="0" max="100" value="60" aria-label="Scroll the field">
+      <button type="button" class="mini" id="pan-r" aria-label="Scroll the field right">▶</button>
+    </div>
+  </div>
+
   <aside class="panel" aria-label="Controls">
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="t-crew" aria-controls="p-crew" aria-selected="true">Crew</button>
@@ -496,6 +568,11 @@ tr[data-say].saying{box-shadow:none}
     </div>
     <div class="tabpanel" role="tabpanel" id="p-crew" aria-labelledby="t-crew">
       <p class="advice" id="advice" role="status"></p>
+      <div class="shifts">
+        <span class="seg" role="group" aria-label="Shift pattern"><button type="button" data-shift="all" aria-pressed="true">All hands</button><button type="button" data-shift="ab" aria-pressed="false">A/B shifts</button><button type="button" data-shift="relief" aria-pressed="false">3-shift relief</button></span>
+        <p class="note" id="shift-note"></p>
+        <p class="gap" id="shift-gaps" role="status" hidden></p>
+      </div>
       <div class="crewhead"><span><b id="crew-used">9 of 10</b> crabs in the den</span><span id="crew-hint"></span></div>
       <div id="roles"></div>
     </div>
@@ -519,17 +596,18 @@ tr[data-say].saying{box-shadow:none}
   </div>
 
   <div class="cols">
-    <p class="abstract" id="abstract"><i>Abstract</i>—Crabminer is a city builder played on the sea floor. The player runs a crew of robot crabs that turns buried metal into money. Scout crabs scan the dunes and flag likely deposits. Drill crabs dig them up, and a hole can come up dry. Haulers, crushers, and smelters carry the ore through a pile, a press, and a lava cave until it is refined metal on a stockpile. A riser sends that metal to the surface at the market price. Drill bits break, and a broken bit draws three times the power. Energy bots wear out, and they recharge themselves at a Stirling engine beside the lava. Repair bots fix both kinds of breakdown, and each repair uses up an ingot that could otherwise have been sold. The player hires crabs, holds back metal for repairs, and builds upgrades, climbing six ranks from Sand Scraper to Crab Tycoon. This paper sets out the rules and reviews the economy using a deterministic simulation. The review measures every role, searches all 8,008 possible ten-crab crews for the best one, and plays the game with a simple automatic player to check the pace of progress.</p>
-    <p class="terms"><i>Index Terms</i>—Bottleneck, city builder, division of labor, game economy, serious games, stigmergy, swarm robotics.</p>
+    <p class="abstract" id="abstract"><i>Abstract</i>—Crabminer is a city builder played on the sea floor. The player runs a crew of robot crabs that turns buried metal into money. Scouts flag deposits, drills dig them up (and sometimes come up dry), and haulers, crushers, and smelters carry the ore through a pile, a press, and a lava cave until it is refined metal on a stockpile. A riser sells that metal at the surface. Things break. Drill bits snap, energy bots wear out, and any crab can lose a leg. Repair bots and maintenance bots forge replacement parts in the lava from the line's own ingots and bars. Crabs that work without rest tire and break down more, so the player chooses between all hands, A and B shifts, and three-shift relief, and must keep every job covered in every part of the day. Steady deliveries earn a flow bonus and bank overclock, a burst of speed the player can spend. A thermal vent lifts crabs up the lava column, and they swim down and sideways to their work. This paper sets out the rules and reviews the economy using the deterministic simulation the page itself runs.</p>
+    <p class="terms"><i>Index Terms</i>—Bottleneck, city builder, game economy, maintenance, serious games, shift work, stigmergy, swarm robotics.</p>
 
     <h2>I. The Game</h2>
-    <p class="dropcap"><span class="lead">The</span> game opens on three layers of dunes, cut from paper and stacked one behind another. The front dune holds the processing line: an ore pile, a crushing yard, a bar stack, a stockpile of refined metal, and the collector at the foot of the riser. A basalt outcrop on the right holds a pool of lava with a Stirling engine beside it. The middle and back dunes start out roped off. They hold richer deposits, and the player can buy the claims to them.</p>
+    <p class="dropcap"><span class="lead">The</span> game opens on three layers of dunes, cut from paper and stacked one behind another. The front dune holds the processing line: an ore pile, a crushing yard, a bar stack, a stockpile of refined metal, and the collector at the foot of the riser. A basalt outcrop on the right holds a pool of lava. Beside it stand a Stirling engine and the energy bots' base station, and above it a thermal vent sends warm water and bubbles up to near the surface. The middle and back dunes start out roped off. They hold richer deposits, and the player can buy the claims to them.</p>
     <p>The player starts with nine crabs, room in the den for ten, and 120 credits. The aim is to earn money by selling metal upward. Lifetime earnings set the player's rank, and each new rank pays a bonus of a tenth of its threshold. The ranks are Pebble Boss at 150 credits, Nodule Baron at 400, Ingot Magnate at 1,000, Lava Lord at 2,500, and Crab Tycoon at 6,000. Reaching Crab Tycoon wins the game, and the time taken is the player's score. Play can continue afterwards.</p>
-    <p>The player has three kinds of lever. The <span class="runin">Crew</span> tab hires and retires crabs. Each further crab of a role costs 15% of the base price more than the one before, and a retired crab refunds half of what it cost. The <span class="runin">Build</span> tab buys upgrades. The <span class="runin">stockpile control</span> in the top bar sets how many ingots to hold back from sale for repairs. The Ledger tab holds the analysis: what each stage could produce, what it is producing, and where the money goes. An advisor at the top of the Crew tab names the slowest stage in plain words.</p>
+    <p>The <span class="runin">Crew</span> tab hires and retires crabs and sets the shift pattern. Each further crab of a role costs 15% of the base price more than the one before, and a retired crab refunds half of what it cost. The <span class="runin">Build</span> tab buys upgrades. The top bar shows the day and shift, the flow bonus, and the overclock button, and it sets how many ingots to hold back from sale. The <span class="runin">Ledger</span> tab holds the analysis. An advisor names the slowest stage, or the job nobody covers on some shift, in plain words.</p>
+    <p><span class="runin">Big field.</span> The Big field button (or the B key) gives the whole screen to the sea. The front dune then fills the lower half of the screen and the world grows wider than the window, so it scrolls sideways. A dock floats on the field with two tabs. Controls keeps the crew and shift buttons in view, and View tucks them away and leaves a slider for scrolling the field.</p>
   </div>
 
   <h2>II. The Production Chain</h2>
-  <p>Metal moves left to right and changes form five times, as Fig. 1 shows. Table I gives each role's rule and timing.</p>
+  <p>Metal moves left to right and changes form five times, as Fig. 1 shows. Table I gives each role's rule.</p>
   <figure class="fig">
     <svg viewBox="0 0 760 170" role="img" aria-label="The chain: scouts flag a deposit on the sea floor, drills turn it into a nodule, haulers stack it on the ore pile, crushers press two nodules into a bar, smelters turn a bar into an ingot on the stockpile, and the riser sells it for credits. Repair bots take ingots back off the stockpile. Energy bots carry charge from the Stirling engine to every crab.">
       <defs>
@@ -570,48 +648,58 @@ tr[data-say].saying{box-shadow:none}
         <text x="433" y="22">crush 2:1</text>
         <text x="544" y="22">smelt</text>
         <text x="655" y="22">sell</text>
-        <text x="378" y="116">repair bots take one ingot back off the stockpile to fix each broken bit or worn energy bot</text>
+        <text x="378" y="116">repair bots forge ingots into new bits; maintenance bots forge bars into new legs</text>
         <text x="380" y="143" font-style="normal">Energy bots fill up at the Stirling engine by the lava and recharge every crab along the line</text>
       </g>
     </svg>
-    <figcaption>Fig. 1. The production chain. Two nodules make one bar and one bar makes one ingot. The dashed loop is the cost of repairs, paid in metal before it is sold.</figcaption>
+    <figcaption>Fig. 1. The production chain. Two nodules make one bar and one bar makes one ingot. The dashed loop is the cost of repairs, paid in metal before it is sold: ingots for bits and energy cells, bars for legs.</figcaption>
   </figure>
   <div class="tablewrap">
     <table>
-      <caption data-speak="Table 1. The seven roles."><span class="tnum">TABLE I</span><span class="ttitle">The Seven Roles</span></caption>
-      <thead><tr><th scope="col">Role</th><th scope="col">Rule it follows</th><th scope="col">Timing</th><th scope="col">Hire price</th></tr></thead>
+      <caption data-speak="Table 1. The eight roles."><span class="tnum">TABLE I</span><span class="ttitle">The Eight Roles</span></caption>
+      <thead><tr><th scope="col">Role</th><th scope="col">Rule it follows</th><th scope="col">Hire price</th></tr></thead>
       <tbody>
-        <tr><td>Scout crab</td><td>Walk to a random spot in the claimed dunes and scan. Half the scans find a deposit, which gets a flag showing its chance of striking (its richness) and how many nodules it holds. Rest while 8 flags stand.</td><td class="n">3.4 s a scan</td><td class="n">30</td></tr>
-        <tr><td>Drill crab</td><td>Go to the flag that best repays the walk (near and rich) and drill until it is empty. A hole strikes at the flag's richness. With no flag, drill at random and strike one time in four. Rest while 24 nodules lie on the sand.</td><td class="n">2.8 s a hole</td><td class="n">35</td></tr>
-        <tr><td>Hauler crab</td><td>Fetch the nearest unclaimed nodule. After three, carry them to the ore pile. Wait if the pile is full.</td><td class="n">0.6 s a pick</td><td class="n">25</td></tr>
-        <tr><td>Crusher crab</td><td>When the ore pile holds two nodules, press them into a bar. Wait if the bar stack is full.</td><td class="n">4.5 s a bar</td><td class="n">40</td></tr>
-        <tr><td>Smelter crab</td><td>Take a bar, hold it in the lava, and carry the ingot to the stockpile.</td><td class="n">3.0 s in the lava</td><td class="n">40</td></tr>
-        <tr><td>Energy bot</td><td>Find the crab with the lowest battery under 60% and recharge it. When its four cells are empty, or when nobody needs charge, plug into the Stirling engine.</td><td class="n">0.8 s a charge</td><td class="n">35</td></tr>
-        <tr><td>Repair bot</td><td>Find the nearest broken drill or worn energy bot. Take an ingot from the stockpile, walk over, and fix it.</td><td class="n">2.4 s a fix</td><td class="n">35</td></tr>
+        <tr><td>Scout crab</td><td>Walk to a random spot in the claimed dunes and scan for 3.4 s. Half the scans find a deposit, which gets a flag showing its richness (its chance of striking) and its size. Rest while 8 flags stand.</td><td class="n">30</td></tr>
+        <tr><td>Drill crab</td><td>Go to the flag that best repays the walk and drill until it is empty, 2.8 s a hole. A hole strikes at the flag's richness. With no flag, drill at random and strike one time in four. Rest while 24 nodules lie on the sand.</td><td class="n">35</td></tr>
+        <tr><td>Hauler crab</td><td>Fetch the nearest unclaimed nodule. After three, carry them to the ore pile. Wait if the pile is full.</td><td class="n">25</td></tr>
+        <tr><td>Crusher crab</td><td>When the ore pile holds two nodules, press them into a bar, 4.5 s. Wait if the bar stack is full.</td><td class="n">40</td></tr>
+        <tr><td>Smelter crab</td><td>Take a bar, hold it in the lava for 3 s, and carry the ingot to the stockpile.</td><td class="n">40</td></tr>
+        <tr><td>Energy bot</td><td>Recharge the crab with the lowest battery under 60%. When its four cells are empty, or nobody needs charge, go back to the base station by the lava and plug its cable into the Stirling engine.</td><td class="n">35</td></tr>
+        <tr><td>Repair bot</td><td>Find the nearest broken drill or worn energy bot. Take an ingot from the stockpile, forge it into the part in the lava, carry it over, and fit it.</td><td class="n">35</td></tr>
+        <tr><td>Maintenance bot</td><td>Find the nearest crab with a leg missing. Take a bar from the bar stack, forge a leg in the lava, carry it over, and fit it.</td><td class="n">35</td></tr>
       </tbody>
     </table>
   </div>
 
-  <h2>III. Breakdowns and Repairs</h2>
+  <h2>III. Breakdowns, Parts, and the Forge</h2>
   <div class="cols">
-    <p><span class="runin">Drill bits.</span> Every hole carries a 4.5% chance of breaking the bit. A drill crab with a broken bit keeps working, but badly. Its holes take 60% longer, it strikes 40% less often, and while it drills it draws three times its normal power. Its face shows the strain. Hardened bits cut the chance to 2.5%, then to 1.2%.</p>
-    <p><span class="runin">Energy bots.</span> Every charge an energy bot hands over carries a 3% chance of wearing it out. A worn bot moves at under half speed and takes twice as long over each charge. It still works, so a crew without repairs fades slowly rather than stopping dead.</p>
-    <p><span class="runin">Repairs cost metal.</span> A repair bot takes one ingot from the stockpile for each fix, so every repair is a sale that does not happen. This is why the stockpile has a reserve. Ingots above the reserve go up the riser. Ingots at or below it wait, ready for the next repair. If the reserve is zero, the riser can empty the stockpile and leave a repair bot standing at it, waiting for metal while the bits stay broken.</p>
-    <p><span class="runin">Power.</span> Every crab except an energy bot carries a battery that lasts about 45 seconds of work. Below 20% it slows to about a third of its pace and its eyes droop. The Stirling engine turns the lava's heat into charge at 32 charges a minute, banks up to 12, and charges two bots at a time. If more charge is needed than the engine makes, energy bots queue at the engine however many there are. Upgrades raise its output to 56 and then 90 a minute.</p>
+    <p><span class="runin">Drill bits.</span> Every hole carries a 4.5% chance of breaking the bit. A drill with a broken bit keeps working, badly. Its holes take 60% longer, it strikes 40% less often, and while it drills it draws three times its usual power. Hardened bits cut the chance to 2.5%, then 1.2%.</p>
+    <p><span class="runin">Energy bots.</span> Every charge an energy bot hands over carries a 3% chance of wearing it out. A worn bot moves at under half speed and takes twice as long over each charge.</p>
+    <p><span class="runin">Legs.</span> Any crab can lose a leg while it works, energy bots and the repair crews included. The base rate is about one leg per crab per hour of work, and wear raises it (Section IV). A crab with a leg missing limps at 55% of its walking speed, and the leg lies on the sand where it fell until a maintenance bot fits a new one.</p>
+    <p><span class="runin">The forge.</span> Every part is made in the lava. A repair bot takes an ingot off the stockpile, and a maintenance bot takes a bar off the bar stack. Each carries its metal to the lava's edge and holds it in the heat for 1.4 seconds until it becomes a bit or a leg, then takes the part to the crab. Repairs therefore cost product twice over: the ingot is never sold, and the bar is never smelted. A stockpile reserve keeps ingots back for repairs. Bars have no reserve, so maintenance competes with the smelters for them.</p>
   </div>
 
-  <h2>IV. The Economy</h2>
+  <h2>IV. Shifts and Wear</h2>
   <div class="cols">
-    <p><span class="runin">Income.</span> The riser sends one ingot to the surface every 3 seconds while the stockpile holds more than the reserve. That caps sales at 20 ingots a minute until the riser pump is upgraded to 1.8 and then 1.0 seconds. Each ingot fetches the current metal price. The price centres on 12 credits. A slow swell moves it about 18% over two and a half minutes, a faster ripple adds 7%, and a seeded random walk drifts it up to 15% either way, all within 6.6 to 18 credits.</p>
-    <p><span class="runin">Spending.</span> Credits buy crabs and upgrades (Table II). Repairs are paid in metal, not credits. There is no upkeep, so a crew never loses money. A badly balanced crew just earns slowly.</p>
-    <p><span class="runin">Distance.</span> The track is 1,000 units long. The field runs from 20 to 580, and the line takes up the stretch from 600 to the lava at 888. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair bots 78, and energy bots 95. Deep deposits are richer and larger, but every nodule from them takes a longer walk.</p>
+    <p><span class="runin">Wear.</span> Each crab counts the seconds it has worked without a break. The first four minutes cost nothing. After that, every five more minutes add up to double the breakdown chances (bits, cells, and legs) and slow the crab by up to a fifth. Standing idle wears off a second each second. Sleeping wears off four, and it recharges the battery for free at about 3% a second.</p>
+    <p><span class="runin">The day.</span> A day lasts three simulated minutes, and the player picks one of three patterns for it. In <i>all hands</i> everyone works all day. In <i>A and B shifts</i> everyone works the day half. At night, half of each role sleeps, a different half each night, while repair and maintenance bots work on 30% faster. That is the night repair crew, and sleeping crabs make easy patients because they hold still. In <i>three-shift relief</i> the day is cut in three and each crab sleeps through one third, so two groups in three are always at work. Crabs finish the task in hand before they go to sleep.</p>
+    <p><span class="runin">Coverage.</span> A role with one crab disappears whenever that crab sleeps, and the line stops at that stage. The ledger lays out how many crabs of each role are on duty in each part of the day. The advisor names the first gap it finds, for example "nobody covers smelter crab work in shift 3". This enforces the rule of thumb any round-the-clock plant uses: at least one worker able to do every job on every shift.</p>
+  </div>
+
+  <h2>V. The Economy</h2>
+  <div class="cols">
+    <p><span class="runin">Income.</span> The riser sends one ingot to the surface every 3 seconds while the stockpile holds more than the reserve. Riser pump upgrades shorten that to 1.8 and then 1.0 seconds. Each ingot fetches the current metal price. The price centres on 12 credits. A slow swell, a faster ripple, and a seeded random walk move it between 6.6 and 18.</p>
+    <p><span class="runin">Flow.</span> A delivery that follows the last one within 6 seconds keeps the flow going, and each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow. Steady production pays more than the same metal in bursts, which rewards a balanced line over a lopsided one.</p>
+    <p><span class="runin">Overclock.</span> Every delivery banks 0.6 seconds of overclock, more while the flow runs, up to 30 seconds. The player spends it with the ⚡ button (or the O key). While it runs, the whole crew moves and works 50% faster, but uses 60% more power and wears twice as fast. It is best spent while the crew is fresh and the engine has charge to spare.</p>
+    <p><span class="runin">Spending.</span> Credits buy crabs and upgrades (Table II). Repairs are paid in metal. There is no upkeep.</p>
+    <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 580, and the line takes up the stretch from 600 to the lava at 888. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair crews 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
   </div>
   <div class="tablewrap">
     <table>
       <caption data-speak="Table 2. Upgrades."><span class="tnum">TABLE II</span><span class="ttitle">Upgrades</span></caption>
       <thead><tr><th scope="col">Upgrade</th><th scope="col">Effect by level</th><th scope="col">Costs</th></tr></thead>
       <tbody>
-        <tr><td>Crab den</td><td>Room for 10, 14, 18, 24, then 30 crabs</td><td class="n">120, 300, 650, 1,200</td></tr>
+        <tr><td>Crab den</td><td>Room for 10, 14, 18, 24, 30, then 36 crabs</td><td class="n">120, 300, 650, 1,200, 2,000</td></tr>
         <tr><td>Dune claims</td><td>Mine the middle dune (+0.08 richness, +1 nodule a flag), then the back dune (+0.15, +2)</td><td class="n">200, 550</td></tr>
         <tr><td>Hardened bits</td><td>Bits break on 4.5%, 2.5%, then 1.2% of holes</td><td class="n">150, 380</td></tr>
         <tr><td>Sharper scanner</td><td>Scans find a deposit 50%, 62%, then 74% of the time, with +0.07 and +0.13 richness</td><td class="n">140, 360</td></tr>
@@ -622,45 +710,43 @@ tr[data-say].saying{box-shadow:none}
     </table>
   </div>
 
-  <h2>V. Economy Review</h2>
+  <h2>VI. Economy Review</h2>
   <div class="cols">
-    <p>The review was run in Node.js on the same simulation script the page runs. The simulation is deterministic: it steps in fixed sixtieths of a second with its own seeded random numbers, so a given crew and seed always give the same result. Each figure below is ingots sold per minute, measured after a two-minute warm-up.</p>
-    <p><span class="runin">What one crab can do.</span> Table III gives each role's output in ingots a minute when every other stage is oversupplied. Crushers are the most productive crabs and haulers the least, so a balanced line needs about two and a half haulers per crusher. A scout's flags keep a little over one drill busy on the front dune, and nearly two once the back dune is claimed. Single-seed figures like these vary by about a tenth from run to run. Without scouts, drills strike so rarely that each one makes only about 0.6 ingots a minute. One energy bot keeps about five or six crabs charged, and the base Stirling engine supports about twelve.</p>
+    <p>The review was run in Node.js on the same simulation script the page runs. It steps in fixed sixtieths of a second with its own seeded random numbers, so a given crew, shift pattern, and seed always give the same result. Figures are ingots sold per minute, averaged over two to four seeds.</p>
+    <p><span class="runin">Shifts against all hands.</span> Table III compares the three patterns over twenty minutes. With all hands, crabs pile up 11 to 15 minutes of unbroken work and pay for it in breakdowns. The two shift patterns keep average wear at one or two minutes, and A and B shifts come out ahead at every crew size. Over a short session the order flips. The starting crew sells 5.0 ingots a minute on all hands over five minutes against 4.3 on A and B shifts. By ten minutes A and B is ahead, at 4.6 against 4.2, and by twenty it leads 4.3 to 3.3. Three-shift relief costs a third of the labour. It pays when crews are large enough that every role has three or more crabs, and it keeps batteries highest because sleeping crabs recharge themselves.</p>
   </div>
   <div class="tablewrap">
     <table>
-      <caption data-speak="Table 3. Output of one crab."><span class="tnum">TABLE III</span><span class="ttitle">Output of One Crab, Ingots a Minute</span></caption>
-      <thead><tr><th scope="col">Role</th><th scope="col">Front dune</th><th scope="col">With middle</th><th scope="col">With back</th></tr></thead>
-      <tbody id="t-per">
-        <tr><td>Scout (its flags, drilled out)</td><td class="n">8.8</td><td class="n">9.3</td><td class="n">12.8</td></tr>
-        <tr><td>Drill crab</td><td class="n">7.0</td><td class="n">8.5</td><td class="n">7.0</td></tr>
-        <tr><td>Hauler crab</td><td class="n">5.5</td><td class="n">5.3</td><td class="n">5.8</td></tr>
-        <tr><td>Crusher crab</td><td class="n">13.0</td><td class="n">13.3</td><td class="n">13.3</td></tr>
-        <tr><td>Smelter crab</td><td class="n">8.0</td><td class="n">8.0</td><td class="n">8.0</td></tr>
+      <caption data-speak="Table 3. Shift patterns over twenty minutes."><span class="tnum">TABLE III</span><span class="ttitle">Shift Patterns over Twenty Minutes</span></caption>
+      <thead><tr><th scope="col">Crew</th><th scope="col">All hands</th><th scope="col">A and B</th><th scope="col">Three-shift</th><th scope="col">Average wear, all hands → A/B</th></tr></thead>
+      <tbody>
+        <tr><td>10 crabs, no upgrades</td><td class="n">4.5</td><td class="n">5.3</td><td class="n">4.7</td><td class="n">12 min → 1.5 min</td></tr>
+        <tr><td>18 crabs, den, riser, and engine upgrades</td><td class="n">8.5</td><td class="n">9.4</td><td class="n">8.8</td><td class="n">11 min → 1.7 min</td></tr>
+        <tr><td>30 crabs, every upgrade</td><td class="n">24.9</td><td class="n">25.1</td><td class="n">22.9</td><td class="n">15 min → 1.6 min</td></tr>
       </tbody>
     </table>
   </div>
   <div class="cols" id="review">
-    <p><span class="runin">A working configuration.</span> All 8,008 ways to split ten crabs among the seven roles were simulated for eight minutes. The 25 best were then rerun with four more seeds and averaged. The best crew is one scout, two drills, two haulers, one crusher, two smelters, one energy bot, and one repair bot, at 7.1 ingots a minute (about 85 credits a minute). That is the starting crew plus a second smelter. In the starting crew the single smelter sets the pace, so the advisor's first tip is to hire another one. The best ten-crab crews with no scout or no energy bot make only 4.2 and 4.0 ingots a minute. Skipping repairs looks almost free over eight minutes: the best crew without a repair bot makes 6.8. Over twenty minutes, though, every drill in it ends up with a broken bit, and it falls to 4.5 against 7.1 for the best crew. Repairs are an investment that pays off over time.</p>
-    <p><span class="runin">Bigger crews.</span> Hill-climbing from a balanced start, one crab moved at a time, found these crews. With 14 crabs: 2 scouts, 2 drills, 3 haulers, 1 crusher, 3 smelters, 2 energy bots, and 1 repair bot, at 11.3 a minute. With 18 crabs and the first riser upgrade: 2, 4, 4, 2, 3, 2, and 1, at 18.0. With 30 crabs and every upgrade: 2, 5, 8, 4, 6, 4, and 1, at 38 a minute. That is about 450 credits a minute at the average price.</p>
-    <p><span class="runin">Pace.</span> An automatic player that always fixes the advisor's bottleneck, and spends spare money on upgrades, reached Pebble Boss at 1.8 simulated minutes, Nodule Baron at 3.5, Ingot Magnate at 6.7, Lava Lord at 14.8, and Crab Tycoon at 25.5. At 4× speed that is just over six minutes of real time. Income grew from about 75 credits a minute in the first minute to about 350 with a full den of 30, which it filled by minute 17. The early ranks come every two minutes or so and the last one takes about eleven, so the game gets going quickly and still leaves a goal to chase.</p>
-    <p><span class="runin">Changes made in review.</span> The first draft had three faults, and the numbers above come from the corrected rules. Bits broke on 7% of holes, so repairs ate a third of all metal. They now break on 4.5%, which costs about a sixth. Scouts found so much that one scout could feed six drills, so scans now take longer and succeed less often. The Stirling engine upgrade only shortened a refill, which changed almost nothing because energy bots spend most of their time walking. The engine now makes a fixed number of charges a minute, so power has a real limit that the player can see and raise.</p>
+    <p><span class="runin">Working configurations.</span> Hill-climbing, moving one crab between roles at a time, found these crews. With ten crabs on all hands, the best is still one scout, two drills, two haulers, one crusher, two smelters, one energy bot, and one repair bot, at 6.8 ingots a minute over eight minutes. That is the starting crew plus a second smelter, which is the advisor's first tip. A maintenance bot is not worth a tenth crab yet, because legs come off slowly in a small crew. With 18 crabs on A and B shifts, the best is 3 scouts, 3 drills, 3 haulers, 2 crushers, 3 smelters, 2 energy bots, 1 repair bot, and 1 maintenance bot, at 10.9. With 30 crabs and every upgrade on A and B shifts, it is 3, 5, 8, 3, 5, 4, 1, and 1, at 27.3. On all hands the same budget does as well (28.1), because hardened bits make breakdowns cheap. Shifts matter most in the middle of the game, before those upgrades are bought.</p>
+    <p><span class="runin">Pace.</span> An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 2.4 minutes, Nodule Baron at 4.9, Ingot Magnate at 9.3, and Lava Lord at 21.6, and never reached Crab Tycoon in 40 minutes. Its wear-worn crew earned 5,700 credits. Using overclock lifted that to 7,000, and two of the three runs reached Crab Tycoon. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 17.0 and Crab Tycoon at 27.6, and earned 12,800. That is a little under seven minutes of real time at 4× speed. Switching to three-shift relief at 18 crabs reached Crab Tycoon at 35.6.</p>
+    <p><span class="runin">The vent.</span> For an 18-crab crew the vent carries about three rides a minute, mostly energy bots and repair crews heading back to the field. It raises output by about 4%. It earns its place more as spectacle than as economics, and the crabs only take it when it saves time.</p>
+    <p><span class="runin">Changes made in review.</span> The first version of wear grew without limit. A crew on all hands spiralled into breakdowns and sold one ingot a minute by the end of a 40-minute game. Wear now does nothing for four minutes and at most doubles breakdowns and slows a crab by a fifth, so all hands fades instead of dying. A and B shifts at first left half of each crew working day and night without a break, so the resting half now alternates night by night.</p>
   </div>
 
-  <h2>VI. Swarm Rules</h2>
+  <h2>VII. Swarm Rules</h2>
   <div class="cols">
-    <p>No crab knows the plan. Each one runs the rule in Table I, and each rule reads only local facts: the nearest nodule, the best flag, the height of a pile, the level of a battery. The piles and the flags do the coordinating. This is stigmergy, the name Grassé gave to coordination through traces left in a shared workplace <a class="c" href="#ref-1">[1]</a>, and it is a founding idea of swarm intelligence <a class="c" href="#ref-2">[2]</a>. Insect colonies divide work by giving each worker a threshold for each task <a class="c" href="#ref-3">[3]</a>, and robots have been built to share foraging in the same way <a class="c" href="#ref-4">[4]</a>. Here the player acts as the threshold, moving crabs to whichever stage is short. The line can deliver no faster than its slowest stage <a class="c" href="#ref-5">[5]</a>, and the Ledger tab exists to show which stage that is.</p>
+    <p>No crab knows the plan. Each one runs the rule in Table I, and each rule reads only local facts: the nearest nodule, the best flag, the height of a pile, the level of a battery, whether the vent is quicker. The piles and the flags do the coordinating. This is stigmergy, the name Grassé gave to coordination through traces left in a shared workplace <a class="c" href="#ref-1">[1]</a>, and it is a founding idea of swarm intelligence <a class="c" href="#ref-2">[2]</a>. Insect colonies divide work by giving each worker a threshold for each task <a class="c" href="#ref-3">[3]</a>, and robots have been built to share foraging in the same way <a class="c" href="#ref-4">[4]</a>. Here the player acts as the threshold, moving crabs to whichever stage is short and choosing who rests when. The line can deliver no faster than its slowest stage <a class="c" href="#ref-5">[5]</a>, and the Ledger tab exists to show which stage that is.</p>
   </div>
 
-  <h2>VII. What Is Real and What Is Not</h2>
+  <h2>VIII. What Is Real and What Is Not</h2>
   <div class="cols">
-    <p>The nodules are real. Polymetallic nodules lie on abyssal plains and consist mainly of manganese and iron oxides, with nickel, copper, and cobalt in smaller amounts <a class="c" href="#ref-6">[6]</a>. Lava erupts on the sea floor too, and basaltic lava is roughly 1,100 to 1,200 °C. A Stirling engine runs on a temperature difference rather than on fuel, so one placed between lava and cold seawater is at least sound in principle.</p>
-    <p>The smelting is a game rule. Copper melts at 1,085 °C, which basaltic lava can reach. Manganese melts at 1,246 °C and nickel at 1,455 °C, which it cannot. Turning an oxide ore into metal also needs chemistry, a reducing agent, and heat alone will not do it. Deposits do not run out across the dunes as a whole, and sunlight reaches a floor that in life is dark. The model is faithful about the economics: breakdowns tax output, repairs consume product, and the slowest stage sets the pace.</p>
+    <p>The nodules are real. Polymetallic nodules lie on abyssal plains and consist mainly of manganese and iron oxides, with nickel, copper, and cobalt in smaller amounts <a class="c" href="#ref-6">[6]</a>. Lava erupts on the sea floor too, and basaltic lava is roughly 1,100 to 1,200 °C. Hot water rising from the sea floor is real as well: hydrothermal vents send up plumes of warm, buoyant water. A Stirling engine runs on a temperature difference rather than on fuel, so one placed between lava and cold seawater is at least sound in principle.</p>
+    <p>The smelting and the forging are game rules. Copper melts at 1,085 °C, which basaltic lava can reach. Manganese melts at 1,246 °C and nickel at 1,455 °C, which it cannot, and turning an oxide ore into metal needs a reducing agent as well as heat. Vent plumes rise slowly, so a crab could not ride one to near the surface in two seconds. Sunlight does not reach a floor this deep, and the night shift is lit only by the crabs' lamps. The model is faithful about the economics: breakdowns tax output, repairs consume product, tired workers break more, and the slowest stage sets the pace.</p>
   </div>
 
-  <h2>VIII. Conclusion</h2>
+  <h2>IX. Conclusion</h2>
   <div class="cols">
-    <p>Seven local rules, three piles, and one stockpile are enough for a production line that looks managed and is not. Uncertain mining, breakdowns paid for in metal, and a fluctuating price turn it into a game with real decisions. The review finds that the economy works: every role pays for itself, every upgrade raises output, and a sensible player grows from nine crabs to thirty in under twenty minutes of simulated time. The lesson is the same as before: find the stage that sets the pace and feed it. Pay for power and repairs next, because skipping them costs more than they do.</p>
+    <p>Eight local rules, three piles, and one stockpile make a production line that looks managed and is not. Uncertain mining, breakdowns paid for in the line's own metal, wear that only rest removes, and a price that rewards steady flow turn it into a game with real decisions. The review finds that the economy works: every role pays for itself, every upgrade raises output, shifts beat working flat out over any real length of game, and a sensible player reaches Crab Tycoon in under half an hour of simulated time. The lesson is the old one with a night shift added: find the stage that sets the pace and feed it, keep every job covered around the clock, and let the crew sleep.</p>
   </div>
 
   <section data-nospeak>
@@ -697,26 +783,37 @@ function CrabSim() {
     // places along the track, left to right
     FIELD0: 20, FIELD1: 580, WORKSHOP: 600, HAUL_STAND: 622, ORE: 648, CRUSH: 694, BAR: 738, GRAB: 756,
     STOCK: 790, COLLECTOR: 818, STIRLING: 850, RIM: 874, LAVA: 888, END: 1000,
+    VENT_IN: 880, VENT_X: 918,   // where crabs step into the thermal vent, and the column it rises in
     DEPTH: 300,          // crossing the dunes from the back crest to the front costs as much as 300 units of track
     // movement, in track units per second
     SPEED: 60, SCOUT_SPEED: 78, ESPEED: 95, RSPEED: 78,
+    T_RISE: 1.8, GLIDE: 200,     // riding the vent up, then swimming down and sideways, faster than any walk
     // stock limits
     ORE_CAP: [15, 24, 36], BAR_CAP: [10, 16, 24], STOCK_CAP: 40, FIELD_CAP: 24, FLAG_CAP: 8, CARRY: 3, START_NODULES: 6,
     // task times, in seconds
     T_SCAN: 3.4, T_DRILL: 2.8, T_PICK: 0.6, T_STACK: 0.3, T_CRUSH: 4.5, T_GRAB: 0.3, T_SMELT: 3.0, T_DROP: 0.3,
-    T_CHARGE: 0.8, T_REPAIR: 2.4, T_FETCH: 0.4, T_PLUG: 0.35,
+    T_CHARGE: 0.8, T_REPAIR: 2.4, T_FETCH: 0.4, T_PLUG: 0.35, T_FORGE: 1.4,
     // recipe and luck
     NOD_PER_BAR: 2, BONUS_NODULE: 0.2, WILDCAT: 0.25,
     // a broken bit drills slower, strikes less often, and draws three times the power
     BROKEN_TIME: 1.6, BROKEN_LUCK: 0.6, BROKEN_DRAIN: 3,
+    // a crab that has lost a leg limps, and any crab can lose one while it works
+    LEG_RATE: 0.0003, LIMP: 0.55,
+    // wear: work builds it, rest clears it; after four minutes without a break, crabs break more often and tire
+    WEAR_FREE: 240, WEAR_SCALE: 300, WEAR_MAX: 1, TIRE: 1000, TIRE_MAX: 0.2, NIGHT_FIX: 1.3, REST_CHARGE: 0.03, REST_RECOVER: 4, IDLE_RECOVER: 1,
     // energy
     DRAIN: 0.022, LOW: 0.2, SLOW: 0.35, CHARGES: 4, CHARGE_BELOW: 0.6, EBOT_WEAR: 0.03, EBOT_BROKEN: 0.45,
     DOCKS: 2, HEAT_CAP: 12,   // the engine charges two bots at once and banks up to twelve charges
+    // a day of three minutes, worked in one, two, or three shifts
+    DAY: 180, SHIFTS: ['all', 'ab', 'relief'],
+    // overclock: every delivery banks seconds of speed; a steady flow of deliveries banks more and sells dearer
+    OC_PER_SALE: 0.6, OC_MAX: 30, OC_SPEED: 1.5, OC_DRAIN: 1.6, OC_WEAR: 2,
+    FLOW_GAP: 6, FLOW_MAX: 20, FLOW_STEP: 0.02,
     // money
     PRICE: 12, START_CREDITS: 120, RESERVE: 2, HIRE_STEP: 0.15, REFUND: 0.5, RANK_BONUS: 0.1,
-    ROLES: ['scout', 'drill', 'haul', 'crush', 'smelt', 'energy', 'repair'],
-    HIRE: { scout: 30, drill: 35, haul: 25, crush: 40, smelt: 40, energy: 35, repair: 35 },
-    START: { scout: 1, drill: 2, haul: 2, crush: 1, smelt: 1, energy: 1, repair: 1 },
+    ROLES: ['scout', 'drill', 'haul', 'crush', 'smelt', 'energy', 'repair', 'mech'],
+    HIRE: { scout: 30, drill: 35, haul: 25, crush: 40, smelt: 40, energy: 35, repair: 35, mech: 35 },
+    START: { scout: 1, drill: 2, haul: 2, crush: 1, smelt: 1, energy: 1, repair: 1, mech: 0 },
     // the three dunes, front to back; deeper dunes hold richer, larger deposits
     ZONES: [
       { name: 'Front dune', d0: 0.70, d1: 0.97, q: 0, size: 0 },
@@ -724,25 +821,25 @@ function CrabSim() {
       { name: 'Back dune', d0: 0.06, d1: 0.30, q: 0.15, size: 2 }
     ],
     UP: {
-      den: { costs: [120, 300, 650, 1200], vals: [10, 14, 18, 24, 30] },
+      den: { costs: [120, 300, 650, 1200, 2000], vals: [10, 14, 18, 24, 30, 36] },
       field: { costs: [200, 550], vals: [1, 2, 3] },
       bits: { costs: [150, 380], vals: [0.045, 0.025, 0.012] },
       scanner: { costs: [140, 360], vals: [[0.5, 0], [0.62, 0.07], [0.74, 0.13]] },
-      engine: { costs: [140, 420], vals: [32, 56, 90] },   // charges the Stirling engine makes a minute,
+      engine: { costs: [140, 420], vals: [32, 56, 90] },   // charges the Stirling engine makes a minute
       riser: { costs: [100, 300], vals: [3, 1.8, 1] },
       yard: { costs: [90, 240], vals: [0, 1, 2] }
     },
     RANKS: [[0, 'Sand Scraper'], [150, 'Pebble Boss'], [400, 'Nodule Baron'], [1000, 'Ingot Magnate'], [2500, 'Lava Lord'], [6000, 'Crab Tycoon']]
   };
-  var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed',
-    'bitsBroken', 'ebotsBroken', 'repairs', 'charges', 'spent'];
+  var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
+    'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus'];
+  var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
 
   var seed = K.SEED, S = null, events = [], dt = K.STEP;
   function sr() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
   function srr(a, b) { return a + sr() * (b - a); }
   function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
   function emit(type, a, b) { events.push({ type: type, a: a, b: b }); }
-  function slow(c) { return c.bat < K.LOW ? K.SLOW : 1; }
   function up(id) { return K.UP[id].vals[S.lv[id]]; }
   function oreCap() { return K.ORE_CAP[up('yard')]; }
   function barCap() { return K.BAR_CAP[up('yard')]; }
@@ -751,6 +848,12 @@ function CrabSim() {
     var z = K.ZONES[Math.floor(sr() * up('field'))];
     return { x: srr(K.FIELD0 + 10, K.FIELD1 - 10), d: srr(z.d0, z.d1) };
   }
+  // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
+  function pace(c) {
+    return (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
+      (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1);   // the night crew
+  }
+  function wearMult(c) { return 1 + Math.min(K.WEAR_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.WEAR_SCALE); }
 
   function reset(opts) {
     var i, r, crew, k, p;
@@ -760,6 +863,7 @@ function CrabSim() {
     S = {
       t: 0, credits: K.START_CREDITS, earned: 0, heat: 6, price: K.PRICE, walk: 0, tick: 0, liftT: 0,
       nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, docks: [],
+      shift: opts.shift || 'all', si: null, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: []
     };
     for (k in K.UP) S.lv[k] = (opts.lv && opts.lv[k]) || 0;
@@ -792,8 +896,8 @@ function CrabSim() {
   function addCrab(role) {
     var p, c = {
       id: S.nextId++, role: role, x: 0, d: 0.8, dir: 1, bat: 1, state: 'init', timer: 0, load: 0, carry: null,
-      target: null, claimedBy: null, fixBy: null, held: false, flag: null, charges: K.CHARGES, bitOk: true, broken: false,
-      moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
+      target: null, claimedBy: null, fixBy: null, mendBy: null, flag: null, charges: K.CHARGES, bitOk: true, broken: false, limp: false,
+      wear: 0, air: null, alt: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
     };
     if (role === 'scout' || role === 'drill' || role === 'haul') { p = spot(); c.x = p.x; c.d = p.d; }
     else if (role === 'crush') { c.x = K.CRUSH; c.d = 0.8; }
@@ -805,31 +909,79 @@ function CrabSim() {
     emit('join', c);
     return c;
   }
+  function release(c) {                    // let go of every claim: used when a crab leaves or goes off shift
+    if (c.role === 'haul' && c.target) { c.target.by = null; c.target = null; }
+    if (c.role === 'drill' && c.flag) { c.flag.by = null; c.flag = null; }
+    if (c.role === 'energy' && c.target) { c.target.claimedBy = null; c.target = null; }
+    if ((c.role === 'repair' || c.role === 'mech') && c.target) { c.target[FIX[c.role].claim] = null; c.target = null; }
+    var j = S.docks.indexOf(c); if (j >= 0) S.docks.splice(j, 1);
+  }
   function removeCrab(role) {
     var i, c = null, j;
     for (i = S.crabs.length - 1; i >= 0; i--) if (S.crabs[i].role === role) { c = S.crabs[i]; break; }
     if (!c) return null;
     c.gone = true;
     if (c.nod) { j = S.nodules.indexOf(c.nod); if (j >= 0) S.nodules.splice(j, 1); }
-    if (c.role === 'haul' && c.target) c.target.by = null;
-    if (c.role === 'drill' && c.flag) c.flag.by = null;
-    if (c.role === 'energy' && c.target) c.target.claimedBy = null;
-    if (c.role === 'repair') {
-      if (c.target) { c.target.fixBy = null; c.target.held = false; }
-      if (c.carry === 'ingot') S.stock++;              // unused metal goes back on the stockpile
-    }
+    release(c);
+    if (c.carry === 'ingot' && c.role === 'repair') S.stock++;     // unused metal goes back where it came from
+    if (c.carry === 'bar' && c.role === 'mech') S.bars++;
     if (c.claimedBy) { c.claimedBy.target = null; c.claimedBy.state = 'idle'; }
     if (c.fixBy) { c.fixBy.target = null; c.fixBy.state = 'idle'; }
-    j = S.docks.indexOf(c); if (j >= 0) S.docks.splice(j, 1);
+    if (c.mendBy) { c.mendBy.target = null; c.mendBy.state = 'idle'; }
     S.crabs.splice(i, 1);
     rank();
     emit('leave', c);
     return c;
   }
 
+  // ----- shifts -----
+  // In all-hands mode everyone works all day. With A and B shifts, every crab works the day; at night
+  // half of each role sleeps, a different half each night, while the repair crews work on at night pace.
+  // In three-shift relief the day is cut in three and each crab sleeps through one third: two groups in
+  // three are always on.
+  function shiftInfo(t) {
+    var p = ((t === undefined ? S.t : t) % K.DAY) / K.DAY, n = S.shift === 'relief' ? 3 : (S.shift === 'ab' ? 2 : 1);
+    var i = Math.min(n - 1, Math.floor(p * n));
+    return {
+      mode: S.shift, periods: n, index: i, day: Math.floor((t === undefined ? S.t : t) / K.DAY) + 1,
+      left: (i + 1) * K.DAY / n - p * K.DAY, night: S.shift === 'relief' ? i === 2 : p >= 0.5,
+      name: n === 1 ? 'All hands' : (n === 2 ? (i ? 'B shift (night)' : 'A shift (day)') : ['Shift 1', 'Shift 2', 'Shift 3 (night)'][i])
+    };
+  }
+  function dutyAt(c, si) {
+    if (S.shift === 'ab') {
+      if (si.index === 0 || c.role === 'repair' || c.role === 'mech') return true;   // repair crews work nights
+      return (c.k + si.day) % 2 === 1;                                             // half sleep, alternating nights
+    }
+    if (S.shift === 'relief') return c.k % 3 !== si.index;
+    return true;
+  }
+  function onDuty(c) { return dutyAt(c, S.si || shiftInfo()); }
+  function offShift(c) {                   // called where a crab would choose its next task
+    if (onDuty(c) || c.air) return false;
+    release(c);
+    c.state = 'sleep'; c.working = false;
+    emit('sleep', c);
+    return true;
+  }
+  // which roles have somebody on duty in each part of the day: the line needs at least one of each, always
+  function coverage() {
+    var si, i, j, c, n = S.shift === 'relief' ? 3 : (S.shift === 'ab' ? 2 : 1), out = [], row;
+    if (S.shift === 'ab') n = 3;                             // a day, then the two kinds of night in turn
+    for (i = 0; i < n; i++) {
+      si = shiftInfo(S.shift === 'ab' ? [0.25, 0.75, 1.75][i] * K.DAY : (i + 0.5) * K.DAY / n);
+      if (S.shift === 'ab' && i) si.name = 'B shift (night ' + i + ')';
+      row = { name: si.name, roles: {} };
+      for (j = 0; j < K.ROLES.length; j++) row.roles[K.ROLES[j]] = 0;
+      for (j = 0; j < S.crabs.length; j++) { c = S.crabs[j]; if (dutyAt(c, si)) row.roles[c.role]++; }
+      out.push(row);
+    }
+    return out;
+  }
+
   // walk along the track (x) and up or down the dunes (d); true once there
   function moveTo(c, tx, td, speed) {
-    var k = slow(c), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
+    var k = pace(c) * (c.limp ? K.LIMP : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
     if (Math.abs(dx) > 0.5) {
       c.dir = dx > 0 ? 1 : -1;
       c.x += Math.abs(dx) <= mv ? dx : c.dir * mv;
@@ -842,6 +994,37 @@ function CrabSim() {
       if (Math.abs(td - c.d) > 0.004) there = false;
     }
     return there;
+  }
+  // Long trips from the lava side may take the thermal vent: walk to it, float up with the bubbles,
+  // then swim down and sideways to the target. A crab only does it when that beats walking.
+  function go(c, tx, td, speed) {
+    var a = c.air, f, walk, ride, k;
+    if (!a && c.x > 760 && tx < c.x - 200) {
+      k = pace(c) * (c.limp ? K.LIMP : 1) * speed;
+      walk = (Math.abs(tx - c.x) + Math.abs(td - c.d) * K.DEPTH) / k;
+      ride = (Math.abs(K.VENT_IN - c.x) + Math.abs(0.8 - c.d) * K.DEPTH) / k + K.T_RISE + (K.VENT_X - tx) / K.GLIDE;
+      if (ride < walk * 0.9) { a = c.air = { phase: 'walk' }; c.alt = 0; }
+    }
+    if (!a) return moveTo(c, tx, td, speed);
+    a.tx = tx; a.td = td; a.used = S.t;
+    if (a.phase === 'walk') {
+      if (moveTo(c, K.VENT_IN, 0.8, speed)) { a.phase = 'rise'; a.x0 = c.x; S.stat.rides++; emit('ride', c); }
+      return false;
+    }
+    c.moving = false; c.floating = true;                    // floating is free: no power, no wear
+    if (a.phase === 'rise') {
+      c.alt = Math.min(1, c.alt + dt / K.T_RISE);
+      c.x = a.x0 + (K.VENT_X - a.x0) * Math.min(1, c.alt * 2);
+      c.dir = -1;
+      if (c.alt >= 1) { a.phase = 'glide'; a.gx = c.x; a.gd = c.d; }
+      return false;
+    }
+    // glide: fast and sideways, falling as it goes; it lands on the target, wherever that has moved to
+    c.x = Math.max(tx, c.x - K.GLIDE * dt);
+    f = a.gx - tx > 1 ? clamp((a.gx - c.x) / (a.gx - tx), 0, 1) : 1;
+    c.alt = 1 - f; c.d = a.gd + (td - a.gd) * f; c.dir = -1;
+    if (f >= 1 || c.x <= tx) { c.x = tx; c.d = td; c.alt = 0; c.air = null; c.floating = false; emit('land', c); return true; }
+    return false;
   }
   function far(a, x, d) { return Math.abs(a.x - x) + Math.abs(a.d - d) * K.DEPTH; }
   function nearestNodule(c) {
@@ -865,19 +1048,20 @@ function CrabSim() {
     return best;
   }
   function removeFlag(f) { var j = S.flags.indexOf(f); if (j >= 0) S.flags.splice(j, 1); f.gone = true; }
+  function work(c) { c.working = true; return dt * pace(c); }
 
   // ----- one rule set per role; no crab is told what the others are doing -----
   function scout(c) {
     var sc, z, f;
     if (c.state === 'init' || c.state === 'pick' || c.state === 'rest') {
+      if (offShift(c)) return;
       if (S.flags.length >= K.FLAG_CAP) { c.state = 'rest'; return; }   // plenty of flags already: rest
       f = spot(); c.tx = f.x; c.td = f.d; c.state = 'go';
     }
     if (c.state === 'go') {
-      if (moveTo(c, c.tx, c.td, K.SCOUT_SPEED)) { c.state = 'scan'; c.timer = K.T_SCAN; c.scan = 0; }
+      if (go(c, c.tx, c.td, K.SCOUT_SPEED)) { c.state = 'scan'; c.timer = K.T_SCAN; c.scan = 0; }
     } else if (c.state === 'scan') {
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       c.scan = clamp(1 - c.timer / K.T_SCAN, 0, 1);
       if (c.timer <= 0) {
         S.stat.scans++;
@@ -895,23 +1079,23 @@ function CrabSim() {
   function drill(c) {
     var f, p, q, i, n2;
     if (c.state === 'init' || c.state === 'pick' || c.state === 'rest') {
+      if (offShift(c)) return;
       if (S.nodules.length >= K.FIELD_CAP) { c.state = 'rest'; return; }   // the sand is littered: rest
       f = bestFlag(c);
       if (c.flag && c.flag !== f) c.flag.by = null;          // let go of the old flag before claiming a new one
       if (f) { f.by = c; c.flag = f; c.tx = clamp(f.x + srr(-8, 8), K.FIELD0, K.FIELD1); c.td = clamp(f.d + srr(-0.03, 0.03), 0.02, 0.98); }
-      else { if (c.flag) c.flag.by = null; c.flag = null; p = spot(); c.tx = p.x; c.td = p.d; }
+      else { c.flag = null; p = spot(); c.tx = p.x; c.td = p.d; }
       c.state = 'go';
     }
     if (c.state === 'go') {
       if (c.flag && c.flag.gone) { c.flag = null; c.state = 'pick'; return; }
-      if (moveTo(c, c.tx, c.td, K.SPEED)) {
+      if (go(c, c.tx, c.td, K.SPEED)) {
         c.state = 'drill'; c.timer = c.holeT = K.T_DRILL * (c.bitOk ? 1 : K.BROKEN_TIME);
         c.nod = { x: c.x, d: c.d, alive: false, eddy: 0, by: null };
         S.nodules.push(c.nod);
       }
     } else if (c.state === 'drill') {
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       c.nod.eddy = clamp(1 - c.timer / c.holeT, 0, 1);
       if (c.timer <= 0) {
         S.stat.holes++;
@@ -929,7 +1113,7 @@ function CrabSim() {
           emit('dry', c);
         }
         c.nod = null;
-        if (c.bitOk && sr() < up('bits')) { c.bitOk = false; S.stat.bitsBroken++; emit('bitBreak', c); }
+        if (c.bitOk && sr() < up('bits') * wearMult(c)) { c.bitOk = false; S.stat.bitsBroken++; emit('bitBreak', c); }
         c.state = 'pick';
       }
     }
@@ -938,15 +1122,15 @@ function CrabSim() {
     if (c.state === 'init') c.state = 'seek';
     if (c.state === 'seek') {
       if (c.load >= K.CARRY) { c.state = 'haul'; return; }
+      if (c.load === 0 && !c.target && offShift(c)) return;
       if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
       if (c.target) {
-        if (moveTo(c, c.target.x, c.target.d, K.SPEED)) { c.state = 'pick'; c.timer = K.T_PICK; }
+        if (go(c, c.target.x, c.target.d, K.SPEED)) { c.state = 'pick'; c.timer = K.T_PICK; }
       } else if (c.load > 0) {
         c.state = 'haul';
       }
     } else if (c.state === 'pick') {
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       if (c.timer <= 0) {
         if (c.target && !c.target.taken) {
           c.target.taken = true;
@@ -960,8 +1144,7 @@ function CrabSim() {
       if (moveTo(c, K.HAUL_STAND, 0.72 + 0.07 * (c.k % 4), K.SPEED)) { c.state = 'stack'; c.timer = K.T_STACK; }
     } else if (c.state === 'stack') {
       if (S.ore >= oreCap()) return;                         // the ore pile is full: wait
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       if (c.timer <= 0) {
         S.ore++; c.load--; S.stat.stacked++; emit('stack', c);
         c.timer = K.T_STACK;
@@ -974,10 +1157,10 @@ function CrabSim() {
     if (c.state === 'home') {
       if (moveTo(c, K.CRUSH - (c.k >= 3 ? 16 : 0), 0.72 + 0.09 * (c.k % 3), K.SPEED)) c.state = 'wait';
     } else if (c.state === 'wait') {
+      if (offShift(c)) return;
       if (S.ore >= K.NOD_PER_BAR) { S.ore -= K.NOD_PER_BAR; emit('feed', c); c.state = 'crush'; c.timer = K.T_CRUSH; }
     } else if (c.state === 'crush') {
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       if (c.timer <= 0) c.state = 'hold';
     } else if (c.state === 'hold') {
       if (S.bars < barCap()) { S.bars++; S.stat.bars++; emit('bar', c); c.state = 'wait'; }   // else the bar stack is full: wait
@@ -986,28 +1169,26 @@ function CrabSim() {
   function smelt(c) {
     if (c.state === 'init') c.state = 'toBar';
     if (c.state === 'toBar') {
+      if (offShift(c)) return;
       if (moveTo(c, K.GRAB, 0.72 + 0.08 * (c.k % 3), K.SPEED)) { c.state = 'grab'; c.timer = K.T_GRAB; }
     } else if (c.state === 'grab') {
       if (c.carry !== 'bar') {
         if (S.bars <= 0) return;                             // nothing to smelt yet: wait
         S.bars--; c.carry = 'bar'; emit('grab', c); c.timer = K.T_GRAB;
       }
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       if (c.timer <= 0) c.state = 'toLava';
     } else if (c.state === 'toLava') {
       if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = K.T_SMELT; c.heat = 0; }
     } else if (c.state === 'smelt') {
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       c.heat = clamp(1 - c.timer / K.T_SMELT, 0, 1);
       if (c.timer <= 0) { c.carry = 'ingot'; S.stat.ingots++; emit('ingot', c); c.state = 'toStock'; }
     } else if (c.state === 'toStock') {
       if (moveTo(c, K.STOCK + 8, 0.86 + 0.04 * (c.k % 3), K.SPEED)) { c.state = 'drop'; c.timer = K.T_DROP; }
     } else if (c.state === 'drop') {
       if (S.stock >= K.STOCK_CAP) return;                    // the stockpile is full: wait
-      c.working = true;
-      c.timer -= dt * slow(c);
+      c.timer -= work(c);
       if (c.timer <= 0) { c.carry = null; c.heat = 0; S.stock++; emit('stock', c); c.state = 'toBar'; }
     }
   }
@@ -1016,9 +1197,10 @@ function CrabSim() {
     if (c.state === 'init') c.state = 'idle';
     if (c.state === 'idle') {
       if (c.charges <= 0) { c.state = 'toEngine'; return; }
+      if (offShift(c)) return;
       for (i = 0; i < S.crabs.length; i++) {
         w = S.crabs[i];
-        if (w.role === 'energy' || w.claimedBy || w.bat >= K.CHARGE_BELOW) continue;
+        if (w.role === 'energy' || w.claimedBy || w.air || w.state === 'sleep' || w.bat >= K.CHARGE_BELOW) continue;
         if (!best || w.bat < best.bat) best = w;
       }
       if (best) { best.claimedBy = c; c.target = best; c.state = 'go'; }
@@ -1026,24 +1208,25 @@ function CrabSim() {
       else moveTo(c, K.STIRLING - 46 - 16 * (c.k % 4), 0.9 - 0.05 * (c.k % 2), sp);
     } else if (c.state === 'go' || c.state === 'charge') {
       w = c.target;
-      if (!w || w.gone) { c.target = null; c.state = 'idle'; return; }
-      moveTo(c, w.x - 12, w.d, sp);
+      if (!w || w.gone || w.state === 'sleep') { if (w) w.claimedBy = null; c.target = null; c.state = 'idle'; return; }
       if (c.state === 'go') {
-        if (Math.abs(w.x - 12 - c.x) <= 4 && Math.abs(w.d - c.d) <= 0.06) { c.state = 'charge'; c.timer = K.T_CHARGE * (c.broken ? 2 : 1); }
+        if (go(c, w.x - 12, w.d, sp) || (!c.air && Math.abs(w.x - 12 - c.x) <= 4 && Math.abs(w.d - c.d) <= 0.06)) {
+          c.state = 'charge'; c.timer = K.T_CHARGE * (c.broken ? 2 : 1);
+        }
       } else {
-        c.working = true;
-        c.timer -= dt;
+        moveTo(c, w.x - 12, w.d, sp);
+        c.timer -= work(c);
         if (c.timer <= 0) {
           w.bat = 1; w.claimedBy = null; S.stat.charges++; emit('charge', c, w);
           c.target = null; c.charges--;
-          if (!c.broken && sr() < K.EBOT_WEAR) { c.broken = true; S.stat.ebotsBroken++; emit('ebotBreak', c); }
+          if (!c.broken && sr() < K.EBOT_WEAR * wearMult(c)) { c.broken = true; S.stat.ebotsBroken++; emit('ebotBreak', c); }
           c.state = c.charges > 0 ? 'idle' : 'toEngine';
         }
       }
-    } else if (c.state === 'toEngine') {
+    } else if (c.state === 'toEngine') {                       // back to the base station by the lava
       if (moveTo(c, K.STIRLING - 22, 0.8, sp)) c.state = 'queue';
     } else if (c.state === 'queue') {
-      if (S.docks.length < K.DOCKS) { S.docks.push(c); c.state = 'refill'; c.timer = K.T_PLUG; }
+      if (S.docks.length < K.DOCKS) { S.docks.push(c); c.state = 'refill'; c.timer = K.T_PLUG; emit('plug', c); }
     } else if (c.state === 'refill') {                       // plugged into the engine, one charge at a time
       c.working = true;
       moveTo(c, K.STIRLING - 12 + 22 * S.docks.indexOf(c), 0.76, sp);
@@ -1059,58 +1242,89 @@ function CrabSim() {
       }
     }
   }
-  function needsFix(w) { return w && !w.gone && ((w.role === 'drill' && !w.bitOk) || (w.role === 'energy' && w.broken)); }
-  function repair(c) {
-    var i, w, best = null, bd = 1e9, d;
+
+  // ----- the two repair crews: fetch the material, forge the part in the lava, fit it -----
+  // Repair bots turn an ingot from the stockpile into a new drill bit or energy cell.
+  // Maintenance bots turn a bar from the bar stack into a new leg.
+  var FIX = {
+    repair: {
+      claim: 'fixBy', raw: 'ingot', part: 'bit', at: function () { return K.STOCK - 10; },
+      need: function (w) { return (w.role === 'drill' && !w.bitOk) || (w.role === 'energy' && w.broken); },
+      take: function () { if (S.stock <= 0) return false; S.stock--; S.stat.metalUsed++; return true; },
+      done: function (w) { if (w.role === 'drill') w.bitOk = true; else w.broken = false; S.stat.repairs++; }
+    },
+    mech: {
+      claim: 'mendBy', raw: 'bar', part: 'leg', at: function () { return K.BAR + 14; },
+      need: function (w) { return w.limp; },
+      take: function () { if (S.bars <= 0) return false; S.bars--; S.stat.barsUsed++; return true; },
+      done: function (w) { w.limp = false; S.stat.mends++; }
+    }
+  };
+  function needs(w, kind) { return w && !w.gone && FIX[kind].need(w); }
+  function isHeld(w) { return (w.fixBy && w.fixBy.target === w && w.fixBy.state === 'fix') || (w.mendBy && w.mendBy.target === w && w.mendBy.state === 'fix'); }
+  function fixer(c) {
+    var F = FIX[c.role], i, w, best = null, bd = 1e9, d;
     if (c.state === 'init') c.state = 'idle';
     if (c.state === 'idle') {
+      if (offShift(c)) return;
       for (i = 0; i < S.crabs.length; i++) {
         w = S.crabs[i];
-        if (w.fixBy || !needsFix(w)) continue;
-        d = far(c, w.x, w.d);
+        if (w[F.claim] || w.air || !needs(w, c.role)) continue;
+        d = far(c, w.x, w.d) * (w.state === 'sleep' ? 0.6 : 1);   // sleeping crabs hold still: easy work
         if (d < bd) { bd = d; best = w; }
       }
-      if (!best) { moveTo(c, K.WORKSHOP - 14 * (c.k % 4), 0.93, K.RSPEED); return; }
-      best.fixBy = c; c.target = best;
-      c.state = c.carry === 'ingot' ? 'toJob' : 'toStock';
+      if (!best) { moveTo(c, K.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, K.RSPEED); return; }
+      best[F.claim] = c; c.target = best;
+      c.state = c.carry === F.part ? 'toJob' : (c.carry === F.raw ? 'toForge' : 'toMat');
     }
-    if (c.state === 'toStock') {
-      if (moveTo(c, K.STOCK - 10, 0.95, K.RSPEED)) { c.state = 'fetch'; c.timer = K.T_FETCH; }
+    if (c.state === 'toMat') {
+      if (moveTo(c, F.at(), 0.95, K.RSPEED)) { c.state = 'fetch'; c.timer = K.T_FETCH; }
     } else if (c.state === 'fetch') {
-      if (c.carry !== 'ingot') {
-        if (S.stock <= 0) return;                            // no metal on the stockpile: wait for the smelters
-        S.stock--; c.carry = 'ingot'; S.stat.metalUsed++; emit('takeMetal', c);
+      if (c.carry !== F.raw) {
+        if (!F.take()) return;                               // nothing on the pile: wait for the line
+        c.carry = F.raw; emit('takeMat', c);
       }
-      c.working = true;
-      c.timer -= dt * slow(c);
-      if (c.timer <= 0) c.state = 'toJob';
+      c.timer -= work(c);
+      if (c.timer <= 0) c.state = 'toForge';
+    } else if (c.state === 'toForge') {                     // the lava is the forge
+      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), K.RSPEED)) { c.state = 'forge'; c.timer = K.T_FORGE; c.heat = 0; }
+    } else if (c.state === 'forge') {
+      c.timer -= work(c);
+      c.heat = clamp(1 - c.timer / K.T_FORGE, 0, 1);
+      if (c.timer <= 0) { c.carry = F.part; c.heat = 0; emit('forged', c); c.state = 'toJob'; }
     } else if (c.state === 'toJob' || c.state === 'fix') {
       w = c.target;
-      if (!needsFix(w)) { if (w) { w.fixBy = null; w.held = false; } c.target = null; c.state = 'idle'; return; }
+      if (!needs(w, c.role)) { if (w && w[F.claim] === c) w[F.claim] = null; c.target = null; c.state = 'idle'; return; }
       if (c.state === 'toJob') {
-        if (moveTo(c, w.x - 14 * w.dir, w.d, K.RSPEED)) { c.state = 'fix'; c.timer = K.T_REPAIR; w.held = true; }
+        if (w.air) return;                                   // wait for it to land
+        if (go(c, w.x - 14 * w.dir, w.d, K.RSPEED) && !c.air && far(c, w.x - 14 * w.dir, w.d) < 6) { c.state = 'fix'; c.timer = K.T_REPAIR; }
       } else {
-        c.working = true;
-        c.timer -= dt * slow(c);
+        c.timer -= work(c);
         if (c.timer <= 0) {
-          if (w.role === 'drill') w.bitOk = true; else w.broken = false;
-          w.fixBy = null; w.held = false; c.carry = null; c.target = null;
-          S.stat.repairs++; emit('fixed', c, w); c.state = 'idle';
+          F.done(w);
+          w[F.claim] = null; c.carry = null; c.target = null;
+          emit('fixed', c, w); c.state = 'idle';
         }
       }
     }
   }
-  var RULES = { scout: scout, drill: drill, haul: haul, crush: crush, smelt: smelt, energy: energy, repair: repair };
+  var RULES = { scout: scout, drill: drill, haul: haul, crush: crush, smelt: smelt, energy: energy, repair: fixer, mech: fixer };
 
   // ----- the riser, the market, and the ledger -----
+  function flowMult() { return 1 + K.FLOW_STEP * S.streak; }
   function sell() {
     S.liftT -= dt;
     if (S.liftT > 0) return;
     if (S.stock > S.reserve) {
-      var v = Math.round(S.price);
+      // a delivery soon after the last one keeps the flow going: it sells dearer and banks more overclock
+      S.streak = S.t - S.lastSale <= K.FLOW_GAP ? Math.min(K.FLOW_MAX, S.streak + 1) : 0;
+      S.lastSale = S.t;
+      var v = Math.round(S.price * flowMult());
+      S.stat.flowBonus += v - Math.round(S.price);
       S.stock--; S.credits += v; S.earned += v; S.stat.sold++; S.stat.revenue += v;
+      S.ocBank = Math.min(K.OC_MAX, S.ocBank + K.OC_PER_SALE * (1 + S.streak / 10));
       S.liftT = up('riser');
-      emit('sell', v);
+      emit('sell', v, S.streak);
       while (S.rank + 1 < K.RANKS.length && S.earned >= K.RANKS[S.rank + 1][0]) {
         S.rank++;
         var bonus = Math.round(K.RANKS[S.rank][0] * K.RANK_BONUS);
@@ -1118,6 +1332,7 @@ function CrabSim() {
         emit('rank', S.rank, bonus);
       }
     } else S.liftT = 0;
+    if (S.streak && S.t - S.lastSale > K.FLOW_GAP) { S.streak = 0; emit('flowLost'); }
   }
   function market() {                     // a slow swell, a faster ripple, and a drifting random walk
     var tt = S.t, w;
@@ -1126,7 +1341,7 @@ function CrabSim() {
     S.price = K.PRICE * clamp(w, 0.55, 1.5);
   }
   function snapshot() {
-    var h = { t: S.t, credits: S.credits, price: S.price, stock: S.stock, bat: avgBattery() }, i;
+    var h = { t: S.t, credits: S.credits, price: S.price, stock: S.stock, bat: avgBattery(), wear: avgWear() }, i;
     for (i = 0; i < STATS.length; i++) h[STATS[i]] = S.stat[STATS[i]];
     S.hist.push(h);
     if (S.hist.length > 302) S.hist.shift();
@@ -1136,17 +1351,38 @@ function CrabSim() {
     for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].role !== 'energy') { b += S.crabs[i].bat; n++; }
     return n ? b / n : 1;
   }
+  function avgWear() {
+    var b = 0, i;
+    for (i = 0; i < S.crabs.length; i++) b += S.crabs[i].wear;
+    return S.crabs.length ? b / S.crabs.length : 0;
+  }
 
   function step() {
-    var i, c;
+    var i, c, active, drain;
     S.t += dt;
+    S.si = shiftInfo();
+    if (S.oc) { S.ocBank -= dt; if (S.ocBank <= 0) { S.ocBank = 0; S.oc = false; emit('ocEnd'); } }
     for (i = 0; i < S.crabs.length; i++) {
       c = S.crabs[i];
-      c.moving = false; c.working = false;
-      if (!c.held) RULES[c.role](c);
-      if (c.role !== 'energy' && (c.moving || c.working)) {
-        c.bat = Math.max(0, c.bat - K.DRAIN * dt * (c.role === 'drill' && !c.bitOk && c.state === 'drill' ? K.BROKEN_DRAIN : 1));
+      c.moving = false; c.working = false; c.floating = false;
+      if (c.state === 'sleep') {                             // off shift: rest, recharge, and shake off the wear
+        c.bat = Math.min(1, c.bat + K.REST_CHARGE * dt);
+        c.wear = Math.max(0, c.wear - K.REST_RECOVER * dt);
+        if (onDuty(c)) { c.state = RESUME[c.role]; emit('wake', c); }
+        continue;
       }
+      if (!isHeld(c)) RULES[c.role](c);
+      if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
+        if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, K.SPEED);
+      }
+      active = c.moving || c.working;
+      if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); continue; }
+      c.wear += dt * (S.oc ? K.OC_WEAR : 1);
+      if (c.role !== 'energy') {
+        drain = K.DRAIN * (c.role === 'drill' && !c.bitOk && c.state === 'drill' ? K.BROKEN_DRAIN : 1) * (S.oc ? K.OC_DRAIN : 1);
+        c.bat = Math.max(0, c.bat - drain * dt);
+      }
+      if (!c.limp && sr() < K.LEG_RATE * wearMult(c) * dt) { c.limp = true; S.stat.legsLost++; emit('legOff', c); }
     }
     S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * dt / 60);   // lava heat drives the Stirling engine
     sell();
@@ -1165,23 +1401,32 @@ function CrabSim() {
 
   // ----- what the crew could do at full stretch, in ingots a minute, stage by stage -----
   // The figures are measured: each is one crab's output when nothing upstream or downstream holds it back.
-  var PER = { scout: [8.8, 10.5, 13], drill: 7.5, wildcat: 0.6, haul: 5.3, crush: 13, smelt: 8, bot: 6.5, charges: 2.6, fixes: 3, holes: 10 };
+  // Shifts scale them by the share of the day each role is on duty.
+  var PER = { scout: [8.8, 10.5, 13], drill: 7.5, wildcat: 0.6, haul: 5.3, crush: 13, smelt: 8, bot: 6.5, charges: 2.6, fixes: 3, mends: 2.5, holes: 10 };
+  function dutyShare(role) {
+    var cov = coverage(), n = count(role), i, s = 0;
+    if (!n) return 1;
+    for (i = 0; i < cov.length; i++) s += cov[i].roles[role] / n;
+    return s / cov.length;
+  }
   function capacity() {
-    var n = counts(), z = up('field'), workers = S.crabs.length - n.energy;
-    var breaks = n.drill * PER.holes * up('bits') + n.energy * 10 * K.EBOT_WEAR;
+    var n = counts(), z = up('field'), workers = S.crabs.length - n.energy, wm = 1 + Math.min(K.WEAR_MAX, Math.max(0, avgWear() - K.WEAR_FREE) / K.WEAR_SCALE);
+    var breaks = (n.drill * PER.holes * up('bits') + n.energy * 10 * K.EBOT_WEAR) * wm, legs = S.crabs.length * K.LEG_RATE * 60 * wm;
+    var d = function (r) { return n[r] * dutyShare(r); };
     return {
-      scout: n.scout * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]),
-      drill: n.drill * (n.scout ? PER.drill : PER.wildcat),
-      haul: n.haul * PER.haul,
-      crush: n.crush * PER.crush,
-      smelt: n.smelt * PER.smelt,
+      scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]),
+      drill: d('drill') * (n.scout ? PER.drill : PER.wildcat),
+      haul: d('haul') * PER.haul,
+      crush: d('crush') * PER.crush,
+      smelt: d('smelt') * PER.smelt,
       sell: 60 / up('riser'),
       // power: crabs kept charged per crab working, limited by the bots and by the engine behind them
-      power: workers ? Math.min(n.energy * PER.bot, up('engine') / PER.charges) / workers : 1,
-      bots: workers ? n.energy * PER.bot / workers : 1,
+      power: workers ? Math.min(d('energy') * PER.bot, up('engine') / PER.charges) / workers : 1,
+      bots: workers ? d('energy') * PER.bot / workers : 1,
       engine: workers ? up('engine') / PER.charges / workers : 1,
-      // repair: breakdowns the repair bots can keep up with, per breakdown expected
-      repair: breaks ? n.repair * PER.fixes / breaks : 1
+      // repairs and mending: breakdowns the crews can keep up with, per breakdown expected
+      repair: breaks ? d('repair') * PER.fixes / breaks : 1,
+      mech: legs ? d('mech') * PER.mends / legs : 1
     };
   }
   var FLOW = ['scout', 'drill', 'haul', 'crush', 'smelt', 'sell'];
@@ -1189,8 +1434,14 @@ function CrabSim() {
     var c = capacity(), i, b = FLOW[0];
     if (c.power < 0.8) return 'power';
     if (c.repair < 1) return 'repair';
+    if (c.mech < 1 && S.t > 60) return 'mech';
     for (i = 1; i < FLOW.length; i++) if (c[FLOW[i]] < c[b]) b = FLOW[i];
     return b;
+  }
+  function gaps() {                        // parts of the day when some job has nobody on duty
+    var cov = coverage(), n = counts(), out = [], i, r;
+    for (i = 0; i < cov.length; i++) for (r in n) if (n[r] && !cov[i].roles[r]) out.push({ shift: cov[i].name, role: r });
+    return out;
   }
 
   // ----- the player's levers -----
@@ -1221,12 +1472,20 @@ function CrabSim() {
     return true;
   }
   function setReserve(n) { S.reserve = clamp(Math.round(n), 0, 12); }
+  function setShift(m) { if (K.SHIFTS.indexOf(m) >= 0 && m !== S.shift) { S.shift = m; emit('shiftMode', m); } }
+  function overclock(on) {
+    if (on && S.ocBank >= 1 && !S.oc) { S.oc = true; emit('ocStart'); }
+    else if (!on && S.oc) { S.oc = false; emit('ocEnd'); }
+    return S.oc;
+  }
   function drain() { var e = events; events = []; return e; }
 
   return {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
-    setReserve: setReserve, drain: drain, avgBattery: avgBattery, zoneOf: zoneOf, state: function () { return S; }
+    setReserve: setReserve, setShift: setShift, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
+    flowMult: flowMult, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    state: function () { return S; }
   };
 }
 if (typeof module !== 'undefined') module.exports = CrabSim;
@@ -1249,6 +1508,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var CS = 1, surfH = 0, F = 0, lavaL = 0, base = [0, 0, 0], farBase = 0, dunePaths = [], farPath = null, grain = null;
   var pal = {};
   var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
+  var debris = [], nightA = 0, lastShift = '', big = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -1259,7 +1519,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     var names = ['foam', 'sand-far', 'sand-back', 'sand-mid', 'sand-front', 'sand-line', 'nodule', 'weed', 'weed-2', 'crab', 'crab-dark',
       'metal', 'metal-dark', 'light', 'snow', 'bubble', 'drill', 'drill-dark', 'crush', 'crush-dark', 'smelt', 'smelt-dark',
       'energy', 'energy-dark', 'scout', 'scout-dark', 'repair', 'repair-dark', 'hat', 'rock', 'rock-dark', 'rock-line',
-      'lava-hot', 'lava', 'lava-deep', 'bar', 'bar-dark', 'ingot', 'ingot-dark', 'warn', 'eye', 'pupil', 'tongue', 'sweat', 'grain'];
+      'lava-hot', 'lava', 'lava-deep', 'bar', 'bar-dark', 'ingot', 'ingot-dark', 'warn', 'eye', 'pupil', 'tongue', 'sweat', 'grain',
+      'mech', 'mech-dark', 'vent'];
     pal = {};
     names.forEach(function (n) { pal[n.replace(/-(\w)/g, function (m, c) { return c.toUpperCase(); })] = cssVar('--c-' + n); });
     pal.ink = cssVar('--ink'); pal.paper = cssVar('--paper'); pal.mark = cssVar('--mark');
@@ -1272,9 +1533,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     crush: function () { return [pal.crush, pal.crushDark]; },
     smelt: function () { return [pal.smelt, pal.smeltDark]; },
     energy: function () { return [pal.energy, pal.energyDark]; },
-    repair: function () { return [pal.repair, pal.repairDark]; }
+    repair: function () { return [pal.repair, pal.repairDark]; },
+    mech: function () { return [pal.mech, pal.mechDark]; }
   };
-  var NAMES = { scout: 'Scout crab', drill: 'Drill crab', haul: 'Hauler crab', crush: 'Crusher crab', smelt: 'Smelter crab', energy: 'Energy bot', repair: 'Repair bot' };
+  var NAMES = { scout: 'Scout crab', drill: 'Drill crab', haul: 'Hauler crab', crush: 'Crusher crab', smelt: 'Smelter crab', energy: 'Energy bot', repair: 'Repair bot', mech: 'Maintenance bot' };
 
   // ----- the dunes: three sheets of paper, stacked back to front -----
   function crestY(k, x) {
@@ -1319,8 +1581,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   function measure() {
     var cw = stage.clientWidth, h = stage.clientHeight, widthChanged;
     if (!cw || !h) return;
-    CS = clamp(Math.min(h / 470, cw / 860), 0.65, 1.45);
-    var w = Math.max(cw, Math.round(860 * CS));
+    big = document.body.classList.contains('big');
+    CS = big ? clamp(Math.min(h / 360, cw / 640), 0.8, 1.9) : clamp(Math.min(h / 470, cw / 860), 0.65, 1.45);
+    var w = Math.max(cw, Math.round((big ? 1150 : 860) * CS));   // the big field is wider than the screen: it scrolls
     widthChanged = w !== W;
     W = w; H = h;
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -1329,7 +1592,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     surfH = clamp(H * 0.09, 34, 80);
-    farBase = H * 0.36; base = [H * 0.45, H * 0.6, H * 0.74];
+    if (big) { farBase = H * 0.24; base = [H * 0.31, H * 0.4, H * 0.5]; }   // the front dune fills the lower half
+    else { farBase = H * 0.36; base = [H * 0.45, H * 0.6, H * 0.74]; }
     F = H - base[2];
     lavaL = X(K.LAVA);
     dunePaths = [0, 1, 2].map(function (k) { return dunePath(function (x) { return crestY(k, x); }); });
@@ -1394,6 +1658,12 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     return { x: u * u * x0 + 2 * u * t * cx + t * t * x1, y: u * u * y0 + 2 * u * t * cy + t * t * y1 };
   }
   function enginePos() { var px = X(K.STIRLING); return { x: px, y: groundY(px, 0.72) }; }
+  function basePos() { var px = X(K.STIRLING - 22); return { x: px, y: groundY(px, 0.8) }; }
+  function ventTop() { return H * 0.1; }
+  function airPos(c) {                 // where a crab riding the vent, or swimming down from it, is drawn
+    var px = crabX(c), gy = groundY(px, c.d) - 9 * scaleAt(c.d);
+    return { x: px + (c.air && c.air.phase === 'rise' ? Math.sin(T * 5 + c.vph) * 4 * CS : 0), y: gy + (ventTop() + 14 * CS - gy) * c.alt };
+  }
 
   // ----- the economy's events become things you can see -----
   function fly(kind, from, to, dur, extra) {
@@ -1421,13 +1691,25 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       case 'ingot': express(a, 'proud', 1.4); spark(clawPos(a, 1).x, clawPos(a, 1).y, 5, pal.lavaHot); break;
       case 'stock': fly('ingot', clawPos(a, 1), stockSlot(Math.max(0, S.stock - 1)), 0.34, { tag: 'stock' }); break;
       case 'sell':
-        fly('ingot', stockSlot(S.stock), chuteMouth(), 0.4, { lift: true, value: a });
+        fly('ingot', stockSlot(S.stock), chuteMouth(), 0.4, { lift: true, value: a, streak: e.b });
         break;
-      case 'takeMetal': fly('ingot', stockSlot(S.stock), clawPos(a, 1), 0.3); break;
+      case 'takeMat': if (a.role === 'repair') fly('ingot', stockSlot(S.stock), clawPos(a, 1), 0.3); else fly('bar', barSlot(S.bars), clawPos(a, 1), 0.3); break;
+      case 'forged': p = clawPos(a, 1); spark(p.x + 8 * CS, p.y, 10, pal.lavaHot); express(a, 'proud', 1.2); break;
+      case 'legOff': debris.push({ x: a.x, d: a.d, crab: a, rot: rr(-1, 1) }); p = clawPos(a, -1); spark(p.x, p.y + 8, 8, pal.metal); express(a, 'ouch', 1.8); a.vhop = 0.5; break;
+      case 'sleep': express(a, 'yawn', 1.2); break;
+      case 'wake': express(a, 'stretch', 1); break;
+      case 'ride': p = X(K.VENT_IN); burst(p, groundY(p, 0.8) - 6, 6); express(a, 'wheee', 2.5); break;
+      case 'land': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.7); a.vhop = 0.7; break;
+      case 'plug': p = basePos(); spark(p.x, p.y - 10 * CS, 4, pal.light); break;
+      case 'ocStart': for (i = 0; i < S.crabs.length; i++) { p = clawPos(S.crabs[i], 0); spark(p.x, p.y, 3, pal.light); } break;
+      case 'shiftMode': toast(SHIFT_INFO[a].name, SHIFT_INFO[a].note); break;
       case 'charge': p = clawPos(e.b, 0); spark(p.x, p.y, 6); express(e.b, 'zap', 1.2); break;
       case 'ebotBreak': p = clawPos(a, 0); spark(p.x, p.y, 10, pal.warn); express(a, 'shock', 1.6); break;
       case 'refill': express(a, 'phew', 1); break;
-      case 'fixed': p = clawPos(e.b, 0); spark(p.x, p.y, 8, pal.hat); express(e.b, 'relief', 1.8); express(a, 'proud', 1.4); e.b.vhop = 0.8; break;
+      case 'fixed':
+        p = clawPos(e.b, 0); spark(p.x, p.y, 8, a.role === 'mech' ? pal.lavaHot : pal.hat); express(e.b, 'relief', 1.8); express(a, 'proud', 1.4); e.b.vhop = 0.8;
+        if (a.role === 'mech') debris = debris.filter(function (dd) { return dd.crab !== e.b; });   // the leg goes back on
+        break;
       case 'rank':
         if (!started) break;                             // the crew behind the intro does not rank up out loud
         partyUntil = T + 3.2;
@@ -1479,12 +1761,22 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         flights.splice(i, 1);
         if (n.lift) {
           lifts.push({ t: 0 }); burst(n.to.x, n.to.y - 10, 1);
-          var b = collectorBase(), big = n.value >= 15;
-          floater((big ? 'Crab profit! ' : '') + '+$' + n.value, b.x + rr(-6, 6), b.y - 52 * CS, big);
+          var b = collectorBase(), jackpot = n.value >= 15;
+          floater((jackpot ? 'Crab profit! ' : '') + '+$' + n.value + (n.streak ? '  flow ×' + (1 + K.FLOW_STEP * n.streak).toFixed(2) : ''), b.x + rr(-6, 6), b.y - 52 * CS, jackpot);
         }
       }
     }
     for (i = lifts.length - 1; i >= 0; i--) { lifts[i].t += dtSim / 1.6; if (lifts[i].t >= 1) lifts.splice(i, 1); }
+    // the thermal vent: a column of bubbles from the lava to the top tenth of the sea
+    if (Math.random() < dtReal * (reduce ? 3 : 14)) bubbles.push({ x: X(K.VENT_X) + rr(-10, 10) * CS, y: H - F * 0.4, r: rr(1.4, 4.6), vy: rr(70, 130), ph: rr(0, TAU), vent: true });
+    for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i];
+      if (c.alt > 0 && Math.random() < dtReal * 10) { var ap = airPos(c); bubbles.push({ x: ap.x + rr(-8, 8), y: ap.y + rr(-4, 6), r: rr(1, 3), vy: rr(30, 60), ph: rr(0, TAU) }); }
+    }
+    var si = sim.shiftInfo();
+    nightA += ((si.night ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);
+    if (started && si.mode !== 'all' && lastShift && lastShift !== si.name) toast(si.name + ' begins', si.night ? 'Half the crew sleeps. Sleeping crabs recharge and shake off their wear.' : 'Everyone is back at work.');
+    lastShift = si.name;
     for (i = rings.length - 1; i >= 0; i--) { rings[i].t += dtReal / 1.1; if (rings[i].t >= 1) rings.splice(i, 1); }
     for (i = floaters.length - 1; i >= 0; i--) { n = floaters[i]; n.life += dtReal; n.y -= dtReal * 22; if (n.life >= n.max) floaters.splice(i, 1); }
     for (i = confetti.length - 1; i >= 0; i--) {
@@ -1511,7 +1803,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     for (i = bubbles.length - 1; i >= 0; i--) {
       n = bubbles[i];
       n.y -= n.vy * dtReal; n.x += Math.sin(T * 2.2 + n.ph) * 9 * dtReal;
-      if (n.y < surfH * 0.7) bubbles.splice(i, 1);
+      if (n.y < (n.vent ? H * 0.1 : surfH * 0.7)) bubbles.splice(i, 1);
     }
   }
 
@@ -1839,6 +2131,85 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.fillStyle = held ? pal.ingotDark : pal.ingot;
     ctx.fill(); ctx.strokeStyle = pal.ingotDark; ctx.lineWidth = 0.8; ctx.stroke();
   }
+  function drawPart(kind, x, y, s, heat) {   // what the repair crews carry: raw metal, or the part forged from it
+    if (kind === 'ingot') drawIngot(x, y, s);
+    else if (kind === 'bar') drawBar(x, y, s, heat);
+    else if (kind === 'bit') {
+      ctx.fillStyle = pal.metal; ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(x - 3 * s, y - 2 * s); ctx.lineTo(x + 3 * s, y - 2 * s); ctx.lineTo(x, y + 4 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (kind === 'leg') {
+      ctx.strokeStyle = pal.metal; ctx.lineWidth = 1.8 * s; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x - 4 * s, y + 1 * s); ctx.lineTo(x, y - 3 * s); ctx.lineTo(x + 4 * s, y + 2 * s); ctx.stroke();
+    }
+    if (heat > 0) { ctx.globalAlpha = heat * 0.6; ctx.fillStyle = pal.lavaHot; ctx.beginPath(); ctx.arc(x, y, 5 * s, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; }
+  }
+  function drawDebris(dd) {            // a leg lying on the sand where it came off
+    var px = X(dd.x), y = groundY(px, dd.d), s = scaleAt(dd.d), c = dd.crab;
+    ctx.save(); ctx.translate(px - 10 * s, y - 1 * s); ctx.rotate(dd.rot);
+    ctx.strokeStyle = STYLE[c.role]()[1]; ctx.lineWidth = 1.7 * s; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-5 * s, 0); ctx.lineTo(0, -3 * s); ctx.lineTo(5 * s, 0.5 * s); ctx.stroke();
+    ctx.restore();
+  }
+  function drawVent() {                // the thermal vent: warm water rising from the lava up the right-hand side
+    var x = X(K.VENT_X), top = ventTop(), bot = H - F * 0.42, g, i, y, w = 26 * CS;
+    g = ctx.createLinearGradient(0, top, 0, bot);
+    g.addColorStop(0, 'rgba(255,200,140,0)'); g.addColorStop(0.5, 'rgba(255,190,120,.1)'); g.addColorStop(1, 'rgba(255,150,80,.28)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(x - w * 0.6, bot);
+    for (y = bot; y >= top; y -= 14) ctx.lineTo(x - w * (0.35 + 0.25 * (y - top) / (bot - top)) + Math.sin(y * 0.05 + T * 2) * 4, y);
+    for (y = top; y <= bot; y += 14) ctx.lineTo(x + w * (0.35 + 0.25 * (y - top) / (bot - top)) + Math.sin(y * 0.05 + T * 2 + 1) * 4, y);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.25;      // the shimmer of the riptide
+    for (i = 0; i < 3; i++) {
+      ctx.beginPath();
+      for (y = bot; y >= top; y -= 10) { var xx = x + Math.sin(y * 0.04 - T * 3 + i * 2) * w * 0.3; if (y === bot) ctx.moveTo(xx, y); else ctx.lineTo(xx, y); }
+      ctx.stroke();
+    }
+    // the current that carries crabs back down and sideways, drawn as long faint streaks
+    ctx.globalAlpha = 0.12; ctx.lineWidth = 1.6; ctx.setLineDash([18, 26]); ctx.lineDashOffset = T * 40;
+    for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - 10, top + 8 + i * 14); ctx.quadraticCurveTo(x - W * 0.35, top + H * 0.05 + i * 20, X(K.FIELD0 + 120 + i * 140), base[1] - 20 + i * 18); ctx.stroke(); }
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+  function drawBase() {                // the energy bots' base station, wired to the Stirling engine
+    var b = basePos(), e = enginePos(), s = scaleAt(0.8);
+    ctx.strokeStyle = pal.ink; ctx.lineWidth = 1.4; ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.moveTo(b.x + 8 * s, b.y - 4 * s); ctx.quadraticCurveTo((b.x + e.x) / 2, b.y + 4 * s, e.x - 14 * s, e.y - 4 * s); ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.save(); ctx.translate(b.x, b.y); ctx.scale(s, s);
+    ctx.fillStyle = pal.energyDark; roundRect(-10, -14, 20, 14, 3); ctx.fill();
+    ctx.fillStyle = pal.energy; ctx.fillRect(-7, -11, 14, 3);
+    ctx.fillStyle = pal.light; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(T * 3); ctx.beginPath(); ctx.arc(0, -17, 2, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  function drawWires() {               // each energy bot drags its plug and cable while it works near the base
+    var b = basePos(), i, c, ap, px, py, dx, s, sag, plugged;
+    for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i];
+      if (c.role !== 'energy' || c.alt > 0) continue;
+      px = crabX(c); s = scaleAt(c.d); py = groundY(px, c.d) - 13 * s * 0.86;
+      dx = Math.abs(px - b.x);
+      plugged = c.state === 'refill';
+      if (dx > 170 * CS && !plugged) continue;             // too far: the plug has sprung back to the base
+      sag = 10 * CS + dx * 0.08;
+      ctx.strokeStyle = pal.ink; ctx.lineWidth = 1.2; ctx.globalAlpha = plugged ? 0.8 : 0.45;
+      ctx.beginPath(); ctx.moveTo(b.x - 6 * CS, b.y - 8 * CS); ctx.quadraticCurveTo((px + b.x) / 2, Math.max(py, b.y) + sag, px - 4 * s, py); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = plugged ? pal.light : pal.metalDark; ctx.fillRect(px - 6 * s, py - 1.5 * s, 3 * s, 3 * s);   // the plug
+    }
+  }
+  function drawNight() {               // night falls over the sea; the lava and the lamps keep glowing
+    if (nightA < 0.02) return;
+    ctx.fillStyle = 'rgba(4,14,38,' + (0.42 * nightA).toFixed(3) + ')';
+    ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < S.crabs.length; i++) {
+      var c = S.crabs[i], s = scaleAt(c.d), px = crabX(c), y = c.alt > 0 ? airPos(c).y : groundY(px, c.d) - 9 * s;
+      if (c.state === 'sleep') continue;
+      var g = ctx.createRadialGradient(px, y - 6 * s, 1, px, y - 6 * s, 22 * s);
+      g.addColorStop(0, 'rgba(255,240,170,' + (0.35 * nightA).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,240,170,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, y - 6 * s, 22 * s, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+  }
   function drawEddy(n, px, y, s) {     // water churned by the drill, turning on the sand
     var e = n.eddy, strength = Math.sin(Math.PI * e), R = (10 + 8 * strength) * s, arm, k, f, th;
     ctx.strokeStyle = pal.foam; ctx.lineCap = 'round'; ctx.lineWidth = 1.4;
@@ -1917,6 +2288,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   function face(c) {
     var waiting = !c.moving && !c.working, m = c.vx && T < c.vx.until ? c.vx.name : null;
     if (c.vfall > 0) return { eye: 'wide', mouth: 'o' };
+    if (c.state === 'sleep') return { eye: 'closed', mouth: m === 'yawn' ? 'o' : 'smile', glyph: 'z', sleep: true };
+    if (c.air && c.air.phase === 'rise') return { eye: 'happy', mouth: 'open', glyph: 'wheee!' };
+    if (c.air && c.air.phase === 'glide') return { eye: 'wide', mouth: 'open', swim: true };
     if (T < partyUntil) return { eye: 'happy', mouth: 'open', party: true };
     if (m === 'joy') return { eye: 'happy', mouth: 'open', glyph: '!' };
     if (m === 'eureka') return { eye: 'wide', mouth: 'open', glyph: '!' };
@@ -1927,20 +2301,25 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     if (m === 'relief') return { eye: 'happy', mouth: 'smile', glyph: '♥' };
     if (m === 'proud') return { eye: 'happy', mouth: 'grin', glyph: '♪' };
     if (m === 'phew') return { eye: 'closed', mouth: 'smile', sweat: true };
-    if (c.held) return { eye: 'wide', mouth: 'grit' };
+    if (m === 'ouch') return { eye: 'wide', mouth: 'wavy', glyph: 'ouch!' };
+    if (m === 'stretch') return { eye: 'happy', mouth: 'o' };
+    if (sim.isHeld(c)) return { eye: 'wide', mouth: 'grit' };
     if (c.role === 'energy' && c.broken) return { eye: 'swirl', mouth: 'wavy' };
     if (c.role !== 'energy' && c.bat < K.LOW) return { eye: 'sleepy', mouth: 'flat', glyph: 'z' };
     if (c.role === 'drill' && !c.bitOk) return c.state === 'drill' ? { eye: 'squint', mouth: 'wavy', sweat: true } : { eye: 'sad', mouth: 'wavy' };
+    if (c.limp && c.moving) return { eye: 'sad', mouth: 'wavy' };
     switch (c.state) {
       case 'drill': return { eye: 'squint', mouth: 'tongue' };
       case 'crush': return { eye: 'squint', mouth: 'grit', brows: true };
       case 'smelt': return { eye: 'squint', mouth: 'o', sweat: true };
       case 'scan': return { eye: 'focus', mouth: 'o' };
       case 'fix': return { eye: 'squint', mouth: 'tongue' };
+      case 'forge': return { eye: 'squint', mouth: 'o', sweat: true };
       case 'charge': return { eye: 'happy', mouth: 'grin' };
       case 'refill': return { eye: 'closed', mouth: 'smile' };
     }
     if (c.role === 'haul' && c.load >= K.CARRY && c.moving) return { eye: 'normal', mouth: 'tongue', sweat: true };
+    if (S.oc && !waiting) return { eye: 'wide', mouth: 'grin', brows: true };   // overclocked: all in
     if (waiting) return { eye: 'bored', mouth: Math.sin(T * 0.4 + c.vph * 3) > 0.93 ? 'o' : 'flat' };
     return { eye: 'normal', mouth: 'smile' };
   }
@@ -2031,7 +2410,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   function drawCrab(c) {
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
     var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1);
-    var px = crabX(c), gy = groundY(px, c.d), moving = c.moving, f = face(c);
+    var px = crabX(c), gy = groundY(px, c.d), moving = c.moving, f = face(c), airborne = c.alt > 0, ap;
     var low = role !== 'energy' && c.bat < K.LOW;
     var i, side, ph, lift, hx, fx, ax, ay, hit, by, bob, w, col, look;
     c.vbody = body;
@@ -2041,15 +2420,35 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     if (c.state === 'drill') px += Math.sin(T * 61) * (c.bitOk ? 0.7 : 1.4);
     if (c.state === 'crush') px += Math.sin(T * 47) * 0.35;
     if (c.role === 'energy' && c.broken) px += Math.sin(T * 23) * 0.6;
+    if (airborne) { ap = airPos(c); px = ap.x; gy = ap.y + 9 * s; moving = true; }
     bob = moving ? Math.sin(c.vgait * 2) * 0.7 : Math.sin(T * 2 + c.vph) * 0.35;   // walking bob, or slow breathing
-    by = gy - 9 * s + bob;
+    if (c.limp && c.moving) bob += Math.abs(Math.sin(c.vgait)) * 1.8 * s;          // a hobble
+    by = gy - (f.sleep ? 6 : 9) * s + bob;
     look = { x: c.dir, y: 0 };
     if (!moving && !c.working) look = { x: Math.sin(T * 0.6 + c.vph), y: Math.cos(T * 0.9 + c.vph) * 0.4 };
     ctx.save(); ctx.translate(px, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
-    // legs
+    // overclock: speed streaks behind a crab that is hurrying
+    if (S.oc && (c.moving || c.working) && !airborne) {
+      ctx.strokeStyle = pal.light; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.7;
+      for (i = 0; i < 3; i++) { var sl = -c.dir * (14 + i * 3) * s, sy0 = by - (4 - i * 4) * s; ctx.beginPath(); ctx.moveTo(sl, sy0); ctx.lineTo(sl - c.dir * (6 + 4 * Math.sin(T * 20 + i)) * s, sy0); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+    }
+    // legs: tucked in for sleep, paddling in the current, and one short if a leg has come off
     ctx.strokeStyle = dark; ctx.lineWidth = 1.7 * s;
     for (side = -1; side <= 1; side += 2) for (i = 0; i < 3; i++) {
+      if (c.limp && side === -1 && i === 2) continue;
+      if (airborne) {
+        ph = T * 14 + i * 1.3 + side;
+        hx = side * (5 + i * 2.2) * s; fx = side * (12 + i * 3) * s;
+        ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo(fx, by + (4 + Math.sin(ph) * 3) * s); ctx.stroke();
+        continue;
+      }
+      if (f.sleep) {
+        hx = side * (5 + i * 2.2) * s;
+        ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo(hx + side * 4 * s, gy); ctx.stroke();
+        continue;
+      }
       ph = c.vgait + i * 2.094 + (side > 0 ? 0 : Math.PI);
       lift = moving ? Math.max(0, Math.sin(ph)) * 3.2 * s : (f.party ? Math.max(0, Math.sin(T * 14 + i + side)) * 2 * s : 0);
       hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s + (moving ? Math.cos(ph) * 2.4 * s * c.dir : 0);
@@ -2086,9 +2485,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       } else if (role === 'energy') {
         w = 2; ax = side * 13 * s;
         if (c.state === 'charge' && side === 1) { ax = 15 * s; ay = by - 6 * s; }
-      } else if (role === 'repair') {
+      } else if (role === 'repair' || role === 'mech') {
         w = 2.4;
         if (c.state === 'fix' && side === c.dir) { ax = side * (16 + Math.sin(T * 18) * 3) * s; ay = by - 2 * s + Math.cos(T * 18) * 2 * s; }
+        if (c.state === 'forge' && side === 1) { ax = 22 * s; ay = by + 3 * s + Math.sin(T * 3) * 0.8; }
       } else if (role === 'scout') {
         w = 2.2; ax = side * 14 * s;
         if (c.state === 'scan' && side === 1) { ax = 12 * s; ay = by - 12 * s; }
@@ -2103,6 +2503,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         if (c.carry === 'bar') drawBar(ax + side * 5 * s, ay + 1 * s, s, c.state === 'smelt' ? c.heat : 0);
         else drawIngot(ax + side * 5 * s, ay, s);
       }
+      if ((role === 'repair' || role === 'mech') && c.state === 'forge' && side === 1) drawPart(c.carry, ax + 5 * s, ay, s, c.heat);
       if (role === 'repair' && side === c.dir) {             // a wrench
         ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.3 * s;
         ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + side * 6 * s, ay - 4 * s); ctx.stroke();
@@ -2137,8 +2538,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         for (i = 0; i < 3; i++) { var rr3 = ((T * 1.2 + i / 3) % 1); ctx.globalAlpha = 1 - rr3; ctx.beginPath(); ctx.ellipse(0, gy, (6 + rr3 * 30) * s, (6 + rr3 * 30) * s * 0.3, 0, 0, TAU); ctx.stroke(); }
         ctx.globalAlpha = 1;
       }
-    } else if (role === 'repair') {
-      if (c.carry === 'ingot') drawIngot(0, by - 9 * s, s * 0.9);
+    } else if (role === 'repair' || role === 'mech') {          // whatever it is taking to the lava, or to a crab
+      if (c.carry && c.state !== 'forge') drawPart(c.carry, 0, by - 9 * s, s * 0.9, 0);
+      if (role === 'mech' && c.state === 'fix') spark(px + c.dir * 16 * s, by, 1, pal.lavaHot);
     } else {
       roundRect(-7 * s, by - 15 * s, 14 * s, 9 * s, 2 * s); ctx.fillStyle = dark; ctx.fill();
       for (i = 0; i < K.CHARGES; i++) { ctx.fillStyle = i < c.charges ? pal.light : pal.metalDark; ctx.fillRect((-5.4 + i * 2.9) * s, by - 13 * s, 2 * s, 5 * s); }
@@ -2146,7 +2548,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if (c.state === 'refill') { ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(7 * s, by - 10 * s); ctx.lineTo(16 * s, by - 6 * s + Math.sin(T * 9) * 1.5); ctx.stroke(); }
     }
     // antenna lamp
-    if (role !== 'energy' && role !== 'repair') {
+    if (role !== 'energy' && role !== 'repair' && role !== 'mech') {
       ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(6 * s, by - 5 * s); ctx.lineTo(8.5 * s, by - 17 * s); ctx.stroke();
       ctx.fillStyle = low ? pal.warn : pal.light; ctx.globalAlpha = Math.sin(T * (low ? 12 : 4) + c.vph) > 0 ? 1 : 0.25;
@@ -2165,12 +2567,15 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     if (role === 'repair') {                                 // hard hat
       ctx.fillStyle = pal.hat; ctx.beginPath(); ctx.ellipse(0, by - 5.2 * s, 7.5 * s, 4.8 * s, 0, Math.PI, TAU); ctx.fill();
       ctx.fillRect(-9 * s, by - 5.6 * s, 18 * s, 1.6 * s);
+    } else if (role === 'mech') {                            // a welder's cap with a lamp
+      ctx.fillStyle = dark; ctx.beginPath(); ctx.ellipse(0, by - 5 * s, 7 * s, 4.2 * s, 0, Math.PI, TAU); ctx.fill();
+      ctx.fillStyle = pal.lavaHot; ctx.beginPath(); ctx.arc(0, by - 8.4 * s, 1.4 * s, 0, TAU); ctx.fill();
     }
 
     // eyes on stalks
     for (side = -1; side <= 1; side += 2) {
       var sway = moving ? Math.sin(c.vgait * 2 + side) * 0.6 * s : Math.sin(T * 1.3 + c.vph + side) * 0.3 * s;
-      var sx = side * 3.6 * s, ex = side * 4.4 * s + sway + (f.party ? Math.sin(T * 9 + side) * s : 0), ey = by - (role === 'repair' ? 13 : 11) * s;
+      var sx = side * 3.6 * s, ex = side * 4.4 * s + sway + (f.party ? Math.sin(T * 9 + side) * s : 0), ey = by - (role === 'repair' || role === 'mech' ? 13 : 11) * s;
       if (f.eye === 'wide') ey -= 1.5 * s;
       ctx.strokeStyle = dark; ctx.lineWidth = 1.1 * s;
       ctx.beginPath(); ctx.moveTo(sx, by - 4.5 * s); ctx.lineTo(ex, ey + 1.5 * s); ctx.stroke();
@@ -2190,7 +2595,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
 
     // battery gauge on the shell
-    if (role !== 'energy') {
+    if (role !== 'energy' && !airborne) {
       col = c.bat < K.LOW ? pal.warn : (c.bat < 0.5 ? pal.ingot : pal.energy);
       ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(-5 * s, by + 4 * s, 10 * s, 1.6 * s);
       if (!(low && Math.sin(T * 12) < 0)) { ctx.fillStyle = col; ctx.fillRect(-5 * s, by + 4 * s, 10 * s * Math.max(0.06, c.bat), 1.6 * s); }
@@ -2201,6 +2606,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     if (f.glyph) {
       var gl = f.glyph, gy2 = by - 26 * s;
       if (gl === 'z') gl = ['z', 'zz', 'zzz'][Math.floor(T * 1.5 + c.vph) % 3];
+      if (f.sleep) gy2 = by - 18 * s;
       var fade = c.vx && T < c.vx.until ? clamp((c.vx.until - T) / 0.3, 0, 1) : 1;
       drawBubble(px + 10 * s, gy2, gl, s, fade);
     }
@@ -2222,9 +2628,13 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       crush: { home: 'walking to the press', wait: 'waiting for two nodules', crush: 'crushing nodules into a bar', hold: 'waiting: the bar stack is full' },
       smelt: { toBar: 'walking to the bar stack', grab: S.bars ? 'grabbing a bar' : 'waiting for bars', toLava: 'carrying a bar to the lava', smelt: 'smelting in the lava', toStock: 'carrying an ingot to the stockpile', drop: 'stacking an ingot' },
       energy: { idle: 'standing by', go: 'running to recharge a crab', charge: 'recharging a crab', toEngine: 'heading to the Stirling engine', queue: 'queuing at the engine', refill: S.heat < 1 ? 'waiting: the engine is out of charge' : 'charging up at the engine' },
-      repair: { idle: 'waiting in the workshop', toStock: 'fetching metal for a repair', fetch: S.stock ? 'taking an ingot' : 'waiting: no metal on the stockpile', toJob: 'walking to a repair', fix: 'fixing' }
+      repair: { idle: 'waiting in the workshop', toMat: 'fetching an ingot for a new bit', fetch: S.stock ? 'taking an ingot' : 'waiting: no metal on the stockpile', toForge: 'taking the ingot to the lava forge', forge: 'forging a new part in the lava', toJob: 'taking the new part to a crab', fix: 'fitting the new part' },
+      mech: { idle: 'waiting in the workshop', toMat: 'fetching a bar for a new leg', fetch: S.bars ? 'taking a bar' : 'waiting: no bars on the stack', toForge: 'taking the bar to the lava forge', forge: 'forging a new leg in the lava', toJob: 'taking the new leg to a crab', fix: 'fitting the new leg' }
     }[c.role][c.state] || 'starting up';
-    if (c.held) t = 'being repaired';
+    if (c.state === 'sleep') t = 'asleep: off shift';
+    if (c.air) t = c.air.phase === 'walk' ? 'heading for the thermal vent' : (c.air.phase === 'rise' ? 'floating up the thermal vent' : 'swimming down the current');
+    if (sim.isHeld(c)) t = 'being repaired';
+    if (c.limp) t += ' (lost a leg)';
     if (c.role === 'drill' && !c.bitOk) t += ' (bit broken)';
     if (c.role === 'energy' && c.broken) t += ' (worn out)';
     if (c.role !== 'energy' && c.bat < K.LOW) t += ' (battery low)';
@@ -2252,11 +2662,14 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     drawSurface(); drawSnow();
     // the far dune, a faint sheet behind everything
     ctx.globalAlpha = 0.75; drawPaper(farPath, pal.sandFar, farY); ctx.globalAlpha = 1;
-    drawWeeds(-1); drawBubbles();
+    drawWeeds(-1);
     // sort everything on the sand into its dune
     for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
     for (i = 0; i < S.flags.length; i++) { o = S.flags[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.01, kind: 1, o: o }); }
-    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); layers[o.vfall > 0 ? 2 : layerOf(o.d)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
+    var air = [];
+    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : layerOf(o.d)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
+    for (i = 0; i < debris.length; i++) { o = debris[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.02, kind: 3, f: drawDebris.bind(null, o) }); }
+    layers[2].push({ y: basePos().y, kind: 3, f: drawBase });
     layers[2].push({ y: groundY(X(K.ORE), 0.8), kind: 3, f: drawOrePile });
     layers[2].push({ y: groundY(X(K.BAR), 0.78), kind: 3, f: drawBarStack });
     layers[2].push({ y: groundY(X(K.STOCK), 0.84), kind: 3, f: drawStockpile });
@@ -2267,7 +2680,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       drawPaper(dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); });
       drawRipples(k);
       if (k === 0) { drawWeeds(0); drawRidge(); }
-      if (k === 2) { drawCavern(); drawRiser(); drawLifts(); }
+      if (k === 2) { drawCavern(); drawVent(); drawRiser(); drawLifts(); }
       if (k > 0) drawLocked(k);
       list = layers[k];
       list.sort(function (a, b) { return a.y - b.y; });
@@ -2278,8 +2691,11 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         else if (o.kind === 2) drawCrab(o.o);
         else o.f();
       }
+      if (k === 2) drawWires();
     }
-    drawRings(); drawFlights(); drawGlow(); drawParticles(); drawFloaters();
+    drawRings(); drawFlights();
+    for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent are above everything
+    drawNight(); drawGlow(); drawBubbles(); drawParticles(); drawFloaters();
   }
 
   // ===== the controls =====
@@ -2289,8 +2705,14 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     haul: 'carries nodules to the ore pile',
     crush: 'presses two nodules into a bar',
     smelt: 'melts bars into ingots in the lava',
-    energy: 'recharges crabs from the Stirling engine',
-    repair: 'fixes broken bits and worn bots, using an ingot'
+    energy: 'recharges crabs, then plugs in at its base by the lava',
+    repair: 'forges new bits from ingots in the lava and fits them',
+    mech: 'forges new legs from bars in the lava and fits them'
+  };
+  var SHIFT_INFO = {
+    all: { name: 'All hands', short: 'All hands', note: 'Everyone works all day. Fastest at first, but after four minutes without rest crabs tire and break down more.' },
+    ab: { name: 'A and B shifts', short: 'A/B', note: 'Everyone works the day. At night half of each crew sleeps, a different half each night, and the repair crews work faster.' },
+    relief: { name: 'Three-shift relief', short: '3-shift', note: 'The day is cut in three. Two groups in three work while the third sleeps, so nobody wears out.' }
   };
   var UP_INFO = {
     den: { name: 'Crab den', fx: function (v) { return 'Room for ' + v + ' crabs'; } },
@@ -2307,7 +2729,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
     roles: $('roles'), cards: $('cards'), ledger: $('ledger'), toasts: $('toasts'),
-    intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text')
+    intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
+    shift: $('h-shift'), shiftLeft: $('h-shift-left'), flow: $('h-flow'), flowNote: $('h-flow-note'), oc: $('oc-btn'), ocLabel: $('oc-label'), ocBar: $('oc-bar'),
+    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), dockRoles: $('dock-roles'), panRange: $('pan-range')
   };
   function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
   function fmtTime(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }
@@ -2331,6 +2755,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         '<button type="button" class="hire" data-act="hire" aria-label="Hire one ' + NAMES[r].toLowerCase() + '">+ $0</button></span></div>';
     });
     ui.roles.innerHTML = html;
+    ui.dockRoles.innerHTML = html;       // the big field's dock carries the same crew controls
     html = '';
     Object.keys(K.UP).forEach(function (id) {
       html += '<div class="card" data-up="' + id + '"><div class="card-top"><h3>' + UP_INFO[id].name + '<span class="pips"></span></h3>' +
@@ -2339,8 +2764,13 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.cards.innerHTML = html;
   }
   function renderPanel() {
-    var n = sim.counts(), cap = sim.crewCap(), full = S.crabs.length >= cap, rows = ui.roles.children, i, r, row, cost, hire, cards = ui.cards.children, id, u, lvl, max, pips, v;
+    var n = sim.counts(), cap = sim.crewCap(), full = S.crabs.length >= cap, rows = document.querySelectorAll('.role'), i, r, row, cost, hire, cards = ui.cards.children, id, u, lvl, max, pips, v;
     ui.used.textContent = S.crabs.length + ' of ' + cap;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-shift') === S.shift)); });
+    ui.shiftNote.textContent = SHIFT_INFO[S.shift].note;
+    var g = sim.gaps();
+    ui.gaps.hidden = !g.length;
+    if (g.length) ui.gaps.textContent = 'Not covered: ' + g.slice(0, 4).map(function (x) { return NAMES[x.role].toLowerCase() + 's in ' + x.shift; }).join(', ') + (g.length > 4 ? ', and more' : '') + '. Hire another so every shift has one.';
     ui.hint.textContent = full ? (sim.upgradeCost('den') !== null ? 'Den full: build a bigger den' : 'Den full') : '';
     for (i = 0; i < rows.length; i++) {
       row = rows[i]; r = row.getAttribute('data-role'); cost = sim.hireCost(r);
@@ -2371,7 +2801,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if ((cr.role === 'drill' && !cr.bitOk) || (cr.role === 'energy' && cr.broken)) broken++;
       if (cr.role === 'repair' && cr.state === 'fetch' && cr.carry !== 'ingot') waitMetal = true;
     }
-    if (waitMetal && S.stock === 0) return '<b>Repairs are stuck.</b> A repair bot is waiting at an empty stockpile. Keep more ingots back with the + beside the stockpile.';
+    if (waitMetal && S.stock === 0) return 'Advisor: <b>Repairs are stuck.</b> A repair bot is waiting at an empty stockpile. Keep more ingots back with the + beside the stockpile.';
+    var gp = sim.gaps();
+    if (gp.length) return 'Advisor: <b>Nobody covers ' + NAMES[gp[0].role].toLowerCase() + ' work in ' + gp[0].shift + '.</b> The line stops then. Hire a second one, or go back to all hands.';
     msg = {
       scout: '<b>Drills are short of flags.</b> Hire a scout, or claim a richer dune.',
       drill: '<b>Haulers are waiting for nodules.</b> Hire a drill crab.',
@@ -2380,8 +2812,11 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       smelt: '<b>Bars are waiting for the lava.</b> Hire a smelter.',
       sell: '<b>The riser can\'t keep up.</b> Upgrade the riser pump in the Build tab.',
       power: c.engine < c.bots ? '<b>The Stirling engine can\'t make charge fast enough.</b> Upgrade it in the Build tab.' : '<b>Crabs are running flat.</b> Hire an energy bot.',
-      repair: '<b>Breakdowns are piling up' + (broken ? ' (' + broken + ' broken now)' : '') + '.</b> Hire a repair bot.'
+      repair: '<b>Breakdowns are piling up' + (broken ? ' (' + broken + ' broken now)' : '') + '.</b> Hire a repair bot.',
+      mech: '<b>Crabs are limping on missing legs.</b> Hire a maintenance bot. It forges new legs from bars in the lava.'
     }[b];
+    if (S.shift === 'all' && sim.avgWear() > K.WEAR_FREE) msg += ' Your crabs have worked four minutes without rest and are wearing out: try A and B shifts.';
+    if (!S.oc && S.ocBank >= 10) msg += ' Overclock is charged.';
     if (S.crabs.length >= sim.crewCap() && b !== 'sell' && !(b === 'power' && c.engine < c.bots)) msg += ' Your den is full, so build a bigger den first, or retire a crab from another job.';
     return 'Advisor: ' + msg;
   }
@@ -2402,14 +2837,23 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.reserve.textContent = String(S.reserve);
     ui.rMinus.disabled = S.reserve <= 0; ui.rPlus.disabled = S.reserve >= 12;
     ui.advice.innerHTML = advice();
+    var si = sim.shiftInfo();
+    ui.shift.textContent = 'Day ' + si.day + ' · ' + si.name;
+    ui.shiftLeft.textContent = si.periods > 1 ? fmtTime(si.left) + ' left · ' + SHIFT_INFO[S.shift].short : SHIFT_INFO[S.shift].name;
+    ui.flow.textContent = '×' + sim.flowMult().toFixed(2);
+    ui.flowNote.textContent = S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily';
+    ui.oc.setAttribute('aria-pressed', String(S.oc));
+    ui.oc.disabled = !S.oc && S.ocBank < 1;
+    ui.ocLabel.textContent = (S.oc ? 'Overclocked ' : 'Overclock ') + Math.floor(S.ocBank) + ' s';
+    ui.ocBar.style.width = (S.ocBank / K.OC_MAX * 100).toFixed(1) + '%';
     for (var i = 0; i < ui.speeds.length; i++) ui.speeds[i].setAttribute('aria-pressed', String(parseFloat(ui.speeds[i].getAttribute('data-speed')) === speed));
   }
 
   // ----- the ledger: where the money comes from and where the line is slow -----
   function renderLedger() {
-    var r = sim.rates(60), c = sim.capacity(), b = sim.bottleneck(), flows = sim.FLOW, maxc = 0, i, k, html, broken = 0, cr, avgPrice, bat = sim.avgBattery();
+    var r = sim.rates(60), c = sim.capacity(), b = sim.bottleneck(), flows = sim.FLOW, maxc = 0, i, k, html, broken = 0, limping = 0, cr, avgPrice, bat = sim.avgBattery();
     for (i = 0; i < flows.length; i++) maxc = Math.max(maxc, c[flows[i]]);
-    for (i = 0; i < S.crabs.length; i++) { cr = S.crabs[i]; if ((cr.role === 'drill' && !cr.bitOk) || (cr.role === 'energy' && cr.broken)) broken++; }
+    for (i = 0; i < S.crabs.length; i++) { cr = S.crabs[i]; if ((cr.role === 'drill' && !cr.bitOk) || (cr.role === 'energy' && cr.broken)) broken++; if (cr.limp) limping++; }
     avgPrice = r.sold ? r.revenue / r.sold : S.price;
     var now = {
       scout: r.finds.toFixed(1) + ' flags/min',
@@ -2440,7 +2884,26 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       '<tr><th scope="row">Energy bots</th><td class="n">' + sim.counts().energy + ' bots, enough for ' + Math.round(c.bots * (S.crabs.length - sim.counts().energy)) + ' crabs</td></tr>' +
       '<tr><th scope="row">Stirling engine</th><td class="n">' + sim.up('engine') + ' charges/min, enough for ' + Math.round(c.engine * (S.crabs.length - sim.counts().energy)) + ' crabs</td></tr>' +
       '<tr' + (b === 'repair' ? ' class="slow"' : '') + '><th scope="row">Repairs' + (b === 'repair' ? ' <span class="flag-slow">◀ short</span>' : '') + '</th><td class="n">' + broken + ' broken now, ' + r.bitsBroken.toFixed(1) + ' bits and ' + r.ebotsBroken.toFixed(1) + ' bots break a minute</td></tr>' +
+      '<tr' + (b === 'mech' ? ' class="slow"' : '') + '><th scope="row">Legs' + (b === 'mech' ? ' <span class="flag-slow">◀ short</span>' : '') + '</th><td class="n">' + limping + ' limping now, ' + r.legsLost.toFixed(1) + ' lost and ' + r.mends.toFixed(1) + ' mended a minute, ' + r.barsUsed.toFixed(1) + ' bars used</td></tr>' +
+      '<tr><th scope="row">Wear</th><td class="n">average ' + Math.round(sim.avgWear()) + ' s without rest (trouble starts at ' + K.WEAR_FREE + ')</td></tr>' +
+      '<tr><th scope="row">Thermal vent</th><td class="n">' + r.rides.toFixed(1) + ' rides a minute</td></tr>' +
       '</tbody></table>';
+    var cov = sim.coverage(), ri, si2, cell;
+    html += '<h3>Shifts: crabs on duty in each part of the day</h3><table class="ltable"><thead><tr><th scope="col">Role</th>';
+    for (si2 = 0; si2 < cov.length; si2++) html += '<th scope="col" class="n">' + cov[si2].name.replace(' (', '<br>(') + '</th>';
+    html += '</tr></thead><tbody>';
+    for (ri = 0; ri < K.ROLES.length; ri++) {
+      if (!sim.counts()[K.ROLES[ri]]) continue;
+      html += '<tr><th scope="row">' + NAMES[K.ROLES[ri]] + 's</th>';
+      for (si2 = 0; si2 < cov.length; si2++) { cell = cov[si2].roles[K.ROLES[ri]]; html += '<td class="n">' + (cell ? cell : '<span class="flag-slow">0 ⚠</span>') + '</td>'; }
+      html += '</tr>';
+    }
+    html += '</tbody></table><p class="note">' + SHIFT_INFO[S.shift].note + ' Every role needs someone on duty in every part of the day, or the line stops then.</p>';
+    html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
+      '<tr><th scope="row">Flow</th><td class="n">×' + sim.flowMult().toFixed(2) + ' on sales, ' + S.streak + ' in a row</td></tr>' +
+      '<tr><th scope="row">Flow bonus earned</th><td class="n">' + money(r.flowBonus) + ' a minute, ' + money(S.stat.flowBonus) + ' in all</td></tr>' +
+      '<tr><th scope="row">Overclock</th><td class="n">' + Math.floor(S.ocBank) + ' s banked' + (S.oc ? ', running now' : '') + '</td></tr>' +
+      '</tbody></table><p class="note">A delivery within ' + K.FLOW_GAP + ' s of the last keeps the flow going: each one adds 2% to the price, up to 40%, and banks more overclock. Overclock makes the whole crew 50% faster, but they use more power and wear twice as fast.</p>';
     html += '<p class="note">Capacity is what each stage could deliver if nothing else held it back, measured from the simulation. The line can only go as fast as its slowest stage.</p>';
     ui.ledger.innerHTML = html;
     wireSpark();
@@ -2477,13 +2940,13 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   // ----- game flow -----
   function newGame() {
     S = sim.reset();
-    flights = []; lifts = []; sparks = []; floaters = []; confetti = []; rings = []; puffs = [];
+    flights = []; lifts = []; sparks = []; floaters = []; confetti = []; rings = []; puffs = []; debris = []; lastShift = '';
     won = false; startedAt = 0; acc = 0; selected = null;
     sim.drain().forEach(handle);
     renderPanel(); renderHUD();
   }
   function attract() {                 // what plays behind the intro: a working crew, no money spent
-    S = sim.reset({ crew: { scout: 1, drill: 2, haul: 2, crush: 1, smelt: 2, energy: 1, repair: 1 } });
+    S = sim.reset({ crew: { scout: 1, drill: 2, haul: 2, crush: 1, smelt: 2, energy: 1, repair: 1, mech: 1 } });
     sim.drain();
     for (var i = 0; i < 60 * 25; i++) sim.step();                // let the line get going before anyone sees it
     sim.drain();
@@ -2503,17 +2966,43 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     $('win-keep').focus();
   }
   function setSpeed(v) { speed = v; renderHUD(); }
+  function setBig(on) {                 // big playfield: the stage fills the screen and the sand fills its lower half
+    document.body.classList.toggle('big', on);
+    ui.bigBtn.setAttribute('aria-pressed', String(on));
+    try { localStorage.setItem('crabminer-big', on ? '1' : '0'); } catch (e) { /* storage may be unavailable */ }
+    measure(); draw();
+    stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * (on ? 0.62 : 0.55);
+  }
 
   function wire() {
     buildRoles();
-    ui.roles.addEventListener('click', function (e) {
+    function onRoleClick(e) {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var r = b.closest('.role').getAttribute('data-role'), res;
       if (b.getAttribute('data-act') === 'hire') { res = sim.hire(r); if (res === true) toast('Hired a ' + NAMES[r].toLowerCase(), ROLE_INFO[r].replace(/^./, function (m) { return m.toUpperCase(); }) + '.'); }
       else sim.retire(r);
       sim.drain().forEach(handle);
       renderPanel(); renderHUD();
+    }
+    ui.roles.addEventListener('click', onRoleClick);
+    ui.dockRoles.addEventListener('click', onRoleClick);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) {
+      b.addEventListener('click', function () { sim.setShift(b.getAttribute('data-shift')); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     });
+    ui.oc.addEventListener('click', function () { sim.overclock(!S.oc); sim.drain().forEach(handle); renderHUD(); });
+    ui.bigBtn.addEventListener('click', function () { setBig(!document.body.classList.contains('big')); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-dtab]'), function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-dtab');
+        Array.prototype.forEach.call(document.querySelectorAll('[data-dtab]'), function (o) { o.setAttribute('aria-selected', String(o === b)); });
+        $('dock-ctl').hidden = id !== 'ctl'; $('dock-view').hidden = id !== 'view';
+      });
+    });
+    function pan(f) { stage.scrollBy({ left: f * stage.clientWidth, behavior: mqReduce.matches ? 'auto' : 'smooth' }); }
+    $('pan-l').addEventListener('click', function () { pan(-0.6); });
+    $('pan-r').addEventListener('click', function () { pan(0.6); });
+    ui.panRange.addEventListener('input', function () { stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * ui.panRange.value / 100; });
+    stage.addEventListener('scroll', function () { var m = stage.scrollWidth - stage.clientWidth; ui.panRange.value = m > 0 ? Math.round(stage.scrollLeft / m * 100) : 0; });
     ui.cards.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var id = b.closest('.card').getAttribute('data-up');
@@ -2543,11 +3032,14 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if (e.key === 'Escape' && !ui.intro.hidden && started) { closeIntro(); return; }
       if (!ui.intro.hidden || !ui.win.hidden) return;
       if (e.key === ' ' && !(e.target.closest && e.target.closest('button, a'))) { e.preventDefault(); setSpeed(speed ? 0 : 1); }
+      if ((e.key === 'b' || e.key === 'B') && !e.ctrlKey && !e.metaKey && !e.altKey) setBig(!document.body.classList.contains('big'));
+      if ((e.key === 'o' || e.key === 'O') && !e.ctrlKey && !e.metaKey && !e.altKey) { sim.overclock(!S.oc); sim.drain().forEach(handle); renderHUD(); }
     });
     cv.addEventListener('click', function (e) {
       var rect = cv.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top, bestC = null, bd = 1e9, i, c, px, py, d, z;
       for (i = 0; i < S.crabs.length; i++) {
         c = S.crabs[i]; px = crabX(c); py = groundY(px, c.d) - 10 * scaleAt(c.d);
+        if (c.alt > 0) { var ap = airPos(c); px = ap.x; py = ap.y; }
         d = Math.hypot(px - x, py - y);
         if (d < bd) { bd = d; bestC = c; }
       }
@@ -2610,6 +3102,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   window.crabminer = { sim: sim, state: function () { return S; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
+  try { if (localStorage.getItem('crabminer-big') === '1') { document.body.classList.add('big'); ui.bigBtn.setAttribute('aria-pressed', 'true'); } } catch (e) { /* storage may be unavailable */ }
   measure();
   attract();
   wire();

@@ -493,8 +493,15 @@ dances used by pairs.
   3. arrange mode: pick up and set down buildings or the post
   4. pick a crab to show its status
   5. a locked dune, which jumps to its upgrade
-- **Keys:** Space (pause), O (overclock), B (big field), Escape (close the intro or leave
-  arrange mode).
+  Every one of these has a way in that does not need the field, for keyboards, screen readers
+  and a field scrolled the wrong way: `#h-alerts` floats over the field with Shoo the octopus
+  and the trader (`renderAlerts()`), the Crew tab lists the crew by name with Show
+  (`renderRoster()`, `showCrab()`), and the Build tab lists the plots with ◀ ▶
+  (`renderLayout()`). The roster and plot list rebuild their rows only when the crew or the
+  layout changes, and otherwise update text in place, so focus survives the 0.25 s refresh.
+- **Keys:** Space (pause), 1/2/3 (1×, 2×, 4×), O (overclock), S (shoo), T (the trader's shop),
+  M (move buildings), [ and ] (previous and next tab), B (big field), ? (the intro), Escape
+  (close the intro or leave arrange mode). The intro lists them.
 - **Storage:** `localStorage` keeps `crabminer-save` (the game, from `sim.save()`),
   `crabminer-best` (best Tycoon time), `crabminer-big` (layout), and
   `reader-rate`/`reader-voice` (read aloud). Every access is wrapped in `try`/`catch`.

@@ -197,6 +197,31 @@ button:disabled{opacity:.38;cursor:not-allowed}
 .hud-day b{font-size:.95rem}
 .hud-order{padding:.15rem .5rem;border:2px solid var(--mark);border-radius:6px;min-width:9rem}
 .hud-order b{color:var(--mark)}
+/* things on the field that want an answer now: a button for each, wherever the field is scrolled */
+.hud-alerts{grid-area:2 / 1;position:absolute;z-index:4;right:.7rem;top:.7rem;display:flex;gap:.4rem}
+body.big .hud-alerts{top:.6rem}
+.hud-alerts:not(:has(.alert:not([hidden]))){display:none}
+.alert{
+  display:inline-flex;align-items:center;gap:.3rem;min-height:1.85rem;padding:.12rem .55rem;border:2px solid var(--c-warn);
+  border-radius:6px;background:var(--paper);color:var(--ink);font-weight:700;font-size:.8rem;white-space:nowrap;
+  box-shadow:0 4px 14px var(--shadow);animation:nudge 1.6s ease-in-out infinite;
+}
+.alert:hover{filter:brightness(1.06)}
+@keyframes nudge{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--c-warn) 40%,transparent),0 4px 14px var(--shadow)}}
+@media (prefers-reduced-motion:reduce){.alert{animation:none}}
+kbd{font:600 .68em/1 var(--sans);padding:.12em .3em;border:1px solid var(--rule);border-bottom-width:2px;border-radius:3px;color:var(--ink-soft)}
+@media (hover:none){.alert kbd{display:none}}
+/* the crew by name */
+.roster summary{cursor:pointer;font-weight:700;padding:.35rem 0}
+.roster ol{list-style:none;margin:0;padding:0}
+.roster li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.15rem .45rem;align-items:center;padding:.3rem 0;border-top:1px solid var(--rule);font-size:.8rem}
+.roster .who b{margin-right:.3rem} .roster .stars{color:var(--c-drill-dark)}
+.roster .what{grid-column:2;color:var(--ink-soft);font-size:.74rem}
+.roster li > button{grid-row:1 / span 2;grid-column:3}
+/* moving buildings without the field: one row per plot */
+.layout-list{display:grid;gap:.2rem;margin-top:.45rem}
+.layout-list .plot{display:grid;grid-template-columns:1.6rem minmax(0,1fr) auto auto;gap:.35rem;align-items:center;font-size:.8rem}
+.layout-list .plot .n{color:var(--ink-soft);font-variant-numeric:tabular-nums}
 .meter.rival{height:.26rem;margin-top:.12rem} .meter.rival i{background:var(--c-warn)}
 .shifts{margin:0 0 .6rem}
 .shifts .seg{display:flex}
@@ -330,6 +355,8 @@ body.big .toasts{top:.6rem}
   .hud::-webkit-scrollbar{display:none}
   .hud > *{flex:none}
   .hud-money{order:-5} .oc{order:-4} .hud-ctl{order:-3;margin-left:0} .hud-order{order:-2}
+  .hud-alerts,body.big .hud-alerts{top:.4rem;right:.4rem;left:.4rem;justify-content:flex-end;z-index:5}
+  .game:has(.alert:not([hidden])) .toasts{top:2.7rem}   /* the toasts make room below a visitor's button */
   .hud-brand,#big-btn{display:none}
   .hud-item small{display:block;font-size:.55rem}
   .hud-item b{font-size:.86rem}
@@ -551,6 +578,7 @@ tr[data-say].saying{box-shadow:none}
           <li><b>Run shifts.</b> Crabs that never rest wear out. Switch to A and B shifts or three-shift relief, and make sure every job has somebody on duty in every shift. Idle friends dance together, and a crab that slept or danced starts the next morning fresh.</li>
           <li><b>Grow.</b> Spend profit on more crabs, a bigger den, and the middle and back dunes. Research technologies in the Tech tab to unlock worker upgrades. Rearrange the line's buildings, and move the refuel post at the end of its extension cord, from the Build tab.</li>
         </ol>
+        <p class="keys">Keys: <kbd>Space</kbd> pause, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> speed, <kbd>O</kbd> overclock, <kbd>S</kbd> shoo the octopus, <kbd>T</kbd> the trader's shop, <kbd>M</kbd> move buildings, <kbd>[</kbd> <kbd>]</kbd> switch tabs, <kbd>B</kbd> big field, <kbd>?</kbd> this page. Everything you can click on the field also has a button: the octopus and the trader appear in the top bar, the crew is listed by name in the Crew tab, and buildings move plot by plot in the Build tab.</p>
       </section>
       <section>
         <h2>Here is why it's fun</h2>
@@ -560,7 +588,7 @@ tr[data-say].saying{box-shadow:none}
           <li>It's a tiny city builder on the sea floor. You watch a whole production line come together from nothing.</li>
           <li>No crab takes orders. Each one follows a simple rule, and you balance the crew. Fix the slowest stage and money starts flowing.</li>
           <li>Mining is a gamble. Some holes come up dry, bits snap, legs fall off, and metal prices rise and fall, so no two runs are the same.</li>
-          <li>The sea has a mind of its own. High tide washes free nodules up, low tide buries flags, storms blow through, the lava surges, an octopus sneaks in to steal your ore (click it to shoo it away), cargo ships post orders that pay a premium, a hermit-crab trader swaps rare goods for bars, a sea turtle gives crabs a lift, whales glide overhead, and now and then a drill strikes a pearl worth a jackpot.</li>
+          <li>The sea has a mind of its own. High tide washes free nodules up, low tide buries flags, storms blow through, the lava surges, an octopus sneaks in to steal your ore (click it, or press Shoo, to chase it away), cargo ships post orders that pay a premium, a hermit-crab trader swaps rare goods for bars, a sea turtle gives crabs a lift, whales glide overhead, and now and then a drill strikes a pearl worth a jackpot.</li>
           <li>Crabs ride a thermal vent up the lava column with the bubbles, then swim down and sideways across the dunes. It's quicker than walking, and it's a ride.</li>
           <li>Crabs pull faces. They stick their tongues out while drilling, sweat at the lava, say "ouch!" when a leg comes off, snore through the night shift, and dance when you rank up.</li>
           <li>Climb six ranks from Sand Scraper to Crab Tycoon, then try to get there faster.</li>
@@ -644,6 +672,10 @@ tr[data-say].saying{box-shadow:none}
     </div>
   </div>
   <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="hud-alerts" id="h-alerts" role="group" aria-label="Visitors on the field">
+<button type="button" class="alert" id="a-octo" hidden aria-keyshortcuts="S" title="Shoo the octopus (S)">Shoo the octopus <kbd>S</kbd></button>
+<button type="button" class="alert" id="a-trader" hidden aria-keyshortcuts="T" title="Open the trader's shop (T)"><span id="a-trader-label">Trader</span> <kbd>T</kbd></button>
+</div>
 
   </div>
 
@@ -668,6 +700,11 @@ tr[data-say].saying{box-shadow:none}
       </div>
       <div class="crewhead"><span><b id="crew-used">9 of 10</b> crabs in the den</span><span id="crew-hint"></span></div>
       <div id="roles"></div>
+<details class="roster" id="roster-box">
+<summary>The crew by name <span class="note" id="roster-count"></span></summary>
+<p class="note">Show finds a crab on the field and opens its card. ★ is a veteran's star.</p>
+<ol id="roster"></ol>
+</details>
       <details class="talk">
         <summary>How crabs talk</summary>
         <p class="note">Crabs speak in emoji sentences: a thing, then a verb, then sometimes who, or how they feel.</p>
@@ -681,7 +718,8 @@ tr[data-say].saying{box-shadow:none}
     <div class="tabpanel" role="tabpanel" id="p-build" aria-labelledby="t-build" hidden>
       <div class="card arrange"><div class="card-top"><h3>Arrange the line</h3><button type="button" class="hire" id="arrange-btn" aria-pressed="false">Move buildings</button></div><p class="now" id="arrange-note"></p>
         <div class="card-top post-row"><span>Refuel post, on its extension cord from the Stirling engine</span><button type="button" class="mini wide" id="post-btn" aria-pressed="true">Bots move it</button></div>
-        <p class="note" id="decor-note"></p><p class="note" id="spares-note"></p></div>
+        <div class="layout-list" id="layout-list" aria-label="Plots from the field to the lava"></div>
+<p class="note" id="decor-note"></p><p class="note" id="spares-note"></p></div>
       <div class="card trader" id="trader-card" hidden><div class="card-top"><h3>🐚 Hermit-crab trader</h3><span class="note" id="trader-time"></span></div>
         <p class="now">It swaps goods for bars or ingots while its shop is open.</p><div id="trader-offers"></div></div>
       <div id="cards"></div>
@@ -849,7 +887,7 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">The hermit-crab trader.</span> Four minutes in, and every four to six minutes after each visit, a hermit crab walks in from the left with a striped market stall on its shell. It keeps shop beside the den for a minute and offers three goods out of six, paid in bars or ingots taken straight off the piles. Spare drill bits or spare legs (two for a bar) let the repair crews skip the walk to the stockpile and the forge. A treasure map (two ingots) plants three rich flags on the claimed dunes. A crate of cells (one ingot) fills the engine and every energy bot. A gold gear (three bars) gives the whole crew the morning bonus at once. A lucky shell (four bars) guarantees a pearl on the next rich strike. The trade is metal for time, and it pays best when a pile is full and the line is waiting on something else.</p>
     <p><span class="runin">The sea turtle.</span> Three minutes in, and every two and a half to four and a half minutes after that, a sea turtle swims across the dunes at 85 units a second. It comes in from the side the travelling crabs are heading away from, dips to pick up one crab with at least 160 units to go its way (a flat or limping crab first), and can turn back once for a passenger it has just passed. It sets the crab down where it was going. In half-hour tests it gave four to eight lifts.</p>
     <p><span class="runin">Whales.</span> Every two to four minutes a whale glides through the open water, singing. Its shadow sweeps across the dunes, and the crabs beneath it look up and wave. The whale has no effect on the economy.</p>
-    <p><span class="runin">The octopus.</span> About a minute and a half in, and every two to three minutes after that, an octopus creeps in from the left. It makes for the ore pile, or, if the pile is empty, for the nodule on the sand nearest the line. It says 🐙🪨❓ as it comes. If a crab is standing within 28 units of its target when it gets there, it flees in a cloud of ink. Otherwise it spends a second and a half grabbing up to two nodules and escapes the way it came. The player can click it at any time to shoo it off. If it is already carrying loot, it drops the loot on the sand. Unguarded, it takes about 15 nodules in half an hour, roughly seven ingots. That is less a drain than a reason to watch the field.</p>
+    <p><span class="runin">The octopus.</span> About a minute and a half in, and every two to three minutes after that, an octopus creeps in from the left. It makes for the ore pile, or, if the pile is empty, for the nodule on the sand nearest the line. It says 🐙🪨❓ as it comes. If a crab is standing within 28 units of its target when it gets there, it flees in a cloud of ink. Otherwise it spends a second and a half grabbing up to two nodules and escapes the way it came. The player can click it, or press Shoo the octopus, at any time to shoo it off. If it is already carrying loot, it drops the loot on the sand. Unguarded, it takes about 15 nodules in half an hour, roughly seven ingots. That is less a drain than a reason to watch the field.</p>
     <p><span class="runin">Pearls.</span> A strike on a flag of richness 0.75 or more turns up a pearl one time in 25. A pearl is a jackpot paid in credits straight away: 60 on the front dune, 90 on the middle, and 130 on the back. It counts toward rank, and the pearl floats up the riser to fanfare. Over half an hour with all three dunes claimed, a mid-sized crew found four or five pearls worth 390 to 540 credits. That is a fair reward for scouting deep and drilling rich.</p>
   </div>
 

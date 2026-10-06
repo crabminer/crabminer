@@ -379,6 +379,7 @@ Everything costs 4,450 in total.
 
 - **Plots.** Seven buildings stand on seven plots. Left to right by default: den, workshop, ore pile, crushing yard, bar stack, stockpile, collector.
   - In Build → **Move buildings**, the plots show as tiles. Tap a building, then a plot, to move it there; it swaps with whatever stands there.
+  - The Build tab also lists the plots in order with ◀ ▶ buttons, which move a building one plot toward the field or the lava (swapping with its neighbour), and the refuel post 30 units at a time, pinning it.
   - The spots crabs work at move with their building: the haul stand is 24 units left of the ore pile, and the smelters' grab spot is 16 right of the bar stack.
 - **The refuel post.** It stands on a 520-unit extension cord from the Stirling engine's outlet, anywhere from x = 332 to 812 along the front dune (depth 0.72 to 0.97).
   - **Placing it.** In Move buildings you can tap the post, then the sand where it should go. That pins it there.
@@ -407,7 +408,7 @@ Everything costs 4,450 in total.
   1. It swims in toward the ore pile, or toward the nodule nearest the line if the pile is empty.
   2. If a crab is within 28 units of its target when it arrives, it flees in a cloud of ink.
   3. Otherwise it spends 1.5 s grabbing up to 2 nodules and escapes.
-  4. Click it at any time to shoo it away. If it is carrying anything, it drops it on the sand.
+  4. Click it, or press **Shoo the octopus** over the field (the S key), at any time to shoo it away. If it is carrying anything, it drops it on the sand.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
 - **The hermit-crab trader.** The first comes at 240 s, then 240 to 360 s after each one leaves.
   - It walks in from the left, keeps shop by the den (x = 500) for 60 s, then walks off.
@@ -451,16 +452,19 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 
 | Control | Where | What |
 | --- | --- | --- |
-| ❚❚ 1× 2× 4× | Top bar | Pause and game speed (Space pauses) |
+| ❚❚ 1× 2× 4× | Top bar | Pause and game speed (Space pauses; 1, 2, 3 set 1×, 2×, 4×) |
 | ⚡ Overclock | Top bar | Spend banked overclock (O) |
 | Stockpile − + | Top bar | Ingots kept back for repairs |
 | Big field | Top bar | Big field (default) or side panel (B); hidden on small screens |
-| ? | Top bar | The introduction, with Listen all (read aloud) and New game |
-| Crew tab | Panel | Hire (+), retire (−), workday, timeline, crab-talk legend |
-| Build tab | Panel | Upgrades, Move buildings, refuel post pinning, den decorations, the trader's goods |
+| ? | Top bar | The introduction, with the keys, Listen all (read aloud) and New game (? key) |
+| Shoo the octopus | Over the field, top right | Shown while the octopus is in; shoos it (S) |
+| Trader | Over the field, top right | Shown while the trader comes and keeps shop; opens its goods (T) |
+| Crew tab | Panel | Hire (+), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
+| Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods |
 | Tech tab | Panel | Research and worker upgrades |
 | Ledger tab | Panel | Money, prices, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away and scroll the field |
+| [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |
 | Click the octopus | Field | Shoo it |
 | Click the trader | Field | Jump to its goods |

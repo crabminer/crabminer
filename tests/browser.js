@@ -47,7 +47,12 @@ async function browser() {
   });
   return {
     send, on: f => listeners.push(f),
-    close: () => { ws.close(); proc.kill(); setTimeout(() => fs.rmSync(dir, { recursive: true, force: true }), 500); }
+    close: async () => {               // wait for the browser to exit, then delete its profile (tens of MB each)
+      ws.close();
+      const gone = new Promise(r => proc.once('exit', r));
+      proc.kill(); await Promise.race([gone, wait(5000)]);
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   };
 }
 
@@ -64,6 +69,7 @@ async function check(b, size) {
     if (msg.method === 'Log.entryAdded' && msg.params.entry.level === 'error') errors.push(msg.params.entry.text + ' ' + (msg.params.entry.url || ''));
   });
   await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
+  await send('Page.bringToFront'); await send('Emulation.setFocusEmulationEnabled', { enabled: true });   // the game stops in a hidden tab
   await send('Emulation.setDeviceMetricsOverride', { width: size.width, height: size.height, deviceScaleFactor: size.scale || (size.mobile ? 2 : 1), mobile: size.mobile });
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: size.dark ? 'dark' : 'light' }] });
   const js = async expr => {
@@ -125,6 +131,35 @@ async function check(b, size) {
   await shot('selected');
   await js('document.querySelector(\'[data-speed="1"]\').click(); document.getElementById("t-crew").click(); true');
 
+  // every action has a button or a key as well as a click on the field
+  const key = k => js(`document.dispatchEvent(new KeyboardEvent('keydown', { key: '${k}', bubbles: true })); true`);
+  await key('2');
+  expect(await js('document.querySelector(\'[data-speed="2"]\').getAttribute("aria-pressed") === "true"'), 'the 2 key did not set 2× speed');
+  await key(']');
+  expect(await js('document.getElementById("t-build").getAttribute("aria-selected") === "true"'), 'the ] key did not move to the next tab');
+  await js('const S = crabminer.state(); S.ore = Math.max(S.ore, 4); S.nextOcto = S.t; S.nextTrader = S.t; true');
+  for (let i = 0; i < 100 && await js('document.getElementById("a-octo").hidden || document.getElementById("a-trader").hidden'); i++) await wait(100);
+  expect(!(await js('document.getElementById("a-octo").hidden')), 'no Shoo button in the top bar when the octopus came');
+  expect(!(await js('document.getElementById("a-trader").hidden')), 'no trader button in the top bar when the trader came');
+  await shot('alerts');
+  await key('s');
+  expect(await js('!crabminer.state().octo || crabminer.state().octo.state === "flee"'), 'the S key did not shoo the octopus');
+  await js('document.getElementById("t-crew").click(); document.getElementById("a-trader").click(); true');
+  expect(await js('document.getElementById("t-build").getAttribute("aria-selected") === "true" && !document.getElementById("trader-card").hidden'), 'the trader button did not open its shop');
+  const before2 = await js('JSON.stringify(crabminer.state().layout)');
+  await js('document.querySelector("#layout-list [data-move]:not(:disabled)").click(); true');
+  expect(await js('JSON.stringify(crabminer.state().layout)') !== before2, 'a ◀ ▶ button did not move a building');
+  const postX = await js('crabminer.state().post.x');
+  await js('document.querySelector("#layout-list [data-post]:not(:disabled)").click(); true');
+  expect(await js('crabminer.state().post.x') !== postX, 'a ◀ ▶ button did not move the refuel post');
+  await js('document.getElementById("t-crew").click(); document.getElementById("roster-box").open = true; true');
+  await wait(400);
+  const shown = await js('(() => { const b = document.querySelector("#roster [data-show]"); b.click(); return +b.getAttribute("data-show"); })()');
+  expect(await js('crabminer.view().selected') === shown, 'Show in the crew list did not open the crab\'s card');
+  expect(await js('document.querySelectorAll("#roster li").length === crabminer.state().crabs.length'), 'the crew list does not list every crab');
+  await shot('roster');
+  await key('1');
+
   // the save: a reload picks up where the game was
   const saved = await js('(dispatchEvent(new Event("pagehide")), { t: crabminer.state().t, n: crabminer.state().crabs.length })');
   await load();
@@ -146,7 +181,7 @@ async function check(b, size) {
       if (problems.length) { failed++; console.log('FAIL ' + size.name + '\n  ' + problems.join('\n  ')); }
       else console.log('ok   ' + size.name + ' (' + size.width + '×' + size.height + ')');
     }
-  } finally { done = true; b.close(); }
+  } finally { done = true; await b.close(); }
   console.log('screenshots in ' + OUT);
   console.log(failed ? failed + ' of ' + SIZES.length + ' sizes failed' : 'all browser checks passed');
   process.exit(failed ? 1 : 0);

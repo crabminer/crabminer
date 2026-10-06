@@ -46,7 +46,9 @@ the line, which the advisor and the Ledger tab point out.
 - **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the
   page hides, and a reload resumes it exactly (the seed is saved too). New game is under ?.
 - **Interface:** starts straight into play on the big field, with a phone layout for small screens
-  like the iPhone SE. A read-aloud "Listen all" button lives in the intro. The paper below the
+  like the iPhone SE, and 4K screens at 100% scaling. Everything the field can be clicked for
+  also has a button and a key: visitor buttons over the field, the crew by name, plots with
+  ◀ ▶, and shortcuts listed in the intro. A read-aloud "Listen all" button lives in the intro. The paper below the
   game holds the rules and an economy review.
 
 **Docs:** `docs/RULES.md` (full rules), `docs/ARCHITECTURE.md` (code organisation and data flow),

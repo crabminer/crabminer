@@ -402,7 +402,7 @@
         break;
       case 'lavaEnd': S.crabs.forEach(function (n) { if (n.role === 'smelt') play(n, 'sigh', 1.2); }); break;
       case 'octoArrive':
-        toast('An octopus is sneaking in!', 'It is after your ore. Click it to shoo it away, or keep a crab by the ore pile.');
+        toast('An octopus is sneaking in!', 'It is after your ore. Click it or press Shoo (S) to chase it away, or keep a crab by the ore pile.');
         break;
       case 'octoScared':
         ink(a); say(e.b, '🐙⛔', 1.8); play(e.b, ['stomp', 'grumble', 'flex'], 1.8);
@@ -415,7 +415,7 @@
         if (e.b) near(a.x, 120).forEach(function (n) { say(n, '🪨💔🐙', 1.8); play(n, ['shock', 'stomp'], 1.6); });
         break;
       case 'octoGone':
-        if (e.b) toast('The octopus got away', 'It took ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + '. Next time, click it before it reaches the pile.');
+        if (e.b) toast('The octopus got away', 'It took ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + '. Next time, shoo it before it reaches the pile.');
         buryToast = false;
         break;
       case 'layout': var bx = S.pos[{ den: 'DEN', workshop: 'WORKSHOP', ore: 'ORE', crush: 'CRUSH', bar: 'BAR', stock: 'STOCK', collector: 'COLLECTOR' }[a]]; near(bx, 90).forEach(function (n) { play(n, ['lookAround', 'think'], 1.6); }); break;
@@ -2020,6 +2020,7 @@
   };
   var STAGE_NAME = { scout: 'Scouting', drill: 'Drilling', haul: 'Hauling', crush: 'Crushing', smelt: 'Smelting', sell: 'Selling' };
   var ui = {
+    aOcto: $('a-octo'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
@@ -2069,6 +2070,63 @@
   };
   function clock(h) { var hh = Math.floor(h), mm = Math.floor((h - hh) * 60 / 15) * 15; return ('0' + hh).slice(-2) + ':' + ('0' + mm).slice(-2); }
   function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+  // ----- every action within reach of the panel and the keyboard, not only of a click on the field -----
+  function flashCard(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); el.scrollIntoView({ block: 'nearest' }); }
+  function shoo() { if (sim.shoo()) { sim.drain().forEach(handle); renderHUD(); } }
+  function openShop() { if (!S.trader) return; selectTab('t-build'); flashCard(ui.traderCard); }
+  function showCrab(c) {                 // scroll the field to a crab and open its card
+    selected = c; selectedUntil = T + 8;
+    stage.scrollTo({ left: crabX(c) * Z - stage.clientWidth / 2, behavior: mqReduce.matches ? 'auto' : 'smooth' });
+  }
+  function renderAlerts() {
+    var tr = S.trader;
+    ui.aOcto.hidden = !S.octo || S.octo.state === 'flee';
+    ui.aTrader.hidden = !tr || tr.state === 'leave';
+    if (tr) ui.aTraderLabel.textContent = tr.state === 'stay' ? 'Trader open ' + fmtTime(tr.until - S.t) : 'Trader coming';
+  }
+  var rosterIds = '';
+  function renderRoster() {              // rows are rebuilt only when the crew changes, so focus and clicks survive
+    ui.rosterCount.textContent = '(' + S.crabs.length + ')';
+    if (!ui.rosterBox.open) { rosterIds = ''; return; }
+    var crew = S.crabs.slice().sort(function (a, b) { return K.ROLES.indexOf(a.role) - K.ROLES.indexOf(b.role) || a.id - b.id; }),
+      ids = crew.map(function (c) { return c.id; }).join(), rows, i, c, li;
+    if (ids !== rosterIds) {
+      rosterIds = ids;
+      ui.roster.innerHTML = crew.map(function (c) {
+        return '<li data-id="' + c.id + '"><span class="dot" style="background:var(--c-' + (c.role === 'haul' ? 'crab' : c.role) + ')"></span>' +
+          '<span class="who"><b></b><span class="stars"></span> <span class="kind"></span></span>' +
+          '<button type="button" class="mini wide" data-show="' + c.id + '">Show</button><span class="what"></span></li>';
+      }).join('');
+    }
+    rows = ui.roster.children;
+    for (i = 0; i < crew.length; i++) {
+      c = crew[i]; li = rows[i];
+      li.querySelector('b').textContent = c.name;
+      li.querySelector('.stars').textContent = c.stars ? new Array(c.stars + 1).join('★') : '';
+      li.querySelector('.kind').textContent = NAMES[c.role].toLowerCase();
+      li.querySelector('.what').textContent = statusText(c) + ' · ' + c.rec.jobs + ' job' + (c.rec.jobs === 1 ? '' : 's');
+      li.querySelector('button').setAttribute('aria-label', 'Show ' + c.name + ' on the field');
+    }
+  }
+  var layoutSig = '';
+  function renderLayout() {              // the plots in order from the field to the lava, each building with buttons to move it
+    var sig = JSON.stringify(S.layout), i, k, at = {}, html = '', lo = Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), hi = K.STIRLING - 40, b;
+    if (sig !== layoutSig) {
+      layoutSig = sig;
+      for (k in S.layout) at[S.layout[k]] = k;
+      for (i = 0; i < K.PLOTS.length; i++) {
+        b = at[i];
+        html += '<div class="plot"><span class="n">' + (i + 1) + '</span><span>' + (b ? BLD_NAMES[b] : '<span class="note">empty plot</span>') + '</span>' +
+          (b ? '<button type="button" class="mini" data-move="' + b + '" data-to="' + (i - 1) + '"' + (i ? '' : ' disabled') + ' aria-label="Move the ' + BLD_NAMES[b].toLowerCase() + ' toward the field">◀</button>' +
+            '<button type="button" class="mini" data-move="' + b + '" data-to="' + (i + 1) + '"' + (i < K.PLOTS.length - 1 ? '' : ' disabled') + ' aria-label="Move the ' + BLD_NAMES[b].toLowerCase() + ' toward the lava">▶</button>' : '<span></span><span></span>') + '</div>';
+      }
+      html += '<div class="plot"><span class="n">⚡</span><span>Refuel post</span><button type="button" class="mini" data-post="-1" aria-label="Move the refuel post toward the field">◀</button>' +
+        '<button type="button" class="mini" data-post="1" aria-label="Move the refuel post toward the lava">▶</button></div>';
+      ui.layoutList.innerHTML = html;
+    }
+    b = ui.layoutList.querySelectorAll('[data-post]');
+    b[0].disabled = S.post.x <= lo + 1; b[1].disabled = S.post.x >= hi - 1;
+  }
   function fmtTime(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }
   function toast(title, body) {
     var d = document.createElement('div');
@@ -2110,6 +2168,7 @@
   }
   function renderPanel() {
     var n = sim.counts(), cap = sim.crewCap(), full = S.crabs.length >= cap, rows = document.querySelectorAll('.role'), i, r, row, cost, hire, cards = ui.cards.children, id, u, lvl, max, pips, v;
+    renderLayout();
     ui.used.textContent = S.crabs.length + ' of ' + cap;
     Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-shift') === S.shift)); });
     ui.shiftNote.textContent = SHIFT_INFO[S.shift].note;
@@ -2198,7 +2257,7 @@
       if ((cr.role === 'drill' && !cr.bitOk) || (cr.role === 'energy' && cr.broken)) broken++;
       if (cr.role === 'repair' && cr.state === 'fetch' && cr.carry !== 'ingot') waitMetal = true;
     }
-    if (S.octo && S.octo.state !== 'flee') return 'Advisor: <b>An octopus is after your ' + (S.ore > 0 ? 'ore pile' : 'nodules') + '!</b> Click it to shoo it away.';
+    if (S.octo && S.octo.state !== 'flee') return 'Advisor: <b>An octopus is after your ' + (S.ore > 0 ? 'ore pile' : 'nodules') + '!</b> Click it or press Shoo to chase it away.';
     if (S.order && !S.storm) {
       var left = S.order.need - S.order.got, rv = S.order.rivalRate ? S.order.need - Math.floor(S.order.rival) : 0;
       if (rv && rv < left) return 'Advisor: <b>The rival crew is ahead: they need ' + rv + ' more, you need ' + left + '.</b>' + (S.reserve > 0 ? ' Lower the stockpile reserve to send more up.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock to speed the line.' : '') + ' Losing the race costs a reputation star.';
@@ -2229,6 +2288,7 @@
     return 'Advisor: ' + msg;
   }
   function renderHUD() {
+    renderAlerts();
     var r = sim.rates(60), rk = S.rank, next = K.RANKS[rk + 1], prev = K.RANKS[rk][0], h = S.hist, old = h[Math.max(0, h.length - 11)];
     ui.credits.textContent = money(S.credits);
     ui.rate.textContent = '+' + money(r.revenue) + ' a minute';
@@ -2436,6 +2496,32 @@
       renderPanel(); renderHUD();
     }
     ui.roles.addEventListener('click', onRoleClick);
+    ui.aOcto.addEventListener('click', shoo);
+    ui.aTrader.addEventListener('click', openShop);
+    ui.rosterBox.addEventListener('toggle', renderRoster);
+    ui.roster.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-show]'), id = b && +b.getAttribute('data-show'), c = null, i;
+      for (i = 0; b && i < S.crabs.length; i++) if (S.crabs[i].id === id) c = S.crabs[i];
+      if (c) showCrab(c);
+    });
+    ui.layoutList.addEventListener('click', function (e) {
+      var b = e.target.closest('button'), m, to, here = null, k, dir;
+      if (!b || b.disabled) return;
+      if (b.hasAttribute('data-post')) {
+        dir = +b.getAttribute('data-post');
+        sim.placePost(S.post.x + 30 * dir, S.post.d); sim.drain().forEach(handle);
+        toast('Moved the refuel post', 'It stays put until you let the energy bots move it again.');
+      } else {
+        m = b.getAttribute('data-move'); to = +b.getAttribute('data-to'); dir = to > S.layout[m] ? 1 : -1;
+        for (k in S.layout) if (S.layout[k] === to) here = k;
+        if (sim.place(m, to)) toast('Moved the ' + BLD_NAMES[m].toLowerCase(), here ? 'It swapped places with the ' + BLD_NAMES[here].toLowerCase() + '.' : 'The crabs will find it there.');
+        sim.drain();
+      }
+      renderPanel(); draw();
+      // keep the focus on the same button, which the rebuilt list replaced
+      var again = ui.layoutList.querySelector(m ? '[data-move="' + m + '"][data-to="' + (S.layout[m] + dir) + '"]' : '[data-post="' + dir + '"]');
+      if (again && !again.disabled) again.focus();
+    });
     ui.tech.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var card = b.closest('.card'), t = card.getAttribute('data-tech'), w = card.getAttribute('data-wup');
@@ -2498,6 +2584,16 @@
       if (e.key === ' ' && !(e.target.closest && e.target.closest('button, a'))) { e.preventDefault(); setSpeed(speed ? 0 : 1); }
       if ((e.key === 'b' || e.key === 'B') && !e.ctrlKey && !e.metaKey && !e.altKey) setBig(!document.body.classList.contains('big'));
       if ((e.key === 'o' || e.key === 'O') && !e.ctrlKey && !e.metaKey && !e.altKey) { sim.overclock(!S.oc); sim.drain().forEach(handle); renderHUD(); }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      var k = e.key.length === 1 ? e.key.toLowerCase() : e.key, list = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]')), j;
+      if (k === '1' || k === '2' || k === '3') setSpeed([1, 2, 4][+k - 1]);
+      else if (k === 's') shoo();
+      else if (k === 't') openShop();
+      else if (k === 'm') { selectTab('t-build'); ui.arrangeBtn.click(); }
+      else if (k === '[' || k === ']') {
+        for (j = 0; j < list.length; j++) if (list[j].getAttribute('aria-selected') === 'true') break;
+        selectTab(list[(j + (k === ']' ? 1 : list.length - 1)) % list.length].id);
+      } else if (k === '?') { setSpeed(0); openIntro(); }
     });
     cv.addEventListener('click', function (e) {
       var rect = cv.getBoundingClientRect(), x = (e.clientX - rect.left) / Z, y = (e.clientY - rect.top) / Z, bestC = null, bd = 1e9, i, c, px, py, d, z;
@@ -2569,7 +2665,7 @@
     update(dt);
     if (stageVisible) draw();
     uiTick += dt; ledgerTick += dt;
-    if (uiTick > 0.25) { uiTick = 0; renderHUD(); renderPanel(); }
+    if (uiTick > 0.25) { uiTick = 0; renderHUD(); renderPanel(); renderRoster(); }
     if (ledgerTick > 1 && !$('p-ledger').hidden) { ledgerTick = 0; renderLedger(); }
     saveTick += dt;
     if (saveTick > 10) { saveTick = 0; saveGame(); }

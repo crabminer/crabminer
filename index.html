@@ -566,7 +566,7 @@ tr[data-say].saying{box-shadow:none}
       <a href="#paper" id="readmore">Read the rules and the economy review</a>
     </div>
     <p class="rd-status" id="rd-status" role="status" hidden></p>
-    <p class="fine">Tip: use 2× or 4× speed once the line is running. Space pauses, O overclocks, and B switches between the big field and the side panel. Click a crab to see what it is doing, and open "How crabs talk" in the Crew tab to read their emoji.</p>
+    <p class="fine">Tip: use 2× or 4× speed once the line is running. The game saves itself as you play, and New game here starts over. Space pauses, O overclocks, and B switches between the big field and the side panel. Click a crab to see what it is doing, and open "How crabs talk" in the Crew tab to read their emoji.</p>
   </div>
 </div>
 
@@ -690,7 +690,7 @@ tr[data-say].saying{box-shadow:none}
 
     <h2>I. The Game</h2>
     <p class="dropcap"><span class="lead">The</span> game opens on three layers of dunes, cut from paper and stacked one behind another. The front dune holds the processing line: an ore pile, a crushing yard, a bar stack, a stockpile of refined metal, and the collector at the foot of the riser. A basalt outcrop on the right holds a pool of lava. Beside it stand a Stirling engine and the energy bots' base station, and above it a thermal vent sends warm water and bubbles up to near the surface. The middle and back dunes start out roped off. They hold richer deposits, and the player can buy the claims to them.</p>
-    <p>The player starts with nine crabs, room in the den for ten, and 120 credits. The aim is to earn money by selling metal upward. Lifetime earnings set the player's rank, and each new rank pays a bonus of a tenth of its threshold. The ranks are Pebble Boss at 150 credits, Nodule Baron at 400, Ingot Magnate at 1,000, Lava Lord at 2,500, and Crab Tycoon at 6,000. Reaching Crab Tycoon wins the game, and the time taken is the player's score. Play can continue afterwards.</p>
+    <p>The player starts with nine crabs, room in the den for ten, and 120 credits. The aim is to earn money by selling metal upward. Lifetime earnings set the player's rank, and each new rank pays a bonus of a tenth of its threshold. The ranks are Pebble Boss at 150 credits, Nodule Baron at 400, Ingot Magnate at 1,000, Lava Lord at 2,500, and Crab Tycoon at 6,000. Reaching Crab Tycoon wins the game, and the time taken is the player's score. Play can continue afterwards. The game saves itself in the browser every ten seconds and whenever the page is hidden or closed, so a reload carries on where it stopped; New game in the introduction starts over.</p>
     <p>The <span class="runin">Crew</span> tab hires and retires crabs and sets the shift pattern. Each further crab of a role costs 15% of the base price more than the one before, and a retired crab refunds half of what it cost. The <span class="runin">Build</span> tab buys upgrades. The top bar shows the day and shift, the flow bonus, and the overclock button, and it sets how many ingots to hold back from sale. The <span class="runin">Ledger</span> tab holds the analysis. An advisor names the slowest stage, or the job nobody covers on some shift, in plain words.</p>
     <p><span class="runin">Big field.</span> The game opens straight into play, on the big field. The front dune fills the lower half of the screen, and the world is wider than the window, so it scrolls sideways. The panel floats on the field as a sheet of paper with five tabs: Crew, Build, Tech, Ledger, and View. View tucks the rest away and leaves a slider for scrolling the field. The Big field button (or the B key) switches to a side panel instead, and the ? button brings up the introduction.</p>
   </div>
@@ -2223,7 +2223,68 @@ function CrabSim() {
   }
   function drain() { var e = events; events = []; return e; }
 
+  // ----- save and load -----
+  // A saved game is S as plain JSON, plus the random seed, so a loaded game plays on exactly as it would have.
+  // S is a web of references: a drill holds its flag and the flag holds the drill, an energy bot holds the crab
+  // it is charging. An object reached from two places is written once with a number ($id) and after that only
+  // as {$ref: number}, and loading rebuilds the same web. The view's own fields on sim objects (names that
+  // start with v, plus anim and say) are left out.
+  var SAVE_VERSION = 1;
+  function viewKey(k) { return k.charAt(0) === 'v' || k === 'anim' || k === 'say'; }
+  function save() {
+    var seen = new Map(), ids = new Map(), next = 1;
+    function count(o) {                    // pass 1: how many times each object is reached
+      if (!o || typeof o !== 'object') return;
+      var n = seen.get(o) || 0, k;
+      seen.set(o, n + 1);
+      if (n) return;
+      if (Array.isArray(o)) o.forEach(count);
+      else for (k in o) if (!viewKey(k)) count(o[k]);
+    }
+    function enc(o) {                      // pass 2: write it out, numbering the shared objects
+      var out, k;
+      if (typeof o === 'number') return isFinite(o) ? o : null;
+      if (!o || typeof o !== 'object') return o;
+      if (ids.has(o)) return { $ref: ids.get(o) };
+      if (seen.get(o) > 1) ids.set(o, next++);
+      if (Array.isArray(o)) {
+        out = o.map(enc);
+        return ids.has(o) ? { $id: ids.get(o), $arr: out } : out;
+      }
+      out = ids.has(o) ? { $id: ids.get(o) } : {};
+      for (k in o) if (!viewKey(k) && typeof o[k] !== 'function' && o[k] !== undefined) out[k] = enc(o[k]);
+      return out;
+    }
+    count(S);
+    return { v: SAVE_VERSION, seed: seed, S: enc(S) };
+  }
+  function load(data) {                    // returns true, or 'bad' if the save cannot be read; the game is untouched then
+    var byId = {}, refs = [], fresh, s, k;
+    if (!data || data.v !== SAVE_VERSION || !data.S || typeof data.S !== 'object' || typeof data.seed !== 'number') return 'bad';
+    function dec(o) {
+      var out, k;
+      if (!o || typeof o !== 'object') return o;
+      if (Array.isArray(o)) return o.map(dec);
+      if (o.$ref !== undefined) { out = byId[o.$ref]; if (!out) refs.push(o.$ref); return out || null; }
+      if (o.$arr) { out = []; if (o.$id !== undefined) byId[o.$id] = out; o.$arr.forEach(function (x) { out.push(dec(x)); }); return out; }
+      out = {};
+      if (o.$id !== undefined) byId[o.$id] = out;
+      for (k in o) if (k !== '$id') out[k] = dec(o[k]);
+      return out;
+    }
+    s = dec(data.S);
+    if (refs.length || !Array.isArray(s.crabs) || !s.lv || !s.stat) return 'bad';
+    fresh = reset();                       // fields added to the game since the save was made start at their defaults
+    for (k in fresh) if (!(k in s)) s[k] = fresh[k];
+    for (k in K.UP) if (s.lv[k] === undefined) s.lv[k] = 0;
+    for (k = 0; k < STATS.length; k++) if (s.stat[STATS[k]] === undefined) s.stat[STATS[k]] = 0;
+    S = s; seed = data.seed >>> 0; events = [];
+    layoutPos();
+    return true;
+  }
+
   return {
+    save: save, load: load,
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
@@ -4521,12 +4582,30 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   }
 
   // ----- game flow -----
+  var SAVE_KEY = 'crabminer-save', saveTick = 0;
+  function saveGame() {                 // the whole game goes to localStorage, so a reload carries on where it was
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(sim.save())); } catch (e) { /* storage may be unavailable or full */ }
+  }
+  function loadGame() {                 // true if a saved game was found and restored
+    var data = null;
+    try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return false; }
+    if (!data) return false;
+    try { if (sim.load(data) !== true) return false; } catch (e) { return false; }
+    S = sim.state();
+    freshView();
+    won = S.rank >= K.RANKS.length - 1;   // a game already won does not show the win card again
+    return true;
+  }
   function newGame() {
     S = sim.reset();
-    flights = []; lifts = []; sparks = []; floaters = []; confetti = []; rings = []; puffs = []; debris = []; lastShift = ''; cargo = { x: -1, phase: 'gone' };
-    won = false; startedAt = 0; acc = 0; selected = null;
+    freshView();
     sim.drain().forEach(handle);
     renderPanel(); renderHUD();
+    saveGame();
+  }
+  function freshView() {                // forget everything the view was animating from the last game
+    flights = []; lifts = []; sparks = []; floaters = []; confetti = []; rings = []; puffs = []; debris = []; lastShift = ''; cargo = { x: -1, phase: 'gone' };
+    won = false; startedAt = 0; acc = 0; selected = null;
   }
   function closeIntro() { ui.intro.hidden = true; setSpeed(speed || 1); }
   function openIntro() {
@@ -4697,6 +4776,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     uiTick += dt; ledgerTick += dt;
     if (uiTick > 0.25) { uiTick = 0; renderHUD(); renderPanel(); }
     if (ledgerTick > 1 && !$('p-ledger').hidden) { ledgerTick = 0; renderLedger(); }
+    saveTick += dt;
+    if (saveTick > 10) { saveTick = 0; saveGame(); }
     raf = requestAnimationFrame(frame);
   }
   function start() { if (running || document.hidden) return; running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
@@ -4709,7 +4790,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     resizeQueued = true;
     requestAnimationFrame(function () { resizeQueued = false; measure(); draw(); });
   });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { stop(); saveGame(); } else start(); });
+  window.addEventListener('pagehide', saveGame);
   if (window.ResizeObserver) {          // the stage changes size without the window doing so: the sheet folding away, say
     new ResizeObserver(function () { if (stage.clientHeight !== H || stage.clientWidth > W) { measure(); draw(); } }).observe(stage);
   }
@@ -4729,13 +4811,16 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   if (bigPref !== '0') { document.body.classList.add('big'); ui.bigBtn.setAttribute('aria-pressed', 'true'); }   // the big field is the default
   measure();
   wire();
-  started = true; newGame();            // straight into the game; the ? button brings up the intro
+  started = true;                       // straight into the game, the saved one if there is one; the ? button brings up the intro
+  var resumed = loadGame();
+  if (!resumed) newGame();
   ui.intro.hidden = true;
   renderPanel(); renderHUD();
   if (stage.scrollWidth > stage.clientWidth) stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * (document.body.classList.contains('big') ? 0.62 : 0.55);
   draw();
   start();
-  toast('It\'s a Crab Mining Game.', 'Hire crabs, sell metal up the riser, and climb to Crab Tycoon. Press ? for how to play.');
+  if (resumed) toast('Welcome back to day ' + S.day + '.', 'Your crew kept your place: ' + money(S.credits) + ' in the bank. New game is under ?.');
+  else toast('It\'s a Crab Mining Game.', 'Hire crabs, sell metal up the riser, and climb to Crab Tycoon. Press ? for how to play.');
 })();
 </script>
 <!-- ===== SCRIPT 3 of 3: read aloud ===== -->

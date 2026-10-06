@@ -41,6 +41,8 @@ the line, which the advisor and the Ledger tab point out.
 - **The sea:** tides (which also push the refuel post around), storms, lava surges, an octopus
   thief, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, and the sea turtle.
 - **Crabs:** emoji crab-talk grammar, 52 animations, and a crab rave on rank-up.
+- **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the
+  page hides, and a reload resumes it exactly (the seed is saved too). New game is under ?.
 - **Interface:** starts straight into play on the big field, with a phone layout for small screens
   like the iPhone SE. A read-aloud "Listen all" button lives in the intro. The paper below the
   game holds the rules and an economy review.
@@ -59,10 +61,8 @@ events, and changes the game only through its API. Before committing a change:
 The working style so far: commit locally, and push only when asked.
 
 **What next** (from `docs/BACKLOG.md`, in recommended order):
-1. **Save and load:** serialise the game state to `localStorage` so a reload doesn't start over.
-   This is the biggest gap.
-2. **Named crabs with veteran levels:** names, personal records, a badge, and +5% speed at their
+1. **Named crabs with veteran levels:** names, personal records, a badge, and +5% speed at their
    own job after enough work.
-3. **Rival crab crew:** a computer crew that competes for ship orders.
-4. **Engineering:** split the scripts into `sim.js`, `game.js` and `reader.js`, and check the
+2. **Rival crab crew:** a computer crew that competes for ship orders.
+3. **Engineering:** split the scripts into `sim.js`, `game.js` and `reader.js`, and check the
    fuzz, balance and browser tests into `tests/`.

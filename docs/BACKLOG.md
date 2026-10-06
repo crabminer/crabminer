@@ -77,8 +77,6 @@ the hermit-crab trader, and the sea turtle.
 
 ## Interface and accessibility
 
-- **Save and load.** Serialise `S` (excluding object references, rebuilt from ids) to
-  `localStorage` so a game survives a reload. The biggest gap today.
 - **Tutorial.** A guided first five minutes: hire the second smelter, watch the advisor,
   try overclock.
 - **Sound.** Soft clicks, bubbles, a crab-rave tune, the whale's song; muted by default,

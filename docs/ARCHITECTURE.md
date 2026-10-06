@@ -262,7 +262,29 @@ resumes the role.
 - `bottleneck()` names the slowest stage or short overhead. The advisor and the automatic
   test player both use it.
 
-### 4.7 Events
+### 4.7 Save and load
+
+`save()` returns a plain, JSON-ready object `{v, seed, S}`: the save format version, the
+random seed, and the whole of `S`. `load(data)` puts it back and returns `true`, or `'bad'`
+and leaves the game untouched.
+
+- **References.** `S` is a web of references (section 10, claims). `save()` walks it twice:
+  the first pass counts how often each object is reached; the second writes each shared
+  object once as `{$id: n, ...}` and every later meeting as `{$ref: n}`. A shared array
+  becomes `{$id: n, $arr: [...]}`. `load()` reads the same order back, so every claim, dance
+  partner, dock and rider points at the same crab again.
+- **View fields.** Keys that start with `v`, plus `anim` and `say`, are left out (section 10).
+  A new sim field must therefore not start with `v`.
+- **Determinism.** The seed is saved, so a loaded game plays on exactly as the original
+  would have. The round-trip test checks this: it saves, loads into a second instance, plays
+  both with the same actions, and compares their saves.
+- **New fields.** `load()` starts from a fresh `reset()` and copies over any top-level field,
+  upgrade level or stat the save lacks, so saves made before a field existed still load.
+  Bump `SAVE_VERSION` when a change would make old saves load wrongly; old saves are then
+  refused and a new game starts.
+- **Size.** About 200 KB late in a game, most of it `hist`.
+
+### 4.8 Events
 
 `emit(type, a, b)` appends `{type, a, b}` to a queue. `drain()` returns the queue and empties
 it. The view calls `drain()` once a frame and after every player action. Events are
@@ -281,11 +303,11 @@ notifications only: the sim never depends on anyone reading them.
 | Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone` |
 | Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `orderStart`, `orderDone`, `orderFail` |
 
-### 4.8 Public API
+### 4.9 Public API
 
 | Group | Functions |
 | --- | --- |
-| Lifecycle | `reset(opts)`, `step()`, `drain()`, `state()`, `K`, `FLOW` |
+| Lifecycle | `reset(opts)`, `step()`, `drain()`, `state()`, `save()`, `load(data)`, `K`, `FLOW` |
 | Crew | `hire(role)`, `retire(role)`, `hireCost(role)`, `refund(role)`, `crewCap()`, `counts()` |
 | Build | `buy(id)`, `upgradeCost(id)`, `up(id)`, `place(building, plot)`, `placePost(x, d)`, `setPostAuto(on)`, `postTarget()` |
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
@@ -426,9 +448,14 @@ dances used by pairs.
   5. a locked dune, which jumps to its upgrade
 - **Keys:** Space (pause), O (overclock), B (big field), Escape (close the intro or leave
   arrange mode).
-- **Storage:** `localStorage` keeps `crabminer-best` (best Tycoon time), `crabminer-big`
-  (layout), and `reader-rate`/`reader-voice` (read aloud). Every access is wrapped in
-  `try`/`catch`.
+- **Storage:** `localStorage` keeps `crabminer-save` (the game, from `sim.save()`),
+  `crabminer-best` (best Tycoon time), `crabminer-big` (layout), and
+  `reader-rate`/`reader-voice` (read aloud). Every access is wrapped in `try`/`catch`.
+- **Save and load:** `saveGame()` runs every 10 s of real time, when the page is hidden, on
+  `pagehide`, and right after `newGame()`. At start-up `loadGame()` restores the save if
+  `sim.load` accepts it; otherwise `newGame()` runs. Both call `freshView()`, which clears
+  the view's flights, particles and debris. A loaded game that is already won does not show
+  the win card again, and a toast welcomes the player back.
 - **Debug:** `window.crabminer` exposes:
   - `sim` and `state()`
   - `view()`, read-only view values
@@ -511,7 +538,7 @@ results are reported in the paper.
 - **A new event:**
   1. `emit('name', a, b)` in the sim.
   2. Add a `case` in `handle()` for visuals and talk.
-  3. List it in section 4.7.
+  3. List it in section 4.8.
 - **A new upgrade:**
   1. Add it to `K.UP` with costs and values.
   2. Read it with `up(id)`.

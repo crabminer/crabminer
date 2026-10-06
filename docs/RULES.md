@@ -47,6 +47,10 @@ Lifetime earnings set your rank. Each new rank pays a bonus of 10% of its thresh
 Reaching Crab Tycoon wins. Your score is the crab time it took, and the best time is kept
 in the browser. You can keep playing afterwards.
 
+The game saves itself in the browser every 10 seconds and whenever the page is hidden or
+closed. Reloading the page carries on exactly where you were. To start over, press ? and
+choose New game. A save that cannot be read is ignored, and a new game starts instead.
+
 You start with 9 crabs, room in the den for 10, and 120 credits:
 1 scout, 2 drills, 2 haulers, 1 crusher, 1 smelter, 1 energy bot, and 1 repair bot.
 
@@ -415,7 +419,7 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | ⚡ Overclock | Top bar | Spend banked overclock (O) |
 | Stockpile − + | Top bar | Ingots kept back for repairs |
 | Big field | Top bar | Big field (default) or side panel (B); hidden on small screens |
-| ? | Top bar | The introduction, with Listen all (read aloud) |
+| ? | Top bar | The introduction, with Listen all (read aloud) and New game |
 | Crew tab | Panel | Hire (+), retire (−), workday, timeline, crab-talk legend |
 | Build tab | Panel | Upgrades, Move buildings, refuel post pinning, den decorations, the trader's goods |
 | Tech tab | Panel | Research and worker upgrades |

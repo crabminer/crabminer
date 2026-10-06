@@ -617,7 +617,8 @@ function CrabSim() {
       w = c.target;
       if (!w || w.gone || w.state === 'sleep') { if (w) w.claimedBy = null; c.target = null; c.state = 'idle'; return; }
       if (c.state === 'go') {
-        if (go(c, w.x - 12, w.d, sp) || (!c.air && Math.abs(w.x - 12 - c.x) <= 4 && Math.abs(w.d - c.d) <= 0.06)) {
+        go(c, w.x - 12, w.d, sp);
+        if (!c.air && !w.air && Math.abs(w.x - 12 - c.x) <= 4 && Math.abs(w.d - c.d) <= 0.04) {   // side by side: hand the charge over
           c.state = 'charge'; c.timer = K.T_CHARGE * (c.broken ? 2 : 1) * (has('fastPlug') ? 0.5 : 1);
         }
       } else {
@@ -767,7 +768,15 @@ function CrabSim() {
     }
   };
   function needs(w, kind) { return w && !w.gone && FIX[kind].need(w); }
-  function isHeld(w) { return (w.fixBy && w.fixBy.target === w && w.fixBy.state === 'fix') || (w.mendBy && w.mendBy.target === w && w.mendBy.state === 'fix'); }
+  // A crab holds still while a helper hands it something, claw to claw like a relay baton: a new bit or leg
+  // being fitted, or a charge being passed over. Its own work waits until the hand-off is done.
+  function heldBy(w) {
+    if (w.fixBy && w.fixBy.target === w && w.fixBy.state === 'fix') return w.fixBy;
+    if (w.mendBy && w.mendBy.target === w && w.mendBy.state === 'fix') return w.mendBy;
+    if (w.claimedBy && w.claimedBy.target === w && w.claimedBy.state === 'charge') return w.claimedBy;
+    return null;
+  }
+  function isHeld(w) { return !!heldBy(w); }
   function fixer(c) {
     var F = FIX[c.role], i, w, best = null, bd = 1e9, d;
     if (c.state === 'init') c.state = 'idle';
@@ -1419,7 +1428,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, trade: trade, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, trade: trade, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

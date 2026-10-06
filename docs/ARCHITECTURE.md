@@ -449,6 +449,14 @@ returned by `face(c)`. `face` checks, in priority order:
 `ANIMS` holds the 52 animations as functions `(crab, seconds) → pose`. `DUETS` lists the
 dances used by pairs.
 
+**Hand-offs.** A helper hands things over claw to claw, like a relay baton. In the sim,
+`heldBy(w)` names the energy, repair or maintenance bot that is mid-hand-off with `w` (state
+`charge` or `fix`), and a held crab skips its own rule until it is done; an energy bot only
+starts once it is beside the crab (within 4 units, depth within 0.04). In the view, a helper on
+its way holds the part out (`carried` in the claw code: a cell, bit or leg), the receiving crab
+raises the claw nearest the helper, and `drawPasses()` arcs the part from one claw to the other
+over the first 60% of the hand-off (`vpass` remembers its length) before it settles in.
+
 **Walking.** Each leg's cycle is half swing (lifted, moving forward from behind its rest spot
 to in front of it) and half stance (planted, sliding back at a steady pace). The gait phase
 `vgait` advances `GAIT` radians per pixel walked at scale 1, and the stance slide covers

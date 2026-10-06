@@ -210,6 +210,7 @@ scout ─flag─▶ drill ─nodule─▶ hauler ─▶ ORE PILE ─▶ crusher 
 - **Energy bots.**
   - Each carries 4 charges (6 with Big cells).
   - It recharges the crab with the lowest battery under 60%. Each charge refills a battery completely and takes 0.8 s (0.4 s with Fast plug).
+  - It walks right up beside the crab (within 4 units, on the same line of sand) and passes the charge claw to claw, like a relay baton. The crab holds still for the hand-off.
   - When its charges run out, or nobody needs one, it goes back to the **refuel post** and plugs in. The post has 2 sockets.
   - Each plugged-in bot takes one charge every 0.35 s from the engine's store.
 - **The Stirling engine.** Lava heat drives it.
@@ -230,7 +231,7 @@ scout ─flag─▶ drill ─nodule─▶ hauler ─▶ ORE PILE ─▶ crusher 
 - **Repairs.** Repair bots fix bits and worn energy bots. Maintenance bots fix legs.
   1. The fixer fetches the raw material: an ingot from the stockpile, or a bar from the bar stack. If there is a spare part from the trader in stock, it takes that instead and skips straight to fitting.
   2. It forges the part at the lava rim in 1.4 s, or on the spot with a Pocket forge.
-  3. It carries the part to the crab and fits it in 2.4 s (40% faster with Quick hands, repair bots only).
+  3. It carries the part to the crab, held out in its claw, and fits it in 2.4 s (40% faster with Quick hands, repair bots only). The part passes claw to claw, and the crab holds still until it is fitted.
 - **Repairs cost product.** The ingot is never sold, and the bar is never smelted. The stockpile reserve keeps ingots back for repairs; bars have no reserve.
 - **Night repair crew.** Under A and B shifts, repair and maintenance bots work 30% faster at night and are not slowed by the dark.
 

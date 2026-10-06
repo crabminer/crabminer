@@ -521,6 +521,8 @@
       if (c.vpx === undefined) { c.vpx = px; c.vd = c.d; c.vgait = rr(0, TAU); c.vph = rr(0, TAU); c.vhop = 0; if (c.vfall === undefined) c.vfall = 0; }
       c.vgait += (Math.abs(px - c.vpx) + Math.abs(c.d - c.vd) * F) * GAIT / (scaleAt(c.d) * (c.role === 'energy' ? 0.86 : 1));
       c.vpx = px; c.vd2 = c.vd; c.vd = c.d;
+      if ((c.state === 'fix' || c.state === 'charge') && c.target) { if (!c.vpass || c.vpass.w !== c.target) c.vpass = { w: c.target, total: Math.max(c.timer, 0.01) }; }
+      else c.vpass = null;
       if (c.vhop > 0) c.vhop = Math.max(0, c.vhop - dtReal * 2.2);
       if (!c.moving && !c.working && c.state !== 'sleep') c.vidle = (c.vidle || 0) + dtReal * Math.max(speed, 0.25); else c.vidle = 0;
       if (c.vjoin && !(c.vfall > 0)) { c.vjoin = false; play(c, ['salute', 'wave', 'jazz'], 1.6); }
@@ -1067,6 +1069,11 @@
     else if (kind === 'bit') {
       ctx.fillStyle = pal.metal; ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8;
       ctx.beginPath(); ctx.moveTo(x - 3 * s, y - 2 * s); ctx.lineTo(x + 3 * s, y - 2 * s); ctx.lineTo(x, y + 4 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (kind === 'cell') {            // a charge: a little battery with a glowing band
+      ctx.fillStyle = pal.energy; ctx.strokeStyle = pal.energyDark; ctx.lineWidth = 0.8;
+      roundRect(x - 2.6 * s, y - 3.6 * s, 5.2 * s, 7.2 * s, 1.2 * s); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = pal.energyDark; ctx.fillRect(x - 1.2 * s, y - 4.6 * s, 2.4 * s, 1 * s);
+      ctx.fillStyle = pal.light; ctx.fillRect(x - 1.6 * s, y - 0.6 * s, 3.2 * s, 1.2 * s);
     } else if (kind === 'leg') {
       ctx.strokeStyle = pal.metal; ctx.lineWidth = 1.8 * s; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(x - 4 * s, y + 1 * s); ctx.lineTo(x, y - 3 * s); ctx.lineTo(x + 4 * s, y + 2 * s); ctx.stroke();
@@ -1720,6 +1727,21 @@
   // the gait advances GAIT radians a pixel (at scale 1), chosen so a planted foot slides back exactly as fast as the
   // body moves forward: it stays put on the sand.
   var STRIDE = 2.8, GAIT = Math.PI / (2 * STRIDE);
+  // Hand-offs, claw to claw like a relay baton: the part (or a charge cell) leaves the helper's claw, arcs
+  // across to the claw the other crab holds out, and is fitted there.
+  var PASS_PART = { energy: 'cell', repair: 'bit', mech: 'leg' };
+  function passSide(a, b) { return crabX(b) >= crabX(a) ? 1 : -1; }
+  function drawPasses() {
+    for (var i = 0; i < S.crabs.length; i++) {
+      var c = S.crabs[i], w = c.vpass && c.vpass.w;
+      if (!w || w.gone || !(c.state === 'fix' || c.state === 'charge')) continue;
+      var frac = clamp(1 - c.timer / c.vpass.total, 0, 1), s = scaleAt(w.d), from = clawPos(c, passSide(c, w)), to = clawPos(w, passSide(w, c));
+      var u = clamp((frac - 0.12) / 0.5, 0, 1), e = u * u * (3 - 2 * u), x = from.x + (to.x - from.x) * e, y = from.y + (to.y - from.y) * e - Math.sin(e * Math.PI) * 7 * s;
+      ctx.save(); ctx.globalAlpha = frac > 0.7 ? clamp((1 - frac) / 0.3, 0, 1) : 1;   // fitted: it settles in and is gone
+      drawPart(PASS_PART[c.role], x, y, s, 0);
+      ctx.restore();
+    }
+  }
   function drawCrab(c) {
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
     var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1);
@@ -1799,9 +1821,11 @@
     }
 
     // claws
+    var giver = sim.heldBy(c), reach = giver ? passSide(c, giver) : 0, carried;   // a crab being handed something reaches for it
     for (side = -1; side <= 1; side += 2) {
-      ax = side * 17 * s; ay = by - 3 * s; w = 2.9;
-      if (f.party) { ax = side * 8 * s + rave * 11 * s; ay = by - 15 * s - Math.abs(Math.cos(T * 6.6)) * 2 * s; }   // claws up, waving together
+      ax = side * 17 * s; ay = by - 3 * s; w = 2.9; carried = null;
+      if (side === reach) { ax = side * 19 * s; ay = by - 7 * s; }
+      else if (f.party) { ax = side * 8 * s + rave * 11 * s; ay = by - 15 * s - Math.abs(Math.cos(T * 6.6)) * 2 * s; }   // claws up, waving together
       else if (f.arm) { ax = f.arm[side < 0 ? 0 : 2] * s; ay = by + f.arm[side < 0 ? 1 : 3] * s; }
       else if (f.arms) {
         var A = armPose(f.arms, side, s, by, c);
@@ -1819,10 +1843,12 @@
       } else if (role === 'energy') {
         w = 2; ax = side * 13 * s;
         if (c.state === 'charge' && side === 1) { ax = 15 * s; ay = by - 6 * s; }
+        if (c.state === 'go' && side === c.dir) { ax = side * 15 * s; ay = by - 5 * s; carried = 'cell'; }   // a charge held out, ready to pass
       } else if (role === 'repair' || role === 'mech') {
         w = 2.4;
         if (c.state === 'fix' && side === c.dir) { ax = side * (16 + Math.sin(T * 18) * 3) * s; ay = by - 2 * s + Math.cos(T * 18) * 2 * s; }
         if (c.state === 'forge' && side === 1) { ax = 22 * s; ay = by + 3 * s + Math.sin(T * 3) * 0.8; }
+        if (c.state === 'toJob' && side === c.dir && (c.carry === 'bit' || c.carry === 'leg')) { ax = side * 16 * s; ay = by - 5 * s; carried = c.carry; }   // the part, held out like a baton
       } else if (role === 'scout') {
         w = 2.2; ax = side * 14 * s;
         if (c.state === 'scan' && side === 1) { ax = 12 * s; ay = by - 12 * s; }
@@ -1833,6 +1859,7 @@
       ctx.beginPath(); ctx.arc(ax, ay, w * s, 0, TAU); ctx.fill();
       ctx.strokeStyle = dark; ctx.lineWidth = 1 * s;
       ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + side * w * s, ay + 1.2 * s); ctx.stroke();
+      if (carried) drawPart(carried, ax + side * 4 * s, ay - 1 * s, s, 0);
       if (role === 'smelt' && c.carry && side === (c.state === 'smelt' ? 1 : c.dir)) {
         if (c.carry === 'bar') drawBar(ax + side * 5 * s, ay + 1 * s, s, c.state === 'smelt' ? c.heat : 0);
         else drawIngot(ax + side * 5 * s, ay, s);
@@ -2055,7 +2082,7 @@
       }
       if (k === 2) { drawWires(); drawOcto(); }
     }
-    drawTideCurrents(); drawWhaleShadow(); drawInk();
+    drawPasses(); drawTideCurrents(); drawWhaleShadow(); drawInk();
     drawRings(); drawFlights();
     drawTurtle();
     for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent or the turtle are above everything

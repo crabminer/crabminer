@@ -137,7 +137,7 @@
     for (i = 0; i < n; i++) snow.push({ x: rr(0, W), y: rr(0, 1), r: rr(0.6, 1.6), vy: rr(5, 14), ph: rr(0, TAU) });
     lavaBub = [];
     for (i = 0; i < 6; i++) lavaBub.push({ u: rr(0.1, 0.95), t: rr(0, 1), dur: rr(0.9, 2), r: rr(2, 4.5) });
-    bubbles = []; fish = []; jellies = [];
+    bubbles = []; fish = []; jellies = []; deep = []; plankton = [];
   }
 
   // ----- small effects -----
@@ -1169,9 +1169,161 @@
     for (var i = 0; i < 4; i++) fish.push({ x: rr(0, W), y: rr(surfH + 30, base[0] - 40), v: rr(18, 34) * (Math.random() < 0.5 ? -1 : 1), n: 4 + Math.floor(Math.random() * 5), ph: rr(0, TAU) });
     for (i = 0; i < 3; i++) jellies.push({ x: rr(0, W), y: rr(surfH + 40, base[0] - 60), ph: rr(0, TAU), v: rr(4, 9) });
   }
+  // ----- the deep: shapes in the shadows far behind the dunes -----
+  // Mantas, a cruising shark, a swirling school, a squid now and then, and an anglerfish along the far dune whose
+  // lure glows at night. They are drawn before the far dune, faint and small with distance.
+  var deep = [], lures = [];
+  function stockDeep() {
+    var lo = surfH + 30, hi = farBase - 20, i;
+    deep = [
+      { kind: 'manta', x: rr(0, W), y: rr(lo, hi), v: rr(10, 16), k: rr(0.55, 0.8), ph: rr(0, TAU) },
+      { kind: 'manta', x: rr(0, W), y: rr(lo, hi), v: -rr(8, 13), k: rr(0.4, 0.6), ph: rr(0, TAU) },
+      { kind: 'shark', x: rr(0, W), y: rr(lo + 20, hi), v: rr(16, 24) * (Math.random() < 0.5 ? -1 : 1), k: rr(0.5, 0.75), ph: rr(0, TAU) },
+      { kind: 'school', x: rr(0, W), y: rr(lo, hi), v: rr(6, 10) * (Math.random() < 0.5 ? -1 : 1), k: rr(0.6, 0.9), ph: rr(0, TAU) },
+      { kind: 'angler', x: rr(0, W), y: 0, v: rr(3, 5) * (Math.random() < 0.5 ? -1 : 1), k: rr(0.7, 0.9), ph: rr(0, TAU) },
+      { kind: 'squid', x: rr(W * 0.1, W * 0.9), y: farBase + 40, v: 0, k: rr(0.6, 0.85), ph: 0, wait: rr(30, 90) }
+    ];
+    for (i = 0; i < deep.length; i++) deep[i].k *= CS;
+  }
+  function drawDeep(dt) {
+    var i, j, d, L, dir, flap, a, x, y, still = mqReduce.matches;
+    if (!deep.length) stockDeep();
+    lures = [];
+    ctx.save();
+    for (i = 0; i < deep.length; i++) {
+      d = deep[i]; d.ph += dt; L = 60 * d.k;
+      if (d.kind !== 'squid') { d.x += d.v * dt; if (d.x < -L * 2) d.x = W + L * 2; if (d.x > W + L * 2) d.x = -L * 2; }
+      dir = d.v < 0 ? -1 : 1;
+      a = 0.16 + 0.22 * clamp((d.k / CS - 0.4) / 0.5, 0, 1);       // the further, the fainter
+      ctx.fillStyle = 'rgba(6,26,42,' + a.toFixed(3) + ')'; ctx.strokeStyle = ctx.fillStyle;
+      if (d.kind === 'manta') {
+        flap = still ? 0 : Math.sin(d.ph * 1.3) * L * 0.12;
+        y = d.y + Math.sin(d.ph * 0.4) * 8;
+        ctx.save(); ctx.translate(d.x, y); ctx.scale(dir, 1);
+        ctx.beginPath(); ctx.moveTo(L * 0.32, 0);
+        ctx.quadraticCurveTo(L * 0.1, -L * 0.1, -L * 0.04, -L * 0.36 + flap);   // the near wing, its tip rising and falling
+        ctx.quadraticCurveTo(-L * 0.12, -L * 0.1, -L * 0.3, 0);
+        ctx.quadraticCurveTo(-L * 0.12, L * 0.05, -L * 0.02, L * 0.14 - flap * 0.35);   // the far wing, foreshortened
+        ctx.quadraticCurveTo(L * 0.12, L * 0.06, L * 0.32, 0); ctx.fill();
+        ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-L * 0.3, 0); ctx.quadraticCurveTo(-L * 0.5, Math.sin(d.ph * 2) * 3, -L * 0.72, 2); ctx.stroke();
+        ctx.restore();
+      } else if (d.kind === 'shark') {
+        var tail = still ? 0 : Math.sin(d.ph * 3) * 0.18;
+        y = d.y + Math.sin(d.ph * 0.5) * 5;
+        ctx.save(); ctx.translate(d.x, y); ctx.scale(dir, 1);
+        ctx.beginPath(); ctx.moveTo(L * 0.5, 0);
+        ctx.bezierCurveTo(L * 0.4, -L * 0.1, L * 0.05, -L * 0.11, -L * 0.3, -L * 0.03);
+        ctx.lineTo(-L * 0.52, -L * 0.18 + tail * L * 0.2); ctx.lineTo(-L * 0.45, 0); ctx.lineTo(-L * 0.5, L * 0.12 + tail * L * 0.2);   // the tail
+        ctx.lineTo(-L * 0.3, L * 0.03); ctx.bezierCurveTo(L * 0.05, L * 0.09, L * 0.4, L * 0.07, L * 0.5, 0); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(L * 0.05, -L * 0.09); ctx.lineTo(-L * 0.06, -L * 0.24); ctx.lineTo(-L * 0.12, -L * 0.07); ctx.fill();   // the dorsal fin
+        ctx.beginPath(); ctx.moveTo(L * 0.12, L * 0.06); ctx.lineTo(L * 0.02, L * 0.17); ctx.lineTo(-L * 0.02, L * 0.06); ctx.fill();
+        ctx.restore();
+      } else if (d.kind === 'school') {                 // a bait ball, turning on itself as it drifts
+        for (j = 0; j < 26; j++) {
+          var ang = j * 2.399 + d.ph * (0.6 + (j % 3) * 0.15), rad = (8 + (j * 7) % 22) * d.k;
+          x = d.x + Math.cos(ang) * rad * 1.4; y = d.y + Math.sin(ang) * rad * 0.7 + Math.sin(d.ph * 0.5) * 6;
+          ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2);
+          ctx.beginPath(); ctx.ellipse(0, 0, 3 * d.k, 1.1 * d.k, 0, 0, TAU); ctx.fill(); ctx.restore();
+        }
+      } else if (d.kind === 'angler') {                 // creeping along the far dune, its lure bobbing ahead of it
+        y = farY(d.x) - 8 * d.k;
+        ctx.save(); ctx.translate(d.x, y); ctx.scale(dir, 1);
+        ctx.beginPath(); ctx.ellipse(0, 0, 11 * d.k, 8 * d.k, 0, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-9 * d.k, 0); ctx.lineTo(-17 * d.k, -6 * d.k); ctx.lineTo(-17 * d.k, 6 * d.k); ctx.fill();
+        var lx = 16 * d.k, ly = -17 * d.k + Math.sin(d.ph * 1.7) * 2 * d.k;
+        ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(4 * d.k, -7 * d.k); ctx.quadraticCurveTo(10 * d.k, -20 * d.k, lx, ly); ctx.stroke();
+        ctx.restore();
+        lures.push({ x: d.x + dir * lx, y: y + ly, k: d.k, ph: d.ph });
+      } else if (d.kind === 'squid') {                  // now and then a squid jets up out of the deep and away
+        if (d.wait > 0) { d.wait -= dt; continue; }
+        var pulse = Math.max(0, Math.sin(d.ph * 2.2));
+        d.y -= (8 + pulse * 26) * dt * CS;
+        if (d.y < surfH - 40) { d.y = farBase + 40; d.x = rr(W * 0.1, W * 0.9); d.wait = rr(60, 150); d.ph = 0; continue; }
+        ctx.save(); ctx.translate(d.x, d.y);
+        ctx.beginPath(); ctx.ellipse(0, 0, 6 * d.k * (1 - pulse * 0.2), 18 * d.k, 0, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-6 * d.k, -14 * d.k); ctx.lineTo(0, -24 * d.k); ctx.lineTo(6 * d.k, -14 * d.k); ctx.fill();
+        ctx.lineWidth = 1.2;
+        for (j = -3; j <= 3; j++) { ctx.beginPath(); ctx.moveTo(j * 1.6 * d.k, 16 * d.k); ctx.quadraticCurveTo(j * (3 + pulse * 3) * d.k + Math.sin(d.ph * 3 + j) * 2, 30 * d.k, j * (2 + pulse * 5) * d.k, (40 - pulse * 8) * d.k); ctx.stroke(); }
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
+  // ----- plankton: a daily cycle, and light when stirred at night -----
+  // Plankton sink deep by day and rise toward the surface at night. The tide and storms carry them along.
+  // At night they glow when something stirs them: the cargo ship leaves a shining wake, the whale a trail,
+  // a storm sets the whole field sparkling, and crabs walking the sand leave glowing footprints. Storms and
+  // passing ships feed a bloom that lasts a few minutes: more plankton, and a brighter glow.
+  var plankton = [], motes = [], bloom = 0.25;
+  var PLANKTON = 160, GLOW = '120,255,220';
+  function stockPlankton() {
+    plankton = [];
+    for (var i = 0; i < PLANKTON; i++) plankton.push({ x: rr(-20, W + 20), f: rr(0.5, 0.95), o: rr(-0.22, 0.22), ph: rr(0, TAU), fl: 0, s: rr(0.6, 1.4), v: rr(-3, 3) });
+  }
+  function updatePlankton(dt) {
+    var i, p, top = surfH + 6, bot, y, centre = 0.78 - 0.5 * nightA, push = S.tide * 10 + stormA * 34, moving = cargo.phase === 'in' && cargo.x > riserPoint(1).x + 1 || cargo.phase === 'out',
+      L = whale ? Math.min(W * 0.22, 320 * CS) : 0;
+    if (!plankton.length) stockPlankton();
+    // the bloom: fed by storms and passing ships, it ebbs over a few minutes
+    bloom = clamp(bloom + dt * (stormA * 0.08 + (moving ? 0.03 : 0)) - dt * 0.006 * (bloom - 0.25), 0.25, 1);
+    for (i = 0; i < plankton.length; i++) {
+      p = plankton[i];
+      p.ph += dt;
+      p.f += (clamp(centre + p.o, 0.04, 0.98) - p.f) * Math.min(1, dt * 0.08);   // the daily rise and fall
+      p.x += (push + p.v + Math.sin(p.ph * 0.7) * 3) * dt;
+      if (p.x < -20) p.x += W + 40; else if (p.x > W + 20) p.x -= W + 40;
+      bot = farY(p.x) - 4; y = top + (bot - top) * p.f; p.y = y;
+      if (moving && Math.abs(p.x - cargo.x) < 50 && y < top + 70) p.fl = 1;         // churned up in the ship's wake
+      if (whale && Math.abs(p.x - whale.x) < L * 0.4 && Math.abs(y - whale.y) < 50) p.fl = 1;
+      if (stormA > 0.2 && Math.random() < dt * stormA * 0.9) p.fl = Math.max(p.fl, rr(0.5, 1));
+      p.fl = Math.max(0, p.fl - dt * 0.35);
+    }
+    // footprints of light: crabs walking at night stir the plankton on the sand
+    if (nightA > 0.2 && !mqReduce.matches) for (i = 0; i < S.crabs.length; i++) {
+      var c = S.crabs[i];
+      if (c.moving && !(c.alt > 0) && Math.random() < dt * 5 * nightA * (0.4 + bloom)) {
+        var px = crabX(c), sc = scaleAt(c.d);
+        motes.push({ x: px + rr(-10, 10) * sc, y: groundY(px, c.d) - rr(0, 3) * sc, r: rr(1, 2.2) * sc, life: 0, max: rr(1.2, 2.4) });
+      }
+    }
+    for (i = motes.length - 1; i >= 0; i--) { motes[i].life += dt; motes[i].y -= dt * 4; if (motes[i].life > motes[i].max) motes.splice(i, 1); }
+    if (motes.length > 260) motes.splice(0, motes.length - 260);
+  }
+  function drawPlankton() {                // drawn over the night, so the glow is not dimmed by it
+    var i, p, a, n = Math.round(PLANKTON * (0.45 + 0.55 * bloom)), tw, still = mqReduce.matches, day = 1 - nightA;
+    ctx.save();
+    if (day > 0.05) {                      // by day: faint drifting specks
+      ctx.fillStyle = pal.foam;
+      for (i = 0; i < n; i++) { p = plankton[i]; if (p.y === undefined) continue; ctx.globalAlpha = 0.14 * day * p.s; ctx.fillRect(p.x, p.y, 1.4, 1.4); }
+    }
+    if (nightA > 0.05) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (i = 0; i < n; i++) {
+        p = plankton[i]; if (p.y === undefined) continue;
+        tw = still ? 1 : 0.6 + 0.4 * Math.sin(p.ph * 3.1 + i);
+        a = nightA * (0.3 + 0.45 * bloom + 0.9 * p.fl) * tw;
+        if (a < 0.02) continue;
+        ctx.fillStyle = 'rgba(' + GLOW + ',' + (a * 0.3).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, (3 + 4 * p.fl) * p.s * CS, 0, TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(' + GLOW + ',' + Math.min(1, a).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, 1.3 * p.s * CS, 0, TAU); ctx.fill();
+      }
+      for (i = 0; i < motes.length; i++) {
+        var m = motes[i], k = 1 - m.life / m.max;
+        ctx.fillStyle = 'rgba(' + GLOW + ',' + (nightA * k * 0.22).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 3, 0, TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(' + GLOW + ',' + (nightA * k * 0.8).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 0.7, 0, TAU); ctx.fill();
+      }
+      for (i = 0; i < lures.length; i++) {  // the anglerfish's lure
+        var lu = lures[i], g = 0.55 + 0.45 * Math.sin(lu.ph * 2.3);
+        ctx.fillStyle = 'rgba(255,236,160,' + (nightA * 0.25 * g).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(lu.x, lu.y, 7 * lu.k, 0, TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(255,246,200,' + (nightA * 0.9 * g).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(lu.x, lu.y, 1.6 * lu.k, 0, TAU); ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
   function drawSea(dt) {
     var i, j, f, x, y, jl, pulse;
     if (fish.length === 0) stockSea();
+    drawDeep(dt); updatePlankton(dt);
     ctx.save();
     for (i = 0; i < fish.length; i++) {
       f = fish[i]; f.x += f.v * dt; f.ph += dt;
@@ -2086,7 +2238,7 @@
     drawRings(); drawFlights();
     drawTurtle();
     for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent or the turtle are above everything
-    drawNight(); drawStorm(); drawGlow(); drawBombs(); drawBubbles(); drawParticles(); drawFloaters();
+    drawNight(); drawPlankton(); drawStorm(); drawGlow(); drawBombs(); drawBubbles(); drawParticles(); drawFloaters();
   }
 
   // ===== the controls =====

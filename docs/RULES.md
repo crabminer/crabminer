@@ -411,6 +411,7 @@ Everything costs 4,450 in total.
   3. Otherwise it spends 1.5 s grabbing up to 2 nodules and escapes.
   4. Click it, or press **Shoo the octopus** over the field (the S key), at any time to shoo it away. If it is carrying anything, it drops it on the sand.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
+- **The deep and the plankton.** Far behind the dunes, mantas, a shark, a school of fish, an anglerfish and now and then a squid move in the shadows. Plankton sink deep by day and rise at night, when they glow blue-green wherever they are stirred: in a ship's wake, around the whale, through a storm, and under the feet of crabs walking the sand. Storms and passing ships leave a bloom that glows brighter for a few minutes. All of this is decoration only.
 - **The hermit-crab trader.** The first comes at 240 s, then 240 to 360 s after each one leaves.
   - It walks in from the left, keeps shop by the den (x = 500) for 60 s, then walks off.
   - It offers 3 of the 6 goods below, one of each. Swap for them in the Build tab, or click the trader to jump there.

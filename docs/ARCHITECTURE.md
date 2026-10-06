@@ -385,8 +385,9 @@ Piles are drawn as `S.ore - incoming('ore')`, so a nodule in flight is not drawn
 
 The canvas is drawn in painter's order:
 
-1. Sea surface waves (tide and storm move them), fish, jellyfish, the cargo ship, the whale,
-   and snow.
+1. Sea surface waves (tide and storm move them), the deep (`drawDeep()`: mantas, a shark, a
+   swirling school, an anglerfish along the far dune, now and then a squid, all faint
+   silhouettes), fish, jellyfish, the cargo ship, the whale, and snow.
 2. The far dune, then, for each dune k = 0, 1, 2 (back to front):
    1. The paper dune: a fill with a drop shadow, a paper-grain pattern, and a cut-edge
       highlight. Then the ripples, which move, so they are drawn live.
@@ -399,6 +400,15 @@ The canvas is drawn in painter's order:
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
 4. The sea turtle, then crabs in the air, riding the vent or the turtle.
+
+**Plankton.** `updatePlankton()` moves 160 plankton through a daily cycle: deep by day,
+near the surface at night (following `nightA`), carried by the tide and storms. They flare
+when stirred: by the moving cargo ship (its wake), the whale, and storms. Crabs walking at
+night leave `motes`, glowing footprints. `bloom` (0.25 to 1) rises during storms and while
+ships sail, and ebbs over a few minutes; it sets how many plankton show and how bright they
+glow. `drawPlankton()` runs after `drawNight()` with additive blending, so the glow is not
+dimmed by the night, and also draws the anglerfish's lure. By day plankton are faint specks.
+All of it is view-only.
 
 **Cached paper sheets.** The four paper sheets (far, back, middle, front) only change with the
 size or the palette, but their blurred shadows were most of a frame's cost without a GPU:

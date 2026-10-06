@@ -14,9 +14,9 @@ and cached paper-dune sheets.
 
 ## Visitors and the sea
 
-- **Bioluminescent plankton.** Drifting glow at night; crabs inside a patch work at full
-  speed at night even if unrested. A `plankton[]` list in `S`, moved by the tide, checked
-  in `nightSlow()`.
+- **Plankton that matter.** The glowing plankton are decoration now (view only). They could
+  count: crabs inside a bright patch work at full speed at night even if unrested. That needs
+  the plankton in `S`, moved by the tide, and checked in `nightSlow()`.
 - **Sunken treasure chest.** Rarely a scan on the back dune finds a chest instead of a
   deposit; a drill opens it for a jackpot of credits plus a random trader good. Another
   branch in `scout()`, a chest flag kind in `drill()`.

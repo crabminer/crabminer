@@ -79,6 +79,8 @@
 
 *,*::before,*::after{box-sizing:inherit}
 html{-webkit-text-size-adjust:100%}
+/* A 4K or 5K screen at 100% scaling: everything at twice the size, as at 200%. The canvas follows (Z in game.js). */
+@media (min-width:200rem) and (min-height:100rem){html{font-size:200%}}
 body{
   margin:0;min-height:100%;background:var(--sea-3);color:var(--ink);
   font-family:var(--serif);font-size:1.125rem;line-height:1.42;overflow-x:hidden;

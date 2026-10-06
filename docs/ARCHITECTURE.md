@@ -505,7 +505,8 @@ dances used by pairs.
   the win card again, and a toast welcomes the player back.
 - **Debug:** `window.crabminer` exposes:
   - `sim` and `state()`
-  - `view()`, read-only view values
+  - `view()`, read-only view values, including the selected crab's id and the zoom `Z`
+  - `at(crab)`, where a crab is on the canvas in CSS pixels, for tests that click it
   - `select(crab)`, which opens a crab's card as a click would
   - `summonWhale()`
 
@@ -540,6 +541,11 @@ and scrolling as it goes.
     is a two-column grid with short names (`SHORT` in Script 2), so all eight kinds fit
     without scrolling; tap targets are about 26–28px. On an iPhone SE in Safari (about
     375×553 visible) the field gets roughly 250px.
+  - At or above 200rem × 100rem (3200×1600 CSS pixels: a 4K or 5K screen at 100% scaling)
+    the root font size doubles, so the page looks as it would at 200%. `measure()` reads the
+    zoom as `Z` (root font size over 16px), lays the canvas out in units of `Z` pixels, and
+    draws it with `Z` times the pixels; canvas clicks divide by `Z`. The browser checks cover
+    4K at 100% and at 200%, including a click on a crab.
   - Buttons are compact everywhere: speed and hire buttons about 1.7rem high, tabs 2.15rem.
 - **Reduced motion:** decorative particles, snow and rays are cut. The game itself still
   runs.

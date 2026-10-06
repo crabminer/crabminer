@@ -11,7 +11,7 @@
   var TAU = Math.PI * 2;
 
   var sim = CrabSim(), K = sim.K, S = null;
-  var W = 0, H = 0, DPR = 1, T = 0, last = 0, raf = 0, running = false, acc = 0, speed = 1, uiTick = 0, ledgerTick = 0;
+  var W = 0, H = 0, Z = 1, DPR = 1, T = 0, last = 0, raf = 0, running = false, acc = 0, speed = 1, uiTick = 0, ledgerTick = 0;
   var CS = 1, surfH = 0, F = 0, lavaL = 0, base = [0, 0, 0], farBase = 0, dunePaths = [], farPath = null, grain = null;
   var pal = {};
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
@@ -98,16 +98,19 @@
 
   // ----- layout -----
   function measure() {
-    var cw = stage.clientWidth, h = stage.clientHeight, widthChanged;
+    // Z is the page's zoom (the root font size over 16px): the canvas is laid out in units of Z pixels,
+    // as on a screen at Z times the scaling, and drawn with Z times the pixels.
+    Z = parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1;
+    var cw = stage.clientWidth / Z, h = stage.clientHeight / Z, widthChanged;
     if (!cw || !h) return;
     big = document.body.classList.contains('big') || mqSmall.matches;   // small screens always get the big field's dunes
     CS = big ? clamp(Math.min(h / 360, cw / 640), 0.8, 1.9) : clamp(Math.min(h / 470, cw / 860), 0.65, 1.45);
     var w = Math.max(cw, Math.round((big ? 1150 : 860) * CS));   // the big field is wider than the screen: it scrolls
     widthChanged = w !== W;
     W = w; H = h;
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    inner.style.width = W + 'px';
-    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    DPR = Math.min(window.devicePixelRatio || 1, 2) * Z;
+    inner.style.width = W * Z + 'px';
+    cv.style.width = W * Z + 'px'; cv.style.height = H * Z + 'px';
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     surfH = clamp(H * 0.09, 34, 80);
@@ -2497,7 +2500,7 @@
       if ((e.key === 'o' || e.key === 'O') && !e.ctrlKey && !e.metaKey && !e.altKey) { sim.overclock(!S.oc); sim.drain().forEach(handle); renderHUD(); }
     });
     cv.addEventListener('click', function (e) {
-      var rect = cv.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top, bestC = null, bd = 1e9, i, c, px, py, d, z;
+      var rect = cv.getBoundingClientRect(), x = (e.clientX - rect.left) / Z, y = (e.clientY - rect.top) / Z, bestC = null, bd = 1e9, i, c, px, py, d, z;
       if (S.trader) {                     // the trader: show its goods
         var trp = traderPos();
         if (Math.abs(trp.x - x) < 26 * CS && y > trp.y - 60 * CS && y < trp.y + 6) {
@@ -2585,7 +2588,7 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) { stop(); saveGame(); } else start(); });
   window.addEventListener('pagehide', saveGame);
   if (window.ResizeObserver) {          // the stage changes size without the window doing so: the sheet folding away, say
-    new ResizeObserver(function () { if (stage.clientHeight !== H || stage.clientWidth > W) { measure(); draw(); } }).observe(stage);
+    new ResizeObserver(function () { if (stage.clientHeight / Z !== H || stage.clientWidth / Z > W) { measure(); draw(); } }).observe(stage);
   }
   onChange(mqDark, function () { readPalette(); draw(); });
   if (window.MutationObserver) {
@@ -2595,7 +2598,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase }; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

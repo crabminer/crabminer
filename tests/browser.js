@@ -12,7 +12,9 @@ const CHROME = process.env.CHROME || ['chromium', 'chromium-browser', 'google-ch
 const SIZES = [
   { name: 'desktop', width: 1280, height: 800, mobile: false, dark: false },
   { name: 'iphone-se', width: 375, height: 553, mobile: true, dark: false },
-  { name: 'dark', width: 1280, height: 800, mobile: false, dark: true }
+  { name: 'dark', width: 1280, height: 800, mobile: false, dark: true },
+  { name: '4k', width: 3840, height: 2160, mobile: false, dark: false },
+  { name: '4k-hidpi', width: 1920, height: 1080, scale: 2, mobile: false, dark: false }
 ];
 const wait = ms => new Promise(r => setTimeout(r, ms));
 let done = false;
@@ -62,7 +64,7 @@ async function check(b, size) {
     if (msg.method === 'Log.entryAdded' && msg.params.entry.level === 'error') errors.push(msg.params.entry.text + ' ' + (msg.params.entry.url || ''));
   });
   await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
-  await send('Emulation.setDeviceMetricsOverride', { width: size.width, height: size.height, deviceScaleFactor: size.mobile ? 2 : 1, mobile: size.mobile });
+  await send('Emulation.setDeviceMetricsOverride', { width: size.width, height: size.height, deviceScaleFactor: size.scale || (size.mobile ? 2 : 1), mobile: size.mobile });
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: size.dark ? 'dark' : 'light' }] });
   const js = async expr => {
     const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true });
@@ -108,6 +110,20 @@ async function check(b, size) {
   await js('document.getElementById("start").click(); true');
   await wait(3000);
   await shot('playing');
+
+  // a click on a crab on the canvas opens its card: canvas coordinates line up with the screen
+  await js('document.getElementById("t-view").click(); true');            // tuck the panel away
+  const spot = await js(`(() => { const c = crabminer.state().crabs.find(c => !c.alt && !c.turtle), p = crabminer.at(c),
+    stage = document.getElementById('stage'), r = document.getElementById('scene').getBoundingClientRect();
+    stage.scrollLeft += r.left + p.x - innerWidth / 2;
+    const r2 = document.getElementById('scene').getBoundingClientRect();
+    return { id: c.id, x: r2.left + p.x, y: r2.top + p.y }; })()`);
+  await js('document.querySelector(\'[data-speed="0"]\').click(); true');   // hold still for the click
+  const p2 = await js(`(() => { const c = crabminer.state().crabs.find(c => c.id === ${spot.id}), p = crabminer.at(c), r = document.getElementById('scene').getBoundingClientRect(); return { x: r.left + p.x, y: r.top + p.y }; })()`);
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: p2.x, y: p2.y, button: 'left', clickCount: 1 });
+  expect(await js('crabminer.view().selected') === spot.id, 'a click on crab ' + spot.id + ' at ' + Math.round(p2.x) + ',' + Math.round(p2.y) + ' did not select it (got ' + (await js('crabminer.view().selected')) + ')');
+  await shot('selected');
+  await js('document.querySelector(\'[data-speed="1"]\').click(); document.getElementById("t-crew").click(); true');
 
   // the save: a reload picks up where the game was
   const saved = await js('(dispatchEvent(new Event("pagehide")), { t: crabminer.state().t, n: crabminer.state().crabs.length })');

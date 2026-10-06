@@ -200,6 +200,27 @@ button:disabled{opacity:.38;cursor:not-allowed}
 .shifts .seg button{flex:1;font-size:.78rem;padding:0 .2rem}
 .shifts .note{margin:.3rem 0 0}
 .gap{margin:.3rem 0 0;font-size:.76rem;color:var(--mark);font-weight:700}
+.shifts .sub{margin:0 0 .25rem;font-weight:700;font-size:.8rem}
+.shifts .presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.shifts .presets button{border-left:1px solid var(--rule);border-top:1px solid var(--rule);height:2rem}
+.shifts .presets button:nth-child(-n+3){border-top:0}
+.shifts .presets button:nth-child(3n+1){border-left:0}
+.custom{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.25rem .5rem;margin:.45rem 0;font-size:.78rem}
+.custom[hidden]{display:none}
+.stepper{display:inline-flex;align-items:center;gap:.3rem}
+.stepper b{min-width:2.8rem;text-align:center;font-variant-numeric:tabular-nums}
+.check{display:flex;align-items:center;gap:.35rem;margin:.4rem 0 .2rem;font-size:.78rem}
+.check[hidden]{display:none}
+.timeline{margin:.4rem 0 .2rem;font-size:.66rem;color:var(--ink-soft)}
+.tl-row,.tl-hours{display:grid;grid-template-columns:4.6rem repeat(24,minmax(0,1fr));gap:1px;align-items:center;margin-bottom:2px}
+.tl-hours span{white-space:nowrap}
+.tl-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-row i{height:.7rem;background:var(--tint);border-radius:1px}
+.tl-row i.night{background:rgba(20,30,60,.22)}
+.tl-row i.on{background:var(--link)}
+.tl-row i.on.night{background:var(--mark)}
+.tl-row i.now{outline:2px solid var(--ink);outline-offset:0}
+
 
 /* big playfield: the stage takes the whole screen and the panel floats on it as a sheet of paper */
 body.big .game{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
@@ -606,7 +627,11 @@ tr[data-say].saying{box-shadow:none}
     <div class="tabpanel" role="tabpanel" id="p-crew" aria-labelledby="t-crew">
       <p class="advice" id="advice" role="status"></p>
       <div class="shifts">
-        <span class="seg" role="group" aria-label="Shift pattern"><button type="button" data-shift="all" aria-pressed="true">All hands</button><button type="button" data-shift="ab" aria-pressed="false">A/B shifts</button><button type="button" data-shift="relief" aria-pressed="false">3-shift relief</button></span>
+        <p class="sub">Workday</p>
+        <span class="seg presets" role="group" aria-label="Workday pattern"><button type="button" data-shift="all" aria-pressed="true">All hands</button><button type="button" data-shift="day8" aria-pressed="false">8-hour day</button><button type="button" data-shift="double8" aria-pressed="false">Two 8s</button><button type="button" data-shift="ab" aria-pressed="false">A/B shifts</button><button type="button" data-shift="relief" aria-pressed="false">3-shift</button><button type="button" data-shift="custom" aria-pressed="false">Custom</button></span>
+        <div class="custom" id="work-custom" hidden><span>Start</span><span class="stepper"><button type="button" class="mini" data-work="start" data-d="-1" aria-label="Less: Start">−</button><b id="w-start">0</b><button type="button" class="mini" data-work="start" data-d="1" aria-label="More: Start">+</button></span><span>Shift length</span><span class="stepper"><button type="button" class="mini" data-work="len" data-d="-1" aria-label="Less: Shift length">−</button><b id="w-len">0</b><button type="button" class="mini" data-work="len" data-d="1" aria-label="More: Shift length">+</button></span><span>Shifts a day</span><span class="stepper"><button type="button" class="mini" data-work="count" data-d="-1" aria-label="Less: Shifts a day">−</button><b id="w-count">0</b><button type="button" class="mini" data-work="count" data-d="1" aria-label="More: Shifts a day">+</button></span><span>Rest between</span><span class="stepper"><button type="button" class="mini" data-work="rest" data-d="-1" aria-label="Less: Rest between">−</button><b id="w-rest">0</b><button type="button" class="mini" data-work="rest" data-d="1" aria-label="More: Rest between">+</button></span><span>Groups taking turns</span><span class="stepper"><button type="button" class="mini" data-work="groups" data-d="-1" aria-label="Less: Groups taking turns">−</button><b id="w-groups">0</b><button type="button" class="mini" data-work="groups" data-d="1" aria-label="More: Groups taking turns">+</button></span></div>
+        <label class="check" id="scouts-night-row"><input type="checkbox" id="scouts-night" checked> Scouts work the night</label>
+        <div class="timeline" id="timeline" aria-label="Who is on duty through the day"></div>
         <p class="note" id="shift-note"></p>
         <p class="gap" id="shift-gaps" role="status" hidden></p>
       </div>
@@ -737,12 +762,21 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">The forge.</span> Every part is made in the lava. A repair bot takes an ingot off the stockpile, and a maintenance bot takes a bar off the bar stack. Each carries its metal to the lava's edge and holds it in the heat for 1.4 seconds until it becomes a bit or a leg, then takes the part to the crab. Repairs therefore cost product twice over: the ingot is never sold, and the bar is never smelted. A stockpile reserve keeps ingots back for repairs. Bars have no reserve, so maintenance competes with the smelters for them.</p>
   </div>
 
-  <h2>IV. Shifts, Wear, and Rest</h2>
+  <h2>IV. The Workday, Wear, and Rest</h2>
   <div class="cols">
     <p><span class="runin">Wear.</span> Each crab counts the seconds it has worked without a break. The first four minutes cost nothing. After that, every five more minutes add up to double the breakdown chances (bits, cells, and legs) and slow the crab by up to a fifth. Standing idle wears off a second each second. Sleeping wears off four, and it recharges the battery for free at about 3% a second.</p>
-    <p><span class="runin">The day.</span> A day lasts three simulated minutes, and the player picks one of three patterns for it. In <i>all hands</i> everyone works all day. In <i>A and B shifts</i> everyone works the day half. At night, half of each role sleeps, a different half each night, while repair and maintenance bots work on 30% faster. That is the night repair crew, and sleeping crabs make easy patients because they hold still. In <i>three-shift relief</i> the day is cut in three and each crab sleeps through one third, so two groups in three are always at work. Crabs finish the task in hand before they go to sleep.</p>
+    <p><span class="runin">The clock.</span> A day lasts three simulated minutes, and it is 24 hours of crab time, so an hour passes every 7.5 seconds. The game starts at dawn, 06:00. Night runs from 20:00 to 06:00. A crab can work at night, but at half speed unless it slept or danced within the last four hours. Scouts are the exception: they like the dark and work nights at full speed.</p>
+    <p><span class="runin">The workday.</span> The player picks a pattern in the Crew tab, and a 24-hour timeline shows who is on duty when.
+    <i>All hands</i>: everyone works around the clock.
+    <i>8-hour day</i>: everyone works 08:00 to 16:00 and rests the rest.
+    <i>Two 8-hour shifts</i>: 05:00 to 13:00, a 3-hour rest, then 16:00 to 24:00.
+    <i>A and B shifts</i>: everyone works 06:00 to 18:00. At night half of each role sleeps, a different half each night, while repair and maintenance bots work on 30% faster, untroubled by the dark. That is the night repair crew, and sleeping crabs make easy patients because they hold still.
+    <i>Three-shift relief</i>: 06:00 to 14:00, 14:00 to 22:00 and 22:00 to 06:00, and each crab sleeps through one of the three.
+    <i>Custom</i>: the player sets the start hour, the shift length (2 to 12 hours), one or two shifts a day, the rest between them, and one to three groups whose shifts start in turn, evenly spread through the day.
+    Under the 8-hour, two-8s and custom patterns, scouts take the night by default. Crabs finish the task in hand before they go to sleep.</p>
     <p><span class="runin">Friends.</span> Two crabs standing idle side by side, a crusher waiting for ore beside a smelter waiting for bars, for example, pair up and dance. Dancing recharges them a little (1.2% a second) and clears their wear at two seconds a second. These are the clean thoughts. At dawn, every crab that slept or danced for at least 20 seconds the day before starts fresh, 25% faster for the first 90 seconds of the new day.</p>
     <p><span class="runin">The den.</span> The crabs' den is a round house on the first plot. Idle time is not wasted. Every five crab-minutes of standing about, counted across the crew, turns into a decoration for the den, made by the idle crab nearest to it. Most are everyday crafts: a shell garland, a sea-glass mosaic, a pebble cairn, a kelp wreath, a coral sculpture, a sand castle, a nodule totem. A big moment inspires something special: a trophy after a rank-up, a pearl lamp after a pearl, an octopus-ink painting after a shoo, a driftwood sculpture after a storm, a ship in a bottle after a filled order, and a lava lamp after a surge. Each decoration adds a point to the morning bonus and three seconds to it, and makes dancing recharge 5% faster. The den holds four, and each den upgrade makes room for two more.</p>
+    <p><span class="runin">The backup job.</span> No crab stands idle while there is work on the sand. When its own job is stuck, a crab carries nodules to the ore pile instead, at its own walking pace. That means a drill crab whose bit is broken (it keeps working while it waits for the repair bot), a drill when the sand is littered, a scout when its flags are all standing, a crusher with no ore, a smelter with no bars, and an energy, repair, or maintenance bot with nothing to do. It goes back to its own job as soon as there is one, after delivering whatever it is carrying. So hauling is everyone's second trade, and a slow crusher on the backup job is a slow hauler.</p>
     <p><span class="runin">Coverage.</span> A role with one crab disappears whenever that crab sleeps, and the line stops at that stage. The ledger lays out how many crabs of each role are on duty in each part of the day. The advisor names the first gap it finds, for example "nobody covers smelter crab work in shift 3". This enforces the rule of thumb any round-the-clock plant uses: at least one worker able to do every job on every shift.</p>
   </div>
 
@@ -753,7 +787,7 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Overclock.</span> Every delivery banks 0.6 seconds of overclock, more while the flow runs, up to 30 seconds. The player spends it with the ⚡ button (or the O key). While it runs, the whole crew moves and works 50% faster, but uses 60% more power and wears twice as fast. It is best spent while the crew is fresh and the engine has charge to spare.</p>
     <p><span class="runin">Spending.</span> Credits buy crabs and upgrades (Table II). Repairs are paid in metal. There is no upkeep.</p>
     <p><span class="runin">Plots and the post.</span> Seven buildings stand on seven plots along the front dune, from 560 to 818: the crabs' den, the workshop, ore pile, crushing yard, bar stack, stockpile, and the riser's collector. By default they run right to left from the lava in the order the metal flows, with the den at the field's edge. In the Build tab's arrange mode the plots show as paper tiles, and any building can be picked up and set on another plot, swapping with whatever is there. Moving the stockpile nearer the lava, for example, shortens every smelter's walk. The tiles are hidden the rest of the time, so the sand stays sand. The refuel post stands at the end of a 520-unit extension cord from the Stirling engine's outlet. The player can put it anywhere along the front dune. Otherwise the energy bots drag it, every 25 seconds or so, toward the middle of the crew. The post also has a home, which is wherever it was last set down. The tide's current pushes it along the sand, one way on the rising tide and the other on the falling one, at up to 3 units a second near high and low water and three times that in a storm. Once it has slipped 40 units from home, an energy bot goes to drag it back: an idle bot, a bot that has just refuelled at it, or, if it has drifted three times that far, the next bot free from charging. A pinned post goes back to its home, and a free one to the middle of the crew. Bots plugged in or parked at the post follow it as it slides. In tests, a pinned post never strayed more than about 80 units and was out of place for under a seventh of the time.</p>
-    <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 540, and the plots fill the stretch from 560 to the Stirling engine at 852, beside the lava at 888. A crab climbing over the lip from one dune to the next goes at half speed. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair crews 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
+    <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 540, and the plots fill the stretch from 560 to the Stirling engine at 852, beside the lava at 888. A crab climbing over the lip from one dune to the next goes at half speed. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Each kind walks at its own pace. Slowest to fastest: crushers 45 units a second, smelters 52, drills 56, repair bots 60, maintenance bots 64, haulers 68 (88 with spring legs), scouts 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
   </div>
   <div class="tablewrap">
     <table>
@@ -784,14 +818,19 @@ tr[data-say].saying{box-shadow:none}
 
   <h2>VII. Research and Worker Upgrades</h2>
   <div class="cols">
-    <p>The Tech tab holds five technologies. Each one unlocks the worker upgrades for one or two roles (Table IV). A worker upgrade is bought once and fits every crab of its kind, present and future. The cheapest path is the Sonar lab at 150 credits, and the full set of five technologies and sixteen upgrades costs 4,050.</p>
+    <p>The Tech tab holds five technologies. Each one unlocks the worker upgrades for one or two roles (Table IV). A worker upgrade is bought once and fits every crab of its kind, present and future. The cheapest path is the Sonar lab at 150 credits, and four of its six scout upgrades are about the night and cost 80 to 120. The full set of five technologies and twenty upgrades costs 4,450.</p>
+    <p><span class="runin">A night of scouting.</span> With the night upgrades, a single scout working nights leaves the drills a field of flags each morning. With an 18-crab crew on two 8-hour shifts, the flags standing at dawn rose from about 7 to about 14, and output rose from 6.2 to 9.0 ingots a minute. Without the flag bundle, night scouts stop at eight flags and the drills run dry by midday. On an 8-hour day, putting the scouts on the day shift then does better (6.6 against 4.4). The advisor says so when it happens.</p>
   </div>
   <div class="tablewrap">
     <table>
       <caption data-speak="Table 4. Research and worker upgrades."><span class="tnum">TABLE IV</span><span class="ttitle">Research and Worker Upgrades</span></caption>
       <thead><tr><th scope="col">Technology</th><th scope="col">Worker upgrade</th><th scope="col">Effect</th><th scope="col">Cost</th></tr></thead>
       <tbody>
-        <tr><td>Sonar lab (150)</td><td>Wide sonar</td><td>Scouts scan in two thirds of the time</td><td class="n">120</td></tr>
+        <tr><td>Sonar lab (150)</td><td>Night eyes</td><td>At night, scans take 30% less time</td><td class="n">80</td></tr>
+        <tr><td></td><td>Night battery</td><td>Scouts use no power at night</td><td class="n">90</td></tr>
+        <tr><td></td><td>Flag bundle</td><td>Up to 14 flags standing at once, not 8</td><td class="n">110</td></tr>
+        <tr><td></td><td>Moon flags</td><td>At night, 20 points more scans find a deposit</td><td class="n">120</td></tr>
+        <tr><td></td><td>Wide sonar</td><td>Scouts scan in two thirds of the time</td><td class="n">120</td></tr>
         <tr><td></td><td>Deep sonar</td><td>Flags +0.08 richness and one more nodule</td><td class="n">200</td></tr>
         <tr><td>Metallurgy (250)</td><td>Diamond tips</td><td>Holes 25% quicker; bits break 40% less</td><td class="n">180</td></tr>
         <tr><td></td><td>Twin augers</td><td>Second nodule on 45% of strikes, not 20%</td><td class="n">220</td></tr>
@@ -820,23 +859,23 @@ tr[data-say].saying{box-shadow:none}
   <h2>IX. Economy Review</h2>
   <div class="cols">
     <p>The review was run in Node.js on the same simulation script the page runs. It steps in fixed sixtieths of a second with its own seeded random numbers, so a given crew, shift pattern, and seed always give the same result. Figures are ingots sold per minute, averaged over two to four seeds.</p>
-    <p><span class="runin">Shifts against all hands.</span> Table III compares the three patterns over twenty minutes. With all hands, crabs pile up 10 to 15 minutes of unbroken work and pay for it in breakdowns and tiredness. The two shift patterns keep average wear under two minutes, and A and B shifts come out ahead at every crew size. Over a short session the order flips. The starting crew sells 4.6 ingots a minute on all hands over five minutes against 4.0 on A and B shifts, and 4.5 against 4.3 over ten. By twenty minutes A and B leads, 4.0 to 3.6. Three-shift relief costs a third of the labour and pays when every role has three or more crabs.</p>
-    <p><span class="runin">Rest pays.</span> Dancing and the morning bonus were measured by switching them off for an 18-crab crew over twenty minutes, averaged over four seeds. They add 20% on all hands (9.7 against 8.0 ingots a minute), 14% on A and B shifts (11.9 against 10.4), and 13% on three-shift relief (9.3 against 8.3). A first version with a smaller bonus (15% for one minute) made no measurable difference, so the bonus was raised to 25% for 90 seconds.</p>
+    <p><span class="runin">Workday patterns compared.</span> Table III compares the patterns over twenty minutes, averaged over three seeds. A and B shifts lead at every crew size. They work the whole day but rest everyone through part of every night, so few crabs work the dark tired. All hands comes second or third. Its crabs never sleep, so through the ten night hours most of them work at half speed, and wear piles up. The 8-hour day and two 8-hour shifts trade output for rest: they are gentle patterns, best with night scouts and, for two 8s, a crew big enough to cover both shifts. Over a short session all hands still leads. The starting crew sells 3.8 ingots a minute on all hands over five minutes against 3.5 on A and B. By ten minutes A and B is ahead, 3.7 to 3.1, and by twenty, 3.6 to 2.5.</p>
+    <p><span class="runin">Rest pays.</span> Dancing and the morning bonus were measured by switching them off for an 18-crab crew over twenty minutes. They add 12% on all hands (7.5 against 6.7 ingots a minute), 24% on A and B shifts (10.4 against 8.4), and little on three-shift relief (8.2 against 8.0), whose crabs are rested anyway. A first version with a smaller morning bonus (15% for one minute) made no measurable difference, so it was raised to 25% for 90 seconds.</p>
   </div>
   <div class="tablewrap">
     <table>
-      <caption data-speak="Table 3. Shift patterns over twenty minutes."><span class="tnum">TABLE III</span><span class="ttitle">Shift Patterns over Twenty Minutes</span></caption>
-      <thead><tr><th scope="col">Crew</th><th scope="col">All hands</th><th scope="col">A and B</th><th scope="col">Three-shift</th><th scope="col">Average wear, all hands → A/B</th></tr></thead>
+      <caption data-speak="Table 3. Workday patterns over twenty minutes."><span class="tnum">TABLE III</span><span class="ttitle">Workday Patterns over Twenty Minutes, Ingots a Minute</span></caption>
+      <thead><tr><th scope="col">Crew</th><th scope="col">All hands</th><th scope="col">8-hour day</th><th scope="col">Two 8s</th><th scope="col">A and B</th><th scope="col">Three-shift</th></tr></thead>
       <tbody>
-        <tr><td>10 crabs, no upgrades</td><td class="n">5.2</td><td class="n">6.1</td><td class="n">4.8</td><td class="n">12 min → 1.5 min</td></tr>
-        <tr><td>18 crabs, den, riser, and engine upgrades</td><td class="n">9.4</td><td class="n">12.3</td><td class="n">8.9</td><td class="n">10 min → 1.7 min</td></tr>
-        <tr><td>30 crabs, every upgrade</td><td class="n">24.4</td><td class="n">27.2</td><td class="n">24.8</td><td class="n">15 min → 1.8 min</td></tr>
+        <tr><td>10 crabs, no upgrades</td><td class="n">4.3</td><td class="n">2.8</td><td class="n">4.2</td><td class="n">5.6</td><td class="n">4.5</td></tr>
+        <tr><td>18 crabs, den, riser, and engine upgrades</td><td class="n">7.5</td><td class="n">4.4</td><td class="n">6.2</td><td class="n">10.4</td><td class="n">8.2</td></tr>
+        <tr><td>30 crabs, every upgrade</td><td class="n">17.5</td><td class="n">8.5</td><td class="n">11.2</td><td class="n">23.6</td><td class="n">20.3</td></tr>
       </tbody>
     </table>
   </div>
   <div class="cols" id="review">
-    <p><span class="runin">Working configurations.</span> Hill-climbing, moving one crab between roles at a time and averaging two seeds, found these crews. With ten crabs on all hands, the best is one scout, two drills, two haulers, one crusher, two smelters, one energy bot, and one repair bot, at 7.0 ingots a minute over eight minutes. That is the starting crew plus a second smelter, which is the advisor's first tip. A maintenance bot is not yet worth a tenth crab, because legs come off slowly in a small crew. With 18 crabs on A and B shifts, no single move beat 2 scouts, 3 drills, 4 haulers, 2 crushers, 3 smelters, 2 energy bots, 1 repair bot, and 1 maintenance bot, at 12.4. With 30 crabs and every upgrade on A and B shifts, the best is 3, 5, 8, 3, 5, 4, 1, and 1, at 29.0.</p>
-    <p><span class="runin">Pace.</span> An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 1.8 minutes, Nodule Baron at 3.8, Ingot Magnate at 8.1, Lava Lord at 18.4, and Crab Tycoon at 35.1, and earned 7,800 credits in 40 minutes. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 15.9 and Crab Tycoon at 24.3, and earned 15,200. That is about six minutes of real time at 4× speed. Three-shift relief from 18 crabs reached Crab Tycoon at 30.5. Adding research to the A and B strategy delays Crab Tycoon to 29.2 minutes, because the money goes into labs first. It pays back by the end: 60 ingots a minute and 16,600 credits by minute 40, against 49 and 15,200 without it.</p>
+    <p><span class="runin">Working configurations.</span> Hill-climbing, moving one crab between roles at a time and averaging two seeds, found these crews. With ten crabs on all hands over eight minutes, the best was one scout, one drill, one hauler, one crusher, three smelters, one energy bot, and two repair bots, at 6.2 ingots a minute. That is only a little ahead of the starting crew plus a smelter. Over twenty minutes, the best ten-crab crew had no haulers at all: 2 scouts, 2 drills, 1 crusher, 2 smelters, 1 energy bot, 1 repair bot, and 1 maintenance bot, at 4.9. The backup job does the hauling, because every crab carries nodules whenever its own work is stuck. Dedicated haulers come back into their own as the line grows. With 18 crabs on A and B shifts the best was 3 scouts, 3 drills, 3 haulers, 2 crushers, 3 smelters, 2 energy bots, 1 repair bot, and 1 maintenance bot, at 12.7. With 30 crabs and every upgrade it was 3, 7, 5, 3, 6, 3, 2, and 1, at 28.1.</p>
+    <p><span class="runin">Pace.</span> An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 1.8 minutes, Nodule Baron at 4.0, Ingot Magnate at 8.1, Lava Lord at 17.2, and Crab Tycoon at 34.7, and earned 7,700 credits in 40 minutes. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 14.4 and Crab Tycoon at 24.4, and earned 17,500. That is about six minutes of real time at 4× speed. Three-shift relief from 18 crabs reached Crab Tycoon at 26.8. Adding research to the A and B strategy delays Crab Tycoon to 28.1 minutes, because the money goes into labs first. It pays back by the end: 53 ingots a minute and 20,400 credits by minute 40, against 42 and 17,500 without it.</p>
     <p><span class="runin">The vent.</span> For an 18-crab crew the vent carries a few rides a minute, mostly energy bots and repair crews heading back to the field, and raises output by about 4%. It earns its place more as spectacle than as economics, and the crabs only take it when it saves time.</p>
     <p><span class="runin">Changes made in review.</span> The first version of wear grew without limit, and a crew on all hands spiralled into breakdowns. Wear now does nothing for four minutes and at most doubles breakdowns and slows a crab by a fifth. A and B shifts at first left half of each crew working day and night, so the resting half now alternates night by night. All hands also showed night shading and sleepy faces, though nobody sleeps in that mode. The shading now only falls when there are shifts, and a crab with a flat battery looks exhausted and asks for charge rather than dozing.</p>
   </div>
@@ -923,8 +962,8 @@ function CrabSim() {
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
     VENT_IN: 880, VENT_X: 918,   // where crabs step into the thermal vent, and the column it rises in
     DEPTH: 300,          // crossing the dunes from the back crest to the front costs as much as 300 units of track
-    // movement, in track units per second
-    SPEED: 60, SCOUT_SPEED: 78, ESPEED: 95, RSPEED: 78,
+    // movement, in track units per second: each kind walks at its own pace, crushers slowest, energy bots fastest
+    SPEEDS: { crush: 45, smelt: 52, drill: 56, repair: 60, mech: 64, haul: 68, scout: 78, energy: 95 },
     T_RISE: 1.8, GLIDE: 200,     // riding the vent up, then swimming down and sideways, faster than any walk
     // stock limits
     ORE_CAP: [15, 24, 36], BAR_CAP: [10, 16, 24], STOCK_CAP: 40, FIELD_CAP: 24, FLAG_CAP: 8, CARRY: 3, START_NODULES: 6,
@@ -943,7 +982,14 @@ function CrabSim() {
     DRAIN: 0.022, LOW: 0.2, SLOW: 0.35, CHARGES: 4, CHARGE_BELOW: 0.6, EBOT_WEAR: 0.03, EBOT_BROKEN: 0.45,
     DOCKS: 2, HEAT_CAP: 12,   // the engine charges two bots at once and banks up to twelve charges
     // a day of three minutes, worked in one, two, or three shifts
-    DAY: 180, SHIFTS: ['all', 'ab', 'relief'],
+    // a day of three minutes is 24 hours of crab time (7.5 seconds an hour), starting at dawn, 06:00.
+    // Night runs from 20:00 to 06:00. Working at night is half speed, unless the crab slept or danced in the
+    // last four hours. Scouts like the dark and work nights at full speed.
+    DAY: 180, DAWN: 6, NIGHT_FROM: 20, NIGHT_TO: 6, NIGHT_SLOW: 0.5, REST_WINDOW: 4,
+    SHIFTS: ['all', 'day8', 'double8', 'ab', 'relief', 'custom'],
+    // workday patterns: shifts of `len` hours from `start`, `count` a day with `rest` hours between, and the
+    // crew split into `groups` that start in turn, evenly spread through the day
+    PRESETS: { day8: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, double8: { start: 5, len: 8, count: 2, rest: 3, groups: 1 } },
     // overclock: every delivery banks seconds of speed; a steady flow of deliveries banks more and sells dearer
     OC_PER_SALE: 0.6, OC_MAX: 30, OC_SPEED: 1.5, OC_DRAIN: 1.6, OC_WEAR: 2,
     FLOW_GAP: 6, FLOW_MAX: 20, FLOW_STEP: 0.02,
@@ -977,6 +1023,7 @@ function CrabSim() {
     },
     // worker upgrades: bought once, they apply to every crab of the role
     WUP: {
+      nightEyes: { role: 'scout', cost: 80 }, nightBattery: { role: 'scout', cost: 90 }, flagBundle: { role: 'scout', cost: 110 }, moonFlags: { role: 'scout', cost: 120 },
       wideSonar: { role: 'scout', cost: 120 }, deepSonar: { role: 'scout', cost: 200 },
       diamondTips: { role: 'drill', cost: 180 }, twinAugers: { role: 'drill', cost: 220 },
       bigHopper: { role: 'haul', cost: 150 }, springLegs: { role: 'haul', cost: 150 },
@@ -990,8 +1037,10 @@ function CrabSim() {
   };
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
-    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'orderCredits', 'decorations'];
+    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'orderCredits', 'decorations',
+    'backup', 'nightFlags'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
+  var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
 
   var seed = K.SEED, S = null, events = [], dt = K.STEP;
   function sr() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
@@ -1007,9 +1056,16 @@ function CrabSim() {
     return { x: srr(K.FIELD0 + 10, K.FIELD1 - 10), d: srr(z.d0, z.d1) };
   }
   // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
+  function spd(c) { return K.SPEEDS[c.role] * (c.role === 'haul' && has('springLegs') ? 1.3 : 1); }
+  function flagCap() { return has('flagBundle') ? 14 : K.FLAG_CAP; }
+  function nightSlow(c) {                 // tired crabs drag at night; scouts and the A/B night repair crew do not
+    if (!S.si || !S.si.night || c.role === 'scout') return 1;
+    if (S.shift === 'ab' && (c.role === 'repair' || c.role === 'mech')) return 1;
+    return S.t - c.lastRest <= K.REST_WINDOW * K.DAY / 24 ? 1 : K.NIGHT_SLOW;
+  }
   function pace(c) {
     return (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
-      (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) *
+      (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) * nightSlow(c) *
       (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1);   // the night crew
   }
   function has(id) { return !!S.wu[id]; }
@@ -1035,7 +1091,7 @@ function CrabSim() {
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, decor: [], decorWork: 0, decorTheme: null,
-      shift: opts.shift || 'all', si: null, oc: false, ocBank: 0, streak: 0, lastSale: -99,
+      shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
     };
     for (k in K.LAYOUT) S.layout[k] = (opts.layout && opts.layout[k] !== undefined) ? opts.layout[k] : K.LAYOUT[k];
@@ -1073,7 +1129,7 @@ function CrabSim() {
     var p, c = {
       id: S.nextId++, role: role, x: 0, d: 0.8, dir: 1, bat: 1, state: 'init', timer: 0, load: 0, carry: null,
       target: null, claimedBy: null, fixBy: null, mendBy: null, flag: null, charges: charges(), bitOk: true, broken: false, limp: false,
-      wear: 0, air: null, alt: 0, dance: null, rested: 0, fresh: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
+      wear: 0, air: null, alt: 0, dance: null, rested: 0, fresh: 0, lastRest: S.t, bload: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
     };
     if (role === 'scout' || role === 'drill' || role === 'haul') { p = spot(); c.x = p.x; c.d = p.d; }
     else if (role === 'crush') { c.x = S.pos.CRUSH; c.d = 0.8; }
@@ -1086,6 +1142,7 @@ function CrabSim() {
     return c;
   }
   function release(c) {                    // let go of every claim: used when a crab leaves or goes off shift
+    if (BACK[c.state] && c.target) { c.target.by = null; c.target = null; }
     if (c.role === 'haul' && c.target) { c.target.by = null; c.target = null; }
     if (c.role === 'drill' && c.flag) { c.flag.by = null; c.flag = null; }
     if (c.role === 'energy' && c.target) { c.target.claimedBy = null; c.target = null; }
@@ -1112,29 +1169,49 @@ function CrabSim() {
     return c;
   }
 
-  // ----- shifts -----
-  // In all-hands mode everyone works all day. With A and B shifts, every crab works the day; at night
+  // ----- the workday -----
+  // All hands: everyone works around the clock. A and B shifts: everyone works the day (06:00-18:00); at night
   // half of each role sleeps, a different half each night, while the repair crews work on at night pace.
-  // In three-shift relief the day is cut in three and each crab sleeps through one third: two groups in
-  // three are always on.
-  function shiftInfo(t) {
-    var p = ((t === undefined ? S.t : t) % K.DAY) / K.DAY, n = S.shift === 'relief' ? 3 : (S.shift === 'ab' ? 2 : 1);
-    var i = Math.min(n - 1, Math.floor(p * n));
-    return {
-      mode: S.shift, periods: n, index: i, day: Math.floor((t === undefined ? S.t : t) / K.DAY) + 1,
-      left: (i + 1) * K.DAY / n - p * K.DAY, night: S.shift === 'relief' ? i === 2 : p >= 0.5,
-      name: n === 1 ? 'All hands' : (n === 2 ? (i ? 'B shift (night)' : 'A shift (day)') : ['Shift 1', 'Shift 2', 'Shift 3 (night)'][i])
-    };
+  // Three-shift relief: 06:00-14:00, 14:00-22:00 and 22:00-06:00, and each crab sleeps through one of them.
+  // The workday patterns (8-hour day, two 8-hour shifts, custom) run on the clock: shifts of so many hours from
+  // a start hour, once or twice a day, for one to three groups. Under them scouts take the night instead.
+  function hourAt(t) { return (K.DAWN + (t % K.DAY) / K.DAY * 24) % 24; }
+  function isNight(h) { return h >= K.NIGHT_FROM || h < K.NIGHT_TO; }
+  function pattern() { return S.shift === 'custom' ? S.work : K.PRESETS[S.shift]; }
+  function inPattern(P, g, h) {
+    for (var i = 0; i < P.count; i++) {
+      var st = (P.start + i * (P.len + P.rest) + g * 24 / P.groups) % 24;
+      if ((h - st + 24) % 24 < P.len) return true;
+    }
+    return false;
   }
+  function makeSi(h, day) {
+    var si = { mode: S.shift, hour: h, day: day, night: isNight(h), index: 0, periods: 1, name: 'All hands', left: 0 }, P, on, k, nx;
+    if (S.shift === 'ab') { si.periods = 2; si.index = h >= 6 && h < 18 ? 0 : 1; si.name = si.index ? 'B shift (night)' : 'A shift (day)'; nx = si.index ? 6 : 18; }
+    else if (S.shift === 'relief') { si.periods = 3; si.index = h >= 6 && h < 14 ? 0 : (h >= 14 && h < 22 ? 1 : 2); si.name = ['Shift 1', 'Shift 2', 'Shift 3 (night)'][si.index]; nx = [14, 22, 6][si.index]; }
+    else if ((P = pattern())) {
+      si.periods = 2; on = inPattern(P, 0, h); si.index = on ? 0 : 1; si.name = on ? 'On shift' : 'Off shift';
+      for (k = 1; k <= 24; k++) if (inPattern(P, 0, (h + k) % 24) !== on) { nx = (Math.floor(h) + k) % 24; break; }
+    }
+    if (nx !== undefined) si.left = (((nx - h) + 24) % 24) * K.DAY / 24;
+    return si;
+  }
+  function shiftInfo(t) { t = t === undefined ? S.t : t; return makeSi(hourAt(t), Math.floor(t / K.DAY) + 1); }
   function dutyAt(c, si) {
+    var P;
     if (S.shift === 'ab') {
       if (si.index === 0 || c.role === 'repair' || c.role === 'mech') return true;   // repair crews work nights
       return (c.k + si.day) % 2 === 1;                                             // half sleep, alternating nights
     }
     if (S.shift === 'relief') return c.k % 3 !== si.index;
+    if ((P = pattern())) {
+      if (c.role === 'scout' && S.scoutsNight) return si.night;                     // scouts take the night
+      return inPattern(P, c.k % P.groups, si.hour);
+    }
     return true;
   }
   function onDuty(c) { return dutyAt(c, S.si || shiftInfo()); }
+  function dutyFor(role, k, h, day) { return dutyAt({ role: role, k: k }, makeSi(h, day || 1)); }
   function offShift(c) {                   // called where a crab would choose its next task
     if (onDuty(c) || c.air) return false;
     release(c);
@@ -1142,18 +1219,19 @@ function CrabSim() {
     emit('sleep', c);
     return true;
   }
-  // which roles have somebody on duty in each part of the day: the line needs at least one of each, always
+  // Who is on duty through the day: rows of hours with the same crew, each with how many hours it covers.
   function coverage() {
-    var si, i, j, c, n = S.shift === 'relief' ? 3 : (S.shift === 'ab' ? 2 : 1), out = [], row;
-    if (S.shift === 'ab') n = 3;                             // a day, then the two kinds of night in turn
-    for (i = 0; i < n; i++) {
-      si = shiftInfo(S.shift === 'ab' ? [0.25, 0.75, 1.75][i] * K.DAY : (i + 0.5) * K.DAY / n);
-      if (S.shift === 'ab' && i) si.name = 'B shift (night ' + i + ')';
-      row = { name: si.name, roles: {} };
-      for (j = 0; j < K.ROLES.length; j++) row.roles[K.ROLES[j]] = 0;
-      for (j = 0; j < S.crabs.length; j++) { c = S.crabs[j]; if (dutyAt(c, si)) row.roles[c.role]++; }
-      out.push(row);
+    var out = [], i, j, c, h, si, row, key, prev = null, label = function (a, b) { return ('0' + a).slice(-2) + ':00-' + ('0' + b % 24).slice(-2) + ':00'; };
+    var tally = function (si) { var r = {}, j; for (j = 0; j < K.ROLES.length; j++) r[K.ROLES[j]] = 0; for (j = 0; j < S.crabs.length; j++) { c = S.crabs[j]; if (dutyAt(c, si)) r[c.role]++; } return r; };
+    if (S.shift === 'all') return [{ name: 'All day', roles: tally(makeSi(12, 1)), hours: 24 }];
+    if (S.shift === 'ab') return [{ name: 'A shift (day)', roles: tally(makeSi(12, 1)), hours: 12 }, { name: 'B shift (night 1)', roles: tally(makeSi(0, 1)), hours: 6 }, { name: 'B shift (night 2)', roles: tally(makeSi(0, 2)), hours: 6 }];
+    if (S.shift === 'relief') return [{ name: 'Shift 1', roles: tally(makeSi(10, 1)), hours: 8 }, { name: 'Shift 2', roles: tally(makeSi(18, 1)), hours: 8 }, { name: 'Shift 3 (night)', roles: tally(makeSi(2, 1)), hours: 8 }];
+    for (i = 0; i < 24; i++) {
+      h = (K.DAWN + i) % 24; si = makeSi(h + 0.5, 1); row = tally(si); key = JSON.stringify(row);
+      if (prev && prev.key === key) { prev.hours++; prev.to = h + 1; continue; }
+      prev = { key: key, roles: row, hours: 1, from: h, to: h + 1 }; out.push(prev);
     }
+    for (i = 0; i < out.length; i++) { out[i].name = label(out[i].from, out[i].to); delete out[i].key; }
     return out;
   }
 
@@ -1234,19 +1312,19 @@ function CrabSim() {
     var sc, z, f;
     if (c.state === 'init' || c.state === 'pick' || c.state === 'rest') {
       if (offShift(c)) return;
-      if (S.flags.length >= K.FLAG_CAP) { c.state = 'rest'; return; }   // plenty of flags already: rest
+      if (S.flags.length >= flagCap()) { if (!tryBackup(c)) c.state = 'rest'; return; }   // plenty of flags: carry nodules, or rest
       f = spot(); c.tx = f.x; c.td = f.d; c.state = 'go';
     }
     if (c.state === 'go') {
-      if (go(c, c.tx, c.td, K.SCOUT_SPEED)) { c.state = 'scan'; c.timer = c.scanT = K.T_SCAN * (has('wideSonar') ? 0.65 : 1); c.scan = 0; }
+      if (go(c, c.tx, c.td, spd(c))) { c.state = 'scan'; c.timer = c.scanT = K.T_SCAN * (has('wideSonar') ? 0.65 : 1) * (S.si.night && has('nightEyes') ? 0.7 : 1); c.scan = 0; }
     } else if (c.state === 'scan') {
       c.timer -= work(c);
       c.scan = clamp(1 - c.timer / c.scanT, 0, 1);
       if (c.timer <= 0) {
         S.stat.scans++;
         sc = up('scanner');
-        if (sr() < sc[0]) {
-          z = zoneOf(c.d);
+        if (sr() < sc[0] + (S.si.night && has('moonFlags') ? 0.2 : 0)) {
+          z = zoneOf(c.d); if (S.si.night) S.stat.nightFlags++;
           f = { id: S.nextId++, x: c.x, d: c.d, q: clamp(srr(0.45, 0.85) + K.ZONES[z].q + sc[1] + (has('deepSonar') ? 0.08 : 0), 0.3, 0.97),
             size: 2 + Math.floor(sr() * 3) + K.ZONES[z].size + (has('deepSonar') ? 1 : 0), by: null, zone: z, born: S.t };
           S.flags.push(f); S.stat.finds++; emit('flag', c, f);
@@ -1259,7 +1337,8 @@ function CrabSim() {
     var f, p, q, i, n2;
     if (c.state === 'init' || c.state === 'pick' || c.state === 'rest') {
       if (offShift(c)) return;
-      if (S.nodules.length >= K.FIELD_CAP) { c.state = 'rest'; return; }   // the sand is littered: rest
+      if (S.nodules.length >= K.FIELD_CAP) { if (!tryBackup(c)) c.state = 'rest'; return; }   // the sand is littered: carry some
+      if (!c.bitOk && tryBackup(c)) return;                  // a broken bit: carry nodules while waiting for the repair
       f = bestFlag(c);
       if (c.flag && c.flag !== f) c.flag.by = null;          // let go of the old flag before claiming a new one
       if (f) { f.by = c; c.flag = f; c.tx = clamp(f.x + srr(-8, 8), K.FIELD0, K.FIELD1); c.td = clamp(f.d + srr(-0.03, 0.03), 0.02, 0.98); }
@@ -1268,7 +1347,7 @@ function CrabSim() {
     }
     if (c.state === 'go') {
       if (c.flag && c.flag.gone) { c.flag = null; c.state = 'pick'; return; }
-      if (go(c, c.tx, c.td, K.SPEED)) {
+      if (go(c, c.tx, c.td, spd(c))) {
         c.state = 'drill'; c.timer = c.holeT = K.T_DRILL * (c.bitOk ? 1 : K.BROKEN_TIME) * (has('diamondTips') ? 0.75 : 1);
         c.nod = { x: c.x, d: c.d, alive: false, eddy: 0, by: null };
         S.nodules.push(c.nod);
@@ -1309,7 +1388,7 @@ function CrabSim() {
       if (c.load === 0 && !c.target && offShift(c)) return;
       if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
       if (c.target) {
-        if (go(c, c.target.x, c.target.d, K.SPEED * (has('springLegs') ? 1.3 : 1))) { c.state = 'pick'; c.timer = K.T_PICK; }
+        if (go(c, c.target.x, c.target.d, spd(c))) { c.state = 'pick'; c.timer = K.T_PICK; }
       } else if (c.load > 0) {
         c.state = 'haul';
       }
@@ -1325,7 +1404,7 @@ function CrabSim() {
         c.target = null; c.state = 'seek';
       }
     } else if (c.state === 'haul') {
-      if (moveTo(c, S.pos.HAUL_STAND, 0.72 + 0.07 * (c.k % 4), K.SPEED * (has('springLegs') ? 1.3 : 1))) { c.state = 'stack'; c.timer = K.T_STACK; }
+      if (moveTo(c, S.pos.HAUL_STAND, 0.72 + 0.07 * (c.k % 4), spd(c))) { c.state = 'stack'; c.timer = K.T_STACK; }
     } else if (c.state === 'stack') {
       if (S.ore >= oreCap()) return;                         // the ore pile is full: wait
       c.timer -= work(c);
@@ -1339,9 +1418,10 @@ function CrabSim() {
   function crush(c) {
     if (c.state === 'init') c.state = 'home';
     if (c.state === 'home') {
-      if (moveTo(c, S.pos.CRUSH - (c.k >= 3 ? 16 : 0), 0.72 + 0.09 * (c.k % 3), K.SPEED)) c.state = 'wait';
+      if (moveTo(c, S.pos.CRUSH - (c.k >= 3 ? 16 : 0), 0.72 + 0.09 * (c.k % 3), spd(c))) c.state = 'wait';
     } else if (c.state === 'wait') {
       if (offShift(c)) return;
+      if (S.ore < K.NOD_PER_BAR && tryBackup(c)) return;     // nothing to press: fetch some ore
       if (S.ore >= K.NOD_PER_BAR) { S.ore -= K.NOD_PER_BAR; emit('feed', c); c.state = 'crush'; c.timer = c.crushT = K.T_CRUSH * (has('hydraulicClaws') ? 0.65 : 1); }
     } else if (c.state === 'crush') {
       c.timer -= work(c);
@@ -1354,23 +1434,23 @@ function CrabSim() {
     if (c.state === 'init') c.state = 'toBar';
     if (c.state === 'toBar') {
       if (offShift(c)) return;
-      if (moveTo(c, S.pos.GRAB, 0.72 + 0.08 * (c.k % 3), K.SPEED)) { c.state = 'grab'; c.timer = K.T_GRAB; }
+      if (moveTo(c, S.pos.GRAB, 0.72 + 0.08 * (c.k % 3), spd(c))) { c.state = 'grab'; c.timer = K.T_GRAB; }
     } else if (c.state === 'grab') {
       if (c.carry !== 'bar') {
-        if (S.bars <= 0) return;                             // nothing to smelt yet: wait
+        if (S.bars <= 0) { tryBackup(c); return; }            // nothing to smelt: carry nodules meanwhile, or wait
         c.n = has('twinTongs') && S.bars >= 2 ? 2 : 1;      // twin tongs carry two bars at once
         S.bars -= c.n; c.carry = 'bar'; emit('grab', c); c.timer = K.T_GRAB;
       }
       c.timer -= work(c);
       if (c.timer <= 0) c.state = 'toLava';
     } else if (c.state === 'toLava') {
-      if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = c.smeltT = K.T_SMELT * (has('heatTongs') ? 0.6 : 1) / (S.lavaSurge ? K.SURGE_SPEED : 1); c.heat = 0; }
+      if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), spd(c))) { c.state = 'smelt'; c.timer = c.smeltT = K.T_SMELT * (has('heatTongs') ? 0.6 : 1) / (S.lavaSurge ? K.SURGE_SPEED : 1); c.heat = 0; }
     } else if (c.state === 'smelt') {
       c.timer -= work(c);
       c.heat = clamp(1 - c.timer / c.smeltT, 0, 1);
       if (c.timer <= 0) { c.carry = 'ingot'; S.stat.ingots += c.n; emit('ingot', c); c.state = 'toStock'; }
     } else if (c.state === 'toStock') {
-      if (moveTo(c, S.pos.STOCK + 8, 0.86 + 0.04 * (c.k % 3), K.SPEED)) { c.state = 'drop'; c.timer = K.T_DROP; }
+      if (moveTo(c, S.pos.STOCK + 8, 0.86 + 0.04 * (c.k % 3), spd(c))) { c.state = 'drop'; c.timer = K.T_DROP; }
     } else if (c.state === 'drop') {
       if (S.stock + c.n > K.STOCK_CAP) return;               // the stockpile is full: wait
       c.timer -= work(c);
@@ -1378,7 +1458,7 @@ function CrabSim() {
     }
   }
   function energy(c) {
-    var i, w, best = null, sp = K.ESPEED * (c.broken ? K.EBOT_BROKEN : 1);
+    var i, w, best = null, sp = spd(c) * (c.broken ? K.EBOT_BROKEN : 1);
     if (c.state === 'init') c.state = 'idle';
     if (c.state === 'idle') {
       if (c.charges <= 0) { c.state = 'toEngine'; return; }
@@ -1392,6 +1472,7 @@ function CrabSim() {
       if (best) { best.claimedBy = c; c.target = best; c.state = 'go'; }
       else if (c.charges < charges()) c.state = 'toEngine';        // nobody needs charge: top up
       else if (postWanted(c)) { S.post.carrier = c; c.state = 'toPost'; }
+      else if (tryBackup(c)) return;
       else moveTo(c, S.post.x - 30 - 16 * (c.k % 4), clamp(S.post.d + 0.04 - 0.05 * (c.k % 2), 0.72, 0.97), sp);
     } else if (c.state === 'go' || c.state === 'charge') {
       w = c.target;
@@ -1438,6 +1519,65 @@ function CrabSim() {
           emit('refill', c);
           if (slipped() && !S.post.carrier) { S.post.carrier = c; c.state = 'dragPost'; emit('postGrab', c); }   // it is right here: take it home
         }
+      }
+    }
+  }
+
+  // ----- the backup job: every crab can carry nodules when its own work is stuck -----
+  // A drill waiting for a new bit, a scout with flags enough, a crusher with no ore, a smelter with no bars,
+  // and idle energy and repair bots all fetch nodules to the ore pile, each at its own walking pace.
+  function freeNodule() { for (var i = 0; i < S.nodules.length; i++) { var n = S.nodules[i]; if (n.alive && !n.taken && !n.by) return true; } return false; }
+  function needsCharge() { for (var i = 0; i < S.crabs.length; i++) { var w = S.crabs[i]; if (w.role !== 'energy' && !w.claimedBy && w.state !== 'sleep' && w.bat < K.CHARGE_BELOW) return true; } return false; }
+  function primaryReady(c) {
+    switch (c.role) {
+      case 'drill': return c.bitOk && S.nodules.length < K.FIELD_CAP;
+      case 'scout': return S.flags.length < flagCap();
+      case 'crush': return S.ore >= K.NOD_PER_BAR;
+      case 'smelt': return S.bars > 0;
+      case 'energy': return needsCharge() || c.charges < charges() || postWanted(c);
+      case 'repair': case 'mech':
+        for (var i = 0; i < S.crabs.length; i++) { var w = S.crabs[i]; if (!w[FIX[c.role].claim] && !w.air && needs(w, c.role)) return true; }
+        return false;
+    }
+    return true;
+  }
+  function tryBackup(c) {
+    if (c.role === 'haul' || c.air || !onDuty(c) || primaryReady(c) || !freeNodule()) return false;
+    release(c);
+    c.state = 'bseek'; c.bload = 0; S.stat.backup++;
+    emit('backup', c);
+    return true;
+  }
+  function endBackup(c) {
+    if (c.target) { c.target.by = null; c.target = null; }
+    c.state = RESUME[c.role]; emit('backupEnd', c);
+  }
+  function backupHaul(c) {
+    var i;
+    if (c.state === 'bseek') {
+      if (c.bload >= carry() || (c.bload > 0 && primaryReady(c))) { c.state = 'bhaul'; return; }
+      if (c.bload === 0 && (primaryReady(c) || !onDuty(c))) { endBackup(c); return; }
+      if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
+      if (c.target) { if (go(c, c.target.x, c.target.d, spd(c))) { c.state = 'bpick'; c.timer = K.T_PICK; } }
+      else if (c.bload > 0) c.state = 'bhaul';
+      else endBackup(c);
+    } else if (c.state === 'bpick') {
+      c.timer -= work(c);
+      if (c.timer <= 0) {
+        if (c.target && !c.target.taken) {
+          c.target.taken = true; i = S.nodules.indexOf(c.target); if (i >= 0) S.nodules.splice(i, 1);
+          c.bload++; emit('take', c);
+        }
+        c.target = null; c.state = 'bseek';
+      }
+    } else if (c.state === 'bhaul') {
+      if (moveTo(c, S.pos.HAUL_STAND + 6, 0.74 + 0.05 * (c.id % 4), spd(c))) { c.state = 'bstack'; c.timer = K.T_STACK; }
+    } else if (c.state === 'bstack') {
+      if (S.ore >= oreCap()) return;
+      c.timer -= work(c);
+      if (c.timer <= 0) {
+        S.ore++; c.bload--; S.stat.stacked++; emit('stack', c); c.timer = K.T_STACK;
+        if (c.bload <= 0) c.state = 'bseek';
       }
     }
   }
@@ -1500,12 +1640,12 @@ function CrabSim() {
         d = far(c, w.x, w.d) * (w.state === 'sleep' ? 0.6 : 1);   // sleeping crabs hold still: easy work
         if (d < bd) { bd = d; best = w; }
       }
-      if (!best) { moveTo(c, S.pos.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, K.RSPEED); return; }
+      if (!best) { if (!tryBackup(c)) moveTo(c, S.pos.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, spd(c)); return; }
       best[F.claim] = c; c.target = best;
       c.state = c.carry === F.part ? 'toJob' : (c.carry === F.raw ? (has(F.pocket) ? 'fetch' : 'toForge') : 'toMat');
     }
     if (c.state === 'toMat') {
-      if (moveTo(c, F.at(), 0.95, K.RSPEED)) { c.state = 'fetch'; c.timer = K.T_FETCH; }
+      if (moveTo(c, F.at(), 0.95, spd(c))) { c.state = 'fetch'; c.timer = K.T_FETCH; }
     } else if (c.state === 'fetch') {
       if (c.carry !== F.raw) {
         if (!F.take()) return;                               // nothing on the pile: wait for the line
@@ -1517,7 +1657,7 @@ function CrabSim() {
         else c.state = 'toForge';
       }
     } else if (c.state === 'toForge') {                     // the lava is the forge
-      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), K.RSPEED)) { c.state = 'forge'; c.timer = c.forgeT = K.T_FORGE / (S.lavaSurge ? K.SURGE_SPEED : 1); c.heat = 0; }
+      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), spd(c))) { c.state = 'forge'; c.timer = c.forgeT = K.T_FORGE / (S.lavaSurge ? K.SURGE_SPEED : 1); c.heat = 0; }
     } else if (c.state === 'forge') {
       c.timer -= work(c);
       c.heat = clamp(1 - c.timer / c.forgeT, 0, 1);
@@ -1527,7 +1667,7 @@ function CrabSim() {
       if (!needs(w, c.role)) { if (w && w[F.claim] === c) w[F.claim] = null; c.target = null; c.state = 'idle'; return; }
       if (c.state === 'toJob') {
         if (w.air) return;                                   // wait for it to land
-        if (go(c, w.x - 14 * w.dir, w.d, K.RSPEED) && !c.air && far(c, w.x - 14 * w.dir, w.d) < 6) { c.state = 'fix'; c.timer = K.T_REPAIR * (c.role === 'repair' && has('quickHands') ? 0.6 : 1); }
+        if (go(c, w.x - 14 * w.dir, w.d, spd(c)) && !c.air && far(c, w.x - 14 * w.dir, w.d) < 6) { c.state = 'fix'; c.timer = K.T_REPAIR * (c.role === 'repair' && has('quickHands') ? 0.6 : 1); }
       } else {
         c.timer -= work(c);
         if (c.timer <= 0) {
@@ -1611,20 +1751,20 @@ function CrabSim() {
       c.moving = false; c.working = false; c.floating = false;
       if (c.fresh > 0) c.fresh -= dt;
       if (c.state === 'sleep') {                             // off shift: rest, recharge, and shake off the wear
-        c.rested += dt;
+        c.rested += dt; c.lastRest = S.t;
         c.bat = Math.min(1, c.bat + K.REST_CHARGE * dt);
         c.wear = Math.max(0, c.wear - K.REST_RECOVER * dt);
         if (onDuty(c)) { c.state = RESUME[c.role]; emit('wake', c); }
         continue;
       }
-      if (!isHeld(c)) RULES[c.role](c);
+      if (!isHeld(c)) (BACK[c.state] ? backupHaul : RULES[c.role])(c);
       if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
-        if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, K.SPEED);
+        if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, spd(c));
       }
       active = c.moving || c.working;
       if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); continue; }
       c.wear += dt * (S.oc ? K.OC_WEAR : 1) * (c.role === 'crush' && has('shockPads') ? 0.5 : 1);
-      if (c.role !== 'energy') {
+      if (c.role !== 'energy' && !(c.role === 'scout' && S.si.night && has('nightBattery'))) {
         drain = K.DRAIN * (c.role === 'drill' && !c.bitOk && c.state === 'drill' ? K.BROKEN_DRAIN : 1) * (S.oc ? K.OC_DRAIN : 1);
         c.bat = Math.max(0, c.bat - drain * dt);
       }
@@ -1661,7 +1801,7 @@ function CrabSim() {
       if (a.dance) {
         a.bat = Math.min(1, a.bat + K.DANCE_CHARGE * (1 + S.decor.length * K.DECOR_DANCE) * dt);
         a.wear = Math.max(0, a.wear - K.DANCE_RECOVER * dt);
-        a.rested += dt; S.stat.danced += dt;
+        a.rested += dt; a.lastRest = S.t; S.stat.danced += dt;
       }
     }
   }
@@ -1824,10 +1964,10 @@ function CrabSim() {
   // Shifts scale them by the share of the day each role is on duty.
   var PER = { scout: [8.8, 10.5, 13], drill: 7.5, wildcat: 0.6, haul: 5.3, crush: 13, smelt: 8, bot: 6.5, charges: 2.6, fixes: 3, mends: 2.5, holes: 10 };
   function dutyShare(role) {
-    var cov = coverage(), n = count(role), i, s = 0;
+    var cov = coverage(), n = count(role), i, s = 0, w = 0;
     if (!n) return 1;
-    for (i = 0; i < cov.length; i++) s += cov[i].roles[role] / n;
-    return s / cov.length;
+    for (i = 0; i < cov.length; i++) { s += cov[i].roles[role] / n * cov[i].hours; w += cov[i].hours; }
+    return s / w;
   }
   function capacity() {
     var n = counts(), z = up('field'), workers = S.crabs.length - n.energy, wm = 1 + Math.min(K.WEAR_MAX, Math.max(0, avgWear() - K.WEAR_FREE) / K.WEAR_SCALE);
@@ -1858,9 +1998,13 @@ function CrabSim() {
     for (i = 1; i < FLOW.length; i++) if (c[FLOW[i]] < c[b]) b = FLOW[i];
     return b;
   }
-  function gaps() {                        // parts of the day when some job has nobody on duty
-    var cov = coverage(), n = counts(), out = [], i, r;
-    for (i = 0; i < cov.length; i++) for (r in n) if (n[r] && !cov[i].roles[r]) out.push({ shift: cov[i].name, role: r });
+  function gaps() {                        // hours when the line is working but some job has nobody on duty
+    var cov = coverage(), n = counts(), out = [], i, r, busy, nightScouts = S.scoutsNight && pattern();
+    for (i = 0; i < cov.length; i++) {
+      busy = 0; for (r in n) if (r !== 'scout' || !nightScouts) busy += cov[i].roles[r];
+      if (!busy) continue;                                  // nobody works then by design: not a gap
+      for (r in n) if (n[r] && !cov[i].roles[r] && !(r === 'scout' && nightScouts)) out.push({ shift: cov[i].name, role: r });
+    }
     return out;
   }
 
@@ -1929,7 +2073,22 @@ function CrabSim() {
   }
   function setPostAuto(on) { S.post.auto = !!on; S.post.moved = -99; }
   function setReserve(n) { S.reserve = clamp(Math.round(n), 0, 12); }
-  function setShift(m) { if (K.SHIFTS.indexOf(m) >= 0 && m !== S.shift) { S.shift = m; emit('shiftMode', m); } }
+  function setShift(m) {
+    if (K.SHIFTS.indexOf(m) < 0 || m === S.shift) return;
+    if (m === 'custom' && K.PRESETS[S.shift]) for (var k in K.PRESETS[S.shift]) S.work[k] = K.PRESETS[S.shift][k];   // start from the pattern in use
+    S.shift = m; emit('shiftMode', m);
+  }
+  function setWork(o) {                    // adjust the custom workday
+    var w = S.work;
+    if (o.start !== undefined) w.start = (Math.round(o.start) + 24) % 24;
+    if (o.len !== undefined) w.len = clamp(Math.round(o.len), 2, 12);
+    if (o.count !== undefined) w.count = clamp(Math.round(o.count), 1, 2);
+    if (o.rest !== undefined) w.rest = clamp(Math.round(o.rest), 0, 8);
+    if (o.groups !== undefined) w.groups = clamp(Math.round(o.groups), 1, 3);
+    if (w.count * w.len + (w.count - 1) * w.rest > 24) w.rest = Math.max(0, Math.floor((24 - w.count * w.len) / Math.max(1, w.count - 1)));
+    if (S.shift !== 'custom') { S.shift = 'custom'; emit('shiftMode', 'custom'); }
+  }
+  function setScoutsNight(on) { S.scoutsNight = !!on; }
   function overclock(on) {
     if (on && S.ocBank >= 1 && !S.oc) { S.oc = true; emit('ocStart'); }
     else if (!on && S.oc) { S.oc = false; emit('ocEnd'); }
@@ -1940,7 +2099,7 @@ function CrabSim() {
   return {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
-    setReserve: setReserve, setShift: setShift, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
+    setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
     flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
@@ -2286,6 +2445,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         near(a.x, 150).forEach(function (n) { if (n.role === 'scout' || n.role === 'drill') { say(n, '🚩💔🌊', 1.8); play(n, ['slump', 'shrug'], 1.6); } });
         if (!buryToast) { buryToast = true; toast('Low tide', 'The sand is shifting. Flags nobody is working can get buried.'); }
         break;
+      case 'backup':
+        say(a, a.role === 'drill' && !a.bitOk ? '⛏️💔🪨👍' : '🪨👍', 1.6);
+        break;
       case 'decor':
         var ds = decorSlot(S.decor.length - 1);
         spark(ds.x, ds.y - 8 * CS, 12, pal.light); poof(ds.x, ds.y, 6, 0.5);
@@ -2458,15 +2620,15 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       }
     }
     var si = sim.shiftInfo();
-    nightA += ((si.night && si.mode !== 'all' ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);   // no night shift, no night
-    if (started && si.mode !== 'all' && lastShift && lastShift !== si.name) {
+    nightA += ((si.night ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);
+    if (started && si.mode !== 'all' && lastShift && lastShift !== si.name + si.index) {
       toast(si.name + ' begins', si.night ? 'Some of the crew sleeps. Sleeping crabs recharge and shake off their wear.' : 'Everyone is back at work.');
       S.crabs.forEach(function (n) { if (n.state !== 'sleep') play(n, si.night ? 'shiver' : 'yawnStretch', 1.6); });
     }
     var trend = S.hist.length > 6 ? Math.sign(Math.round((S.price - S.hist[S.hist.length - 6].price) * 2)) : 0;
     if (trend && trend !== lastTrend) near(S.pos.STOCK, 110).forEach(function (n) { play(n, trend > 0 ? 'sparkleEyes' : 'sigh', 1.6); });
     lastTrend = trend;
-    lastShift = si.name;
+    lastShift = si.name + si.index;
     for (i = rings.length - 1; i >= 0; i--) { rings[i].t += dtReal / 1.1; if (rings[i].t >= 1) rings.splice(i, 1); }
     for (i = floaters.length - 1; i >= 0; i--) { n = floaters[i]; n.life += dtReal; n.y -= dtReal * 22; if (n.life >= n.max) floaters.splice(i, 1); }
     for (i = confetti.length - 1; i >= 0; i--) {
@@ -3311,6 +3473,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   function moodFor(c) {                  // ongoing states pick a looping animation; u counts from when it began
     var u = T - (c.vmoodT || T), idle = c.vidle || 0;
     if (c.dance && c.dance.state !== 'sleep') return ANIMS[DUETS[(c.id + c.dance.id) % DUETS.length]](c, T);
+    if (S.si && S.si.night && c.role !== 'scout' && S.t - c.lastRest > K.REST_WINDOW * K.DAY / 24 && (c.moving || c.working))
+      return { eye: 'sleepy', mouth: 'flat', tilt: Math.sin(T * 1.5 + c.vph) * 0.06 };   // dragging through the night, half speed
     if (c.role === 'energy' && c.broken) return ANIMS.dizzy(c, T);
     if (c.role !== 'energy' && c.bat < K.LOW) return ANIMS.nod(c, T + c.vph);
     if (c.limp && c.moving) return ANIMS.struggle(c, T);
@@ -3636,6 +3800,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       ctx.fillStyle = pal.metal; ctx.fillRect(-1.5 * s, by - 16.6 * s, 3 * s, 1.8 * s);
       if (c.state === 'refill') { ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(7 * s, by - 10 * s); ctx.lineTo(16 * s, by - 6 * s + Math.sin(T * 9) * 1.5); ctx.stroke(); }
     }
+    if (c.bload > 0 && role !== 'haul') {                   // nodules picked up on the backup job, balanced on the shell
+      for (i = 0; i < c.bload; i++) drawNod((-3.5 + i * 3.5) * s, by - 9.5 * s - (i % 2) * 2 * s, 1.8 * s, 1, i);
+    }
     // antenna lamp
     if (role !== 'energy' && role !== 'repair' && role !== 'mech') {
       ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1;
@@ -3726,6 +3893,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       mech: { idle: 'waiting in the workshop', toMat: 'fetching a bar for a new leg', fetch: S.bars ? 'taking a bar' : 'waiting: no bars on the stack', toForge: 'taking the bar to the lava forge', forge: 'forging a new leg in the lava', toJob: 'taking the new leg to a crab', fix: 'fitting the new leg' }
     }[c.role][c.state] || 'starting up';
     if (c.state === 'sleep') t = 'asleep: off shift';
+    if (c.state && c.state.charAt(0) === 'b' && { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 }[c.state]) t = 'helping out: ' + { bseek: 'fetching nodules', bpick: 'picking up a nodule', bhaul: 'carrying nodules to the ore pile', bstack: 'stacking the ore pile' }[c.state] + (c.role === 'drill' && !c.bitOk ? ' while its bit waits for repair' : '');
+    if (S.si && S.si.night && c.role !== 'scout' && S.t - c.lastRest > K.REST_WINDOW * K.DAY / 24 && c.state !== 'sleep') t += ' (tired: half speed at night)';
     if (c.air) t = c.air.phase === 'walk' ? 'heading for the thermal vent' : (c.air.phase === 'rise' ? 'floating up the thermal vent' : 'swimming down the current');
     if (sim.isHeld(c)) t = 'being repaired';
     if (c.limp) t += ' (lost a leg)';
@@ -3807,9 +3976,12 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     mech: 'forges new legs from bars in the lava and fits them'
   };
   var SHIFT_INFO = {
-    all: { name: 'All hands', short: 'All hands', note: 'Everyone works all day. Fastest at first, but after four minutes without rest crabs tire and break down more.' },
+    all: { name: 'All hands', short: 'All hands', note: 'Everyone works around the clock. Fastest at first, but crabs that never rest wear out, and at night they work at half speed.' },
+    day8: { name: '8-hour day', short: '8-hour day', note: 'Everyone works 08:00 to 16:00 and rests the other sixteen hours. Fresh crabs, little wear, but only a third of the day is worked.' },
+    double8: { name: 'Two 8-hour shifts', short: 'Two 8s', note: 'Two 8-hour shifts a day with a 3-hour rest between: 05:00 to 13:00 and 16:00 to 24:00.' },
+    custom: { name: 'Custom workday', short: 'Custom', note: 'Set the start hour, the length of a shift, how many a day, the rest between them, and how many groups take turns.' },
     ab: { name: 'A and B shifts', short: 'A/B', note: 'Everyone works the day. At night half of each crew sleeps, a different half each night, and the repair crews work faster.' },
-    relief: { name: 'Three-shift relief', short: '3-shift', note: 'The day is cut in three. Two groups in three work while the third sleeps, so nobody wears out.' }
+    relief: { name: 'Three-shift relief', short: '3-shift', note: 'The day is cut into three 8-hour shifts. Two groups in three work while the third sleeps, so nobody wears out.' }
   };
   var UP_INFO = {
     den: { name: 'Crab den', fx: function (v) { return 'Room for ' + v + ' crabs'; } },
@@ -3839,6 +4011,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     engineering: { name: 'Field engineering', note: 'Unlocks repair and maintenance bot upgrades.' }
   };
   var WUP_INFO = {
+    nightEyes: ['Night eyes', 'At night, scans take 30% less time.'],
+    nightBattery: ['Night battery', 'Scouts use no power at night: they can scan till dawn.'],
+    flagBundle: ['Flag bundle', 'Up to 14 flags can stand at once, not 8, so a night of scouting leaves a field of flags by morning.'],
+    moonFlags: ['Moon flags', 'At night, scans find a deposit 20 points more often.'],
     wideSonar: ['Wide sonar', 'Scans take a third less time.'],
     deepSonar: ['Deep sonar', 'Scouts find richer deposits: +0.08 richness and one more nodule a flag.'],
     diamondTips: ['Diamond tips', 'Holes take a quarter less time, and bits break 40% less often.'],
@@ -3856,6 +4032,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     mechForge: ['Pocket forge', 'Maintenance bots forge legs on the spot.'],
     toughJoints: ['Tough joints', 'Every crab loses legs half as often.']
   };
+  function clock(h) { var hh = Math.floor(h), mm = Math.floor((h - hh) * 60 / 15) * 15; return ('0' + hh).slice(-2) + ':' + ('0' + mm).slice(-2); }
   function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
   function fmtTime(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }
   function toast(title, body) {
@@ -3901,6 +4078,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.used.textContent = S.crabs.length + ' of ' + cap;
     Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-shift') === S.shift)); });
     ui.shiftNote.textContent = SHIFT_INFO[S.shift].note;
+    renderWorkday();
     var g = sim.gaps();
     ui.gaps.hidden = !g.length;
     if (g.length) ui.gaps.textContent = 'Not covered: ' + g.slice(0, 4).map(function (x) { return NAMES[x.role].toLowerCase() + 's in ' + x.shift; }).join(', ') + (g.length > 4 ? ', and more' : '') + '. Hire another so every shift has one.';
@@ -3943,6 +4121,31 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       b.disabled = cost === null || S.credits < cost;
     }
   }
+  // ----- the workday editor and its 24-hour timeline -----
+  function renderWorkday() {
+    var P = sim.pattern(), custom = S.shift === 'custom', w = S.work, html = '', rows = [], g, h, i, hr, on, cells, now = Math.floor(S.si ? S.si.hour : 6);
+    $('work-custom').hidden = !custom;
+    $('scouts-night-row').hidden = !P;
+    $('scouts-night').checked = S.scoutsNight;
+    if (custom) { $('w-start').textContent = ('0' + w.start).slice(-2) + ':00'; $('w-len').textContent = w.len + ' h'; $('w-count').textContent = String(w.count); $('w-rest').textContent = w.rest + ' h'; $('w-groups').textContent = String(w.groups); }
+    var groups = S.shift === 'relief' ? 3 : S.shift === 'ab' ? 2 : P ? P.groups : 1;
+    for (g = 0; g < groups; g++) rows.push({ name: groups === 1 ? 'Everyone' : 'Group ' + 'ABC'.charAt(g), role: 'drill', k: g });
+    if (P && S.scoutsNight) rows.push({ name: 'Scouts', role: 'scout', k: 0 });
+    if (S.shift === 'ab') rows.push({ name: 'Repair crews', role: 'repair', k: 0 });
+    html += '<div class="tl-hours"><span></span>';
+    for (i = 0; i < 24; i += 6) html += '<span style="grid-column:span 6">' + ('0' + (6 + i) % 24).slice(-2) + ':00</span>';
+    html += '</div>';
+    rows.forEach(function (row) {
+      cells = '';
+      for (i = 0; i < 24; i++) {
+        hr = (6 + i) % 24; on = sim.dutyFor(row.role, row.k, hr + 0.5, 1);
+        cells += '<i class="' + (on ? 'on' : '') + (hr >= K.NIGHT_FROM || hr < K.NIGHT_TO ? ' night' : '') + (hr === now ? ' now' : '') + '" title="' + ('0' + hr).slice(-2) + ':00 ' + (on ? 'on duty' : 'resting') + '"></i>';
+      }
+      html += '<div class="tl-row"><span>' + row.name + '</span>' + cells + '</div>';
+    });
+    if (S.shift === 'ab') html += '<p class="note">At night half of each role sleeps, a different half each night.</p>';
+    $('timeline').innerHTML = html;
+  }
   function advice() {
     var b = sim.bottleneck(), c = sim.capacity(), broken = 0, waitMetal = false, i, cr, msg;
     for (i = 0; i < S.crabs.length; i++) {
@@ -3955,6 +4158,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       var left = S.order.need - S.order.got;
       return 'Advisor: <b>The ship wants ' + left + ' more ingot' + (left === 1 ? '' : 's') + ' in ' + fmtTime(S.order.until - S.t) + '.</b> Each pays ' + Math.round(S.order.premium * 100) + '% extra.' + (S.reserve > 0 ? ' Lower the stockpile reserve to send more up.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock to speed the line.' : '');
     }
+    if (sim.pattern() && S.scoutsNight && !S.si.night && !S.flags.length && !sim.has('flagBundle') && sim.counts().scout)
+      return 'Advisor: <b>The drills have run out of flags.</b> Your scouts work nights. Give them a bigger flag bundle in the Tech tab (Sonar lab), or untick "Scouts work the night".';
     if (S.storm) return 'Advisor: <b>Storm!</b> Everyone walks slower and the riser sells at half speed, but the waves are turning up free nodules. Let the haulers gather them.';
     if (S.lavaSurge) return 'Advisor: <b>Lava surge!</b> Smelting and forging run twice as fast and the engine makes double charge.' + (S.ocBank >= 5 && !S.oc ? ' Overclock now to make the most of it.' : '');
     if (waitMetal && S.stock === 0) return 'Advisor: <b>Repairs are stuck.</b> A repair bot is waiting at an empty stockpile. Keep more ingots back with the + beside the stockpile.';
@@ -3994,8 +4199,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.rMinus.disabled = S.reserve <= 0; ui.rPlus.disabled = S.reserve >= 12;
     ui.advice.innerHTML = advice();
     var si = sim.shiftInfo();
-    ui.shift.textContent = 'Day ' + si.day + ' · ' + si.name;
-    ui.shiftLeft.textContent = (si.periods > 1 ? fmtTime(si.left) + ' left · ' + SHIFT_INFO[S.shift].short : SHIFT_INFO[S.shift].name) + ' · ' + (S.storm ? 'storm!' : S.lavaSurge ? 'lava surge!' : S.tide > 0.75 ? 'high tide' : S.tide < -0.75 ? 'low tide' : S.tide > 0 ? 'tide rising' : 'tide falling');
+    ui.shift.textContent = 'Day ' + si.day + ' · ' + clock(si.hour) + (si.night ? ' night' : '') + (si.periods > 1 ? ' · ' + si.name : '');
+    ui.shiftLeft.textContent = (si.periods > 1 ? SHIFT_INFO[S.shift].short + ' · ' + Math.ceil(si.left / (K.DAY / 24)) + ' h to change' : SHIFT_INFO[S.shift].name) + ' · ' + (S.storm ? 'storm!' : S.lavaSurge ? 'lava surge!' : S.tide > 0.75 ? 'high tide' : S.tide < -0.75 ? 'low tide' : S.tide > 0 ? 'tide rising' : 'tide falling');
     ui.flow.textContent = '×' + sim.flowMult().toFixed(2);
     ui.flowNote.textContent = S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily';
     ui.order.hidden = !S.order;
@@ -4047,6 +4252,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       '<tr><th scope="row">Stirling engine</th><td class="n">' + sim.up('engine') + ' charges/min, enough for ' + Math.round(c.engine * (S.crabs.length - sim.counts().energy)) + ' crabs</td></tr>' +
       '<tr' + (b === 'repair' ? ' class="slow"' : '') + '><th scope="row">Repairs' + (b === 'repair' ? ' <span class="flag-slow">◀ short</span>' : '') + '</th><td class="n">' + broken + ' broken now, ' + r.bitsBroken.toFixed(1) + ' bits and ' + r.ebotsBroken.toFixed(1) + ' bots break a minute</td></tr>' +
       '<tr' + (b === 'mech' ? ' class="slow"' : '') + '><th scope="row">Legs' + (b === 'mech' ? ' <span class="flag-slow">◀ short</span>' : '') + '</th><td class="n">' + limping + ' limping now, ' + r.legsLost.toFixed(1) + ' lost and ' + r.mends.toFixed(1) + ' mended a minute, ' + r.barsUsed.toFixed(1) + ' bars used</td></tr>' +
+      '<tr><th scope="row">Backup work</th><td class="n">' + S.stat.backup + ' trips fetching nodules by crabs whose own work was stuck</td></tr>' +
+      '<tr><th scope="row">Night scouting</th><td class="n">' + S.stat.nightFlags + ' flags planted at night</td></tr>' +
       '<tr><th scope="row">Wear</th><td class="n">average ' + Math.round(sim.avgWear()) + ' s without rest (trouble starts at ' + K.WEAR_FREE + ')</td></tr>' +
       '<tr><th scope="row">Thermal vent</th><td class="n">' + r.rides.toFixed(1) + ' rides a minute</td></tr>' +
       '</tbody></table>';
@@ -4159,6 +4366,13 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     });
     ui.arrangeBtn.addEventListener('click', function () { arrange = !arrange; pick = null; renderPanel(); draw(); });
     ui.postBtn.addEventListener('click', function () { sim.setPostAuto(!S.post.auto); renderPanel(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-work]'), function (b) {
+      b.addEventListener('click', function () {
+        var k = b.getAttribute('data-work'), d = parseInt(b.getAttribute('data-d'), 10), o = {};
+        o[k] = S.work[k] + d; sim.setWork(o); sim.drain().forEach(handle); renderPanel(); renderHUD();
+      });
+    });
+    $('scouts-night').addEventListener('change', function () { sim.setScoutsNight(this.checked); renderPanel(); renderHUD(); });
     Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) {
       b.addEventListener('click', function () { sim.setShift(b.getAttribute('data-shift')); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     });

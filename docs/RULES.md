@@ -318,6 +318,19 @@ Haulers do this job all the time. Slow kinds are slow haulers.
   - While the order is open, each ingot sold earns a 30% premium, plus 5 points per reputation star.
   - **Filling it** pays a bonus of 6 credits an ingot (10% more per star) and adds a star, up to 5.
   - **Missing it** costs a star.
+- **The rival crew 🦞.** Once you reach Ingot Magnate, a crew of lobsters sets up behind the
+  basalt ridge with its own line to the ship, and races you for every order after that.
+  - For each order the rival sets a pace: it would fill the order in 75% to 120% of the
+    order's 100 s, divided by its drive. Its count shows beside yours on the top bar and on
+    the ship's flag, and its ingots rise up a red line from behind the ridge.
+  - **If the rival fills the order first,** the ship sails with their metal. You keep the
+    premium on what you already sent, but get no bonus, and lose a reputation star, as for a
+    missed order.
+  - **If you fill it first,** you get the usual bonus and star. Each order you win raises the
+    rival's drive by 8%, and each it wins lowers it by 6%, between 70% and 150%. A strong
+    line therefore faces a hungrier rival.
+  - The advisor warns when the rival is ahead. Overclock and a lower stockpile reserve are
+    the ways to catch up.
 - **Spending.** Credits buy crabs, upgrades and research. Repairs are paid in metal. There is no upkeep.
 
 ## 14. Upgrades (Build tab)

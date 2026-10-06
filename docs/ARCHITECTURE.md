@@ -135,7 +135,8 @@ off.
 | Progress | `lv{}` (upgrade levels), `tech{}`, `wu{}` (worker upgrades), `layout{}` (building → plot), `pos{}` (derived positions) |
 | Workday | `shift` (pattern key), `work{start,len,count,rest,groups}`, `scoutsNight` |
 | Power | `docks[]` (bots plugged in), `post{x,d,auto,carrier,moved,home,drift,warned}` |
-| Sea | `tide`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order`, `nextOrder`, `rep` |
+| Sea | `tide`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
+| Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
 | Den | `decor[]`, `decorWork`, `decorTheme` |
 | Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle` |
 | Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes) |
@@ -259,7 +260,12 @@ resumes the role.
 - `sea()` runs the tide's wash-ups and burials.
 - `octopus()` runs the octopus: `come → grab → flee`, with `octoTarget()` and `crabNear()`.
 - `shoo()` is the player chasing it off.
-- `weather()` runs storms, lava surges and ship orders.
+- `weather()` runs storms, lava surges and ship orders. It also brings in the rival crew at
+  `K.RIVAL_RANK`, gives each new order a `rivalRate` (ingots a second, from `K.RIVAL_PACE` and
+  `S.rival.drive`), and calls `rival(o)`. That advances `o.rival`, emits `rivalSell` for each
+  whole ingot, and on reaching `need` takes the order away (`orderLost`, a reputation star
+  lost, the drive eased by `K.RIVAL_EASE`). `sell()` raises the drive by `K.RIVAL_PUSH` when
+  the player fills a raced order.
 - `turtle()` runs the turtle: it chooses its side, looks ahead for the crab that would gain most from a lift, steers toward it, may turn back once, carries the crab to its goal, and leaves.
 - `trader()` runs the trader: `come → stay → leave`, with three offers drawn from `K.TRADES`. `trade(id)` takes payment and delivers the good. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
 
@@ -315,7 +321,7 @@ notifications only: the sim never depends on anyone reading them.
 | Bonuses | `ocStart`, `ocEnd`, `flowLost` |
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
 | Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone` |
-| Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `orderStart`, `orderDone`, `orderFail` |
+| Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
 
 ### 4.9 Public API
 
@@ -448,10 +454,14 @@ dances used by pairs.
   and `recText(c)`. `drawCrab` draws one small gold star per veteran level on the shell.
   The `veteran` event cheers the crab and its neighbours; a toast explains the first star of
   the game and announces every third star.
+- **Rival crew:** the top bar's order item adds the rival's count and a thin red meter.
+  `drawCargo()` draws the rival's dashed red line from behind the ridge (`rivalFoot()`) to
+  the ship's stern, with `rivalLifts` (one per `rivalSell`) rising along it, and the
+  rival's count on the ship's flag. A game loaded mid-order sails the ship back in.
 - **Advisor:** `advice()` picks one message, in priority order:
   1. octopus
   2. trader open
-  3. ship order
+  3. ship order (the rival is ahead, or what is left to send)
   4. storm, then lava surge
   5. night-scout tip
   6. repairs stuck

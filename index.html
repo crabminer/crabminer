@@ -195,6 +195,7 @@ button:disabled{opacity:.38;cursor:not-allowed}
 .hud-day b{font-size:.95rem}
 .hud-order{padding:.15rem .5rem;border:2px solid var(--mark);border-radius:6px;min-width:9rem}
 .hud-order b{color:var(--mark)}
+.meter.rival{height:.26rem;margin-top:.12rem} .meter.rival i{background:var(--c-warn)}
 .shifts{margin:0 0 .6rem}
 .shifts .seg{display:flex}
 .shifts .seg button{flex:1;font-size:.78rem;padding:0 .2rem}
@@ -591,7 +592,7 @@ tr[data-say].saying{box-shadow:none}
     <div class="hud-item hud-rank"><small id="h-rank-label">Rank</small><b id="h-rank">Sand Scraper</b><div class="meter" aria-hidden="true"><i id="h-rank-bar"></i></div><span class="hud-rate" id="h-rank-next"></span></div>
     <div class="hud-item hud-day"><small>Shift</small><b id="h-shift">Day 1 · All hands</b><span class="hud-rate" id="h-shift-left"></span></div>
     <div class="hud-item"><small>Flow bonus</small><b id="h-flow">×1.00</b><span class="hud-rate" id="h-flow-note">deliver steadily</span></div>
-    <div class="hud-item hud-order" id="h-order" hidden><small>Ship order</small><b id="h-order-n">0 of 0</b><span class="hud-rate" id="h-order-t"></span><div class="meter" aria-hidden="true"><i id="h-order-bar"></i></div></div>
+    <div class="hud-item hud-order" id="h-order" hidden><small>Ship order</small><b id="h-order-n">0 of 0</b><span class="hud-rate" id="h-order-t"></span><div class="meter" aria-hidden="true"><i id="h-order-bar"></i></div><div class="meter rival" id="h-rival" aria-hidden="true" hidden><i id="h-rival-bar"></i></div></div>
     <button type="button" class="oc" id="oc-btn" aria-pressed="false" title="Overclock the crew (O): every delivery banks seconds of speed">
       <span>⚡ <span id="oc-label">Overclock 0 s</span></span><span class="meter" aria-hidden="true"><i id="oc-bar"></i></span>
     </button>
@@ -819,6 +820,7 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Storms.</span> Five minutes in, and every six to nine minutes after each one ends, a storm blows through for 40 seconds, with a warning 20 seconds ahead. The water darkens, the surface heaves, rain streaks the top of the sea, lightning flashes, and the ship at the top of the riser rocks. Crabs walk at 85% speed against the current, and the riser sends ingots at half speed. Every 8 seconds the storm has a 60% chance to bury a flag nobody is working. But every 4 seconds the waves stir two or three nodules up out of the sand, so a storm is a windfall for a crew with haulers to spare.</p>
     <p><span class="runin">Lava surges.</span> Just over three minutes in, and every five to eight minutes after each one ends, the lava swells for 30 seconds and throws out burning blobs. Smelting and forging take half the time, the Stirling engine makes double charge, and the vent lifts crabs faster. The advisor suggests spending banked overclock then, because the slowest stage of many lines, the lava, is briefly twice as fast.</p>
     <p><span class="runin">Ship orders.</span> Two and a half minutes in, and every three to five minutes after each order closes, a cargo ship sails in over the riser and posts an order. It asks for a little more than the line has been making, 15% over the last minute's rate across a 100-second deadline, between 5 and 40 ingots. Each ingot sent up while the order is open pays a 30% premium. Filling the order pays a bonus of 6 credits an ingot and adds a star of reputation, up to five. Each star adds 5 points to later premiums and 10% to later bonuses. Missing the deadline costs a star. In tests over half an hour, a line left alone filled about 40% of its orders. Dropping the stockpile reserve and spending overclock while an order was open filled nearly half and earned more. Orders added about a sixth to revenue.</p>
+    <p><span class="runin">The rival crew.</span> From Ingot Magnate on, a crew of lobsters behind the basalt ridge races the player for every order. For each order it sets a pace that would fill the order in 75% to 120% of the deadline, divided by its drive. Its count shows beside the player's, and its ingots rise up a red line from behind the ridge to the ship's stern. If it fills the order first, the ship sails with its metal, and the player loses a star of reputation as for a missed order. Each order the player wins raises the rival's drive by 8%, and each it wins lowers it by 6%, so a strong line meets a hungrier rival and a struggling one gets some room. Over eight seeds the automatic player lost 18 of 58 orders to the rival on all hands, 10 of 60 with A and B shifts and overclock, and 5 of 64 with research. Most of what it took were orders a slow line would have missed anyway, so time to Crab Tycoon and earnings by minute 40 moved by less than 2%. The rival adds a race to the late game rather than a tax on it.</p>
     <p><span class="runin">The hermit-crab trader.</span> Four minutes in, and every four to six minutes after each visit, a hermit crab walks in from the left with a striped market stall on its shell. It keeps shop beside the den for a minute and offers three goods out of six, paid in bars or ingots taken straight off the piles. Spare drill bits or spare legs (two for a bar) let the repair crews skip the walk to the stockpile and the forge. A treasure map (two ingots) plants three rich flags on the claimed dunes. A crate of cells (one ingot) fills the engine and every energy bot. A gold gear (three bars) gives the whole crew the morning bonus at once. A lucky shell (four bars) guarantees a pearl on the next rich strike. The trade is metal for time, and it pays best when a pile is full and the line is waiting on something else.</p>
     <p><span class="runin">The sea turtle.</span> Three minutes in, and every two and a half to four and a half minutes after that, a sea turtle swims across the dunes at 85 units a second. It comes in from the side the travelling crabs are heading away from, dips to pick up one crab with at least 160 units to go its way (a flat or limping crab first), and can turn back once for a passenger it has just passed. It sets the crab down where it was going. In half-hour tests it gave four to eight lifts.</p>
     <p><span class="runin">Whales.</span> Every two to four minutes a whale glides through the open water, singing. Its shadow sweeps across the dunes, and the crabs beneath it look up and wave. The whale has no effect on the economy.</p>
@@ -983,6 +985,11 @@ function CrabSim() {
     // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
     TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
+    // the rival crew behind the ridge: from Ingot Magnate on it races you for every order, filling it in 75-120% of the
+    // order's time, divided by its drive. If it fills the order first the ship sails with theirs, and like a missed order
+    // that costs a reputation star.
+    // Each order you win drives it harder; each it wins lets it ease off.
+    RIVAL_RANK: 3, RIVAL_PACE: [0.75, 1.2], RIVAL_PUSH: 1.08, RIVAL_EASE: 0.94, RIVAL_DRIVE: [0.7, 1.5],
     VENT_IN: 880, VENT_X: 918,   // where crabs step into the thermal vent, and the column it rises in
     DEPTH: 300,          // crossing the dunes from the back crest to the front costs as much as 300 units of track
     // movement, in track units per second: each kind walks at its own pace, crushers slowest, energy bots fastest
@@ -1068,7 +1075,7 @@ function CrabSim() {
   };
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
-    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'orderCredits', 'decorations',
+    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
     'backup', 'nightFlags', 'trades', 'turtleRides'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
@@ -1122,7 +1129,7 @@ function CrabSim() {
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
-      turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
+      rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -1780,6 +1787,7 @@ function CrabSim() {
         var bonus = Math.round(o.need * K.ORDER_BONUS * (1 + S.rep * 0.1));
         S.credits += bonus; S.earned += bonus; S.stat.orderCredits += bonus; S.stat.ordersFilled++;
         S.rep = Math.min(K.REP_MAX, S.rep + 1);
+        if (o.rivalRate) { S.rival.lost++; S.rival.drive = Math.min(K.RIVAL_DRIVE[1], S.rival.drive * K.RIVAL_PUSH); }
         emit('orderDone', o, bonus); inspire('shipBottle');
         S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
       }
@@ -1954,6 +1962,17 @@ function CrabSim() {
     }
   }
   // Storms and lava surges come and go on their own clocks.
+  function rival(o) {                      // the rival crew sends its ingots up its own line to the same ship
+    var before = Math.floor(o.rival);
+    o.rival = Math.min(o.need, o.rival + o.rivalRate * dt);
+    if (Math.floor(o.rival) > before) emit('rivalSell', o);
+    if (o.rival >= o.need) {               // they got there first: the ship takes their metal and sails
+      S.rival.won++; S.stat.ordersLost++; S.rep = Math.max(0, S.rep - 1);
+      S.rival.drive = Math.max(K.RIVAL_DRIVE[0], S.rival.drive * K.RIVAL_EASE);
+      emit('orderLost', o);
+      S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
+    }
+  }
   function weather() {
     var i, p, f, free = [], n;
     if (!S.storm && !S.stormWarned && S.t >= S.stormAt - K.STORM_WARN) { S.stormWarned = true; emit('stormWarn'); }
@@ -1973,9 +1992,12 @@ function CrabSim() {
     }
     if (!S.order && S.t >= S.nextOrder) {                   // a ship arrives wanting a little more than the line is making
       var made = rates(60).sold, need = clamp(Math.round(Math.max(made, 4) * K.ORDER_TIME / 60 * 1.15) + 1, 5, 40);
-      S.order = { need: need, got: 0, until: S.t + K.ORDER_TIME, premium: K.ORDER_PREMIUM + S.rep * K.REP_STEP };
+      S.order = { need: need, got: 0, until: S.t + K.ORDER_TIME, premium: K.ORDER_PREMIUM + S.rep * K.REP_STEP, rival: 0, rivalRate: 0 };
+      if (S.rival) S.order.rivalRate = need / (K.ORDER_TIME * srr(K.RIVAL_PACE[0], K.RIVAL_PACE[1]) / S.rival.drive);
       S.stat.orders++; emit('orderStart', S.order);
     }
+    if (!S.rival && S.rank >= K.RIVAL_RANK) { S.rival = { since: S.t, drive: 1, won: 0, lost: 0 }; emit('rivalArrive'); }
+    if (S.order && S.order.rivalRate) rival(S.order);
     if (S.order && S.t >= S.order.until) {
       emit('orderFail', S.order);
       S.rep = Math.max(0, S.rep - 1); S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
@@ -2354,7 +2376,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var W = 0, H = 0, DPR = 1, T = 0, last = 0, raf = 0, running = false, acc = 0, speed = 1, uiTick = 0, ledgerTick = 0;
   var CS = 1, surfH = 0, F = 0, lavaL = 0, base = [0, 0, 0], farBase = 0, dunePaths = [], farPath = null, grain = null;
   var pal = {};
-  var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
+  var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
   var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
@@ -2512,7 +2534,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
   var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
     '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
-    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star' };
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star', '🦞': 'rival' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -2700,14 +2722,24 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         break;
       case 'orderStart':
         cargo.phase = 'in'; if (cargo.x < 0) cargo.x = W + 160;
-        toast('A cargo ship wants ' + a.need + ' ingots', 'Send them up within ' + fmtTime(a.until - S.t) + ' for a ' + Math.round(a.premium * 100) + '% premium on each, and a bonus for the lot.');
+        toast('A cargo ship wants ' + a.need + ' ingots', 'Send them up within ' + fmtTime(a.until - S.t) + ' for a ' + Math.round(a.premium * 100) + '% premium on each, and a bonus for the lot.' + (a.rivalRate ? ' The rival crew 🦞 is racing you for it.' : ''));
         S.crabs.forEach(function (n) { if (n.role === 'smelt') { say(n, '🚢🪙❗', 1.8); play(n, ['salute', 'jazz'], 1.6); } });
         break;
       case 'orderDone':
         cargo.phase = 'out';
-        toast('Order filled! +$' + e.b, 'The ship pays a bonus, and your reputation rises to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Crab profit!');
+        toast('Order filled! +$' + e.b, (a.rivalRate ? 'You beat the rival crew 🦞 to it. ' : '') + 'The ship pays a bonus, and your reputation rises to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Crab profit!');
         floater('Order filled! +$' + e.b, collectorBase().x, collectorBase().y - 90 * CS, true);
         S.crabs.forEach(function (n, j2) { if (n.state !== 'sleep') { play(n, ['cheer', 'jazz', 'disco', 'clap'], 2); if (j2 % 3 === 0) say(n, '🚢✅🎉', 1.8); } });
+        break;
+      case 'rivalArrive':
+        toast('A rival crew 🦞 has set up behind the ridge', 'Lobsters with their own line to the surface. From now on they race you for every ship order. If they fill it first, the ship sails with theirs and your reputation drops a star. Every order you win makes them try harder.');
+        S.crabs.forEach(function (n, j2) { if (j2 % 3 === 0) { say(n, '🦞❗😨', 2); play(n, ['shock', 'stomp'], 1.6); } });
+        break;
+      case 'rivalSell': rivalLifts.push({ t: 0 }); break;
+      case 'orderLost':
+        cargo.phase = 'out';
+        toast('The rival crew 🦞 filled the order first', 'You sent ' + a.got + ' of ' + a.need + '. The ship sails with their metal, and your reputation drops to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Overclock and a low reserve help win the next race.');
+        S.crabs.forEach(function (n, j2) { if (n.role === 'smelt' || j2 % 4 === 0) { play(n, ['stomp', 'grumble', 'slump'], 1.8); if (j2 % 4 === 0) say(n, '🦞🚢😤', 1.8); } });
         break;
       case 'orderFail':
         cargo.phase = 'out';
@@ -2838,6 +2870,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       }
     }
     for (i = lifts.length - 1; i >= 0; i--) { lifts[i].t += dtSim / 1.6; if (lifts[i].t >= 1) lifts.splice(i, 1); }
+    for (i = rivalLifts.length - 1; i >= 0; i--) { rivalLifts[i].t += dtSim / 1.6; if (rivalLifts[i].t >= 1) rivalLifts.splice(i, 1); }
     // the thermal vent: a column of bubbles from the lava to the top tenth of the sea
     if (Math.random() < dtReal * (reduce ? 3 : 14)) bubbles.push({ x: X(K.VENT_X) + rr(-10, 10) * CS, y: H - F * 0.4, r: rr(1.4, 4.6), vy: rr(70, 130), ph: rr(0, TAU), vent: true });
     for (i = 0; i < S.crabs.length; i++) {
@@ -3536,9 +3569,23 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, L * 0.6, 0, TAU); ctx.fill();
     ctx.restore();
   }
+  function rivalFoot() { return { x: W - 26 * CS, y: base[0] - H * 0.13 }; }   // behind the ridge, where the rivals' line comes up
+  function rivalPoint(t, sx, sy) {        // along the rivals' line, from behind the ridge (0) to the ship's stern (1)
+    var f = rivalFoot(), u = 1 - t;
+    return { x: f.x * u + sx * t, y: f.y * u + sy * t + Math.sin(t * Math.PI) * 18 * CS };
+  }
+  function drawRivalLine(x, y) {
+    var i, p, sx = x + 78, sy = y + 6;
+    ctx.save(); ctx.strokeStyle = pal.warn; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]); ctx.globalAlpha = 0.85;
+    ctx.beginPath(); for (i = 0; i <= 20; i++) { p = rivalPoint(i / 20, sx, sy); if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); } ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = pal.warn;
+    for (i = 0; i < rivalLifts.length; i++) { p = rivalPoint(rivalLifts[i].t, sx, sy); ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(p.x, p.y, 2.6, 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
   function drawCargo() {                 // the cargo ship that posts orders, with the order on its flag
     if (cargo.phase === 'gone') return;
     var x = cargo.x, y = waveY(LAYERS[2], x) - 6, o = S.order;
+    if (o && o.rivalRate && cargo.phase === 'in') drawRivalLine(x, y);
     ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(T * (0.7 + stormA * 1.5)) * (0.02 + stormA * 0.1));
     ctx.fillStyle = pal.crabDark; ctx.globalAlpha = 0.95;
     ctx.beginPath(); ctx.moveTo(-90, -10); ctx.lineTo(92, -10); ctx.lineTo(74, 14); ctx.lineTo(-76, 14); ctx.closePath(); ctx.fill();
@@ -3546,9 +3593,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.fillStyle = pal.ingot; ctx.fillRect(42, -40, 26, 30);                                                                 // the bridge
     ctx.fillStyle = pal.metalDark; ctx.fillRect(-70, -60, 3, 50);
     if (o) {
-      ctx.fillStyle = pal.paper; ctx.fillRect(-67, -60, 58, 20);
+      ctx.fillStyle = pal.paper; ctx.fillRect(-67, -60, 58, o.rivalRate ? 32 : 20);
       ctx.fillStyle = pal.ink; ctx.font = '700 11px ' + cssFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(o.got + ' / ' + o.need, -38, -50);
+      if (o.rivalRate) { ctx.fillStyle = pal.warn; ctx.font = '700 10px ' + cssFont; ctx.fillText('rival ' + Math.floor(o.rival), -38, -37); }
     }
     ctx.restore();
   }
@@ -4316,7 +4364,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     roles: $('roles'), cards: $('cards'), ledger: $('ledger'), toasts: $('toasts'),
     intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
     shift: $('h-shift'), shiftLeft: $('h-shift-left'), flow: $('h-flow'), flowNote: $('h-flow-note'), oc: $('oc-btn'), ocLabel: $('oc-label'), ocBar: $('oc-bar'),
-    order: $('h-order'), orderN: $('h-order-n'), orderT: $('h-order-t'), orderBar: $('h-order-bar'),
+    order: $('h-order'), orderN: $('h-order-n'), orderT: $('h-order-t'), orderBar: $('h-order-bar'), rival: $('h-rival'), rivalBar: $('h-rival-bar'),
     bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), panRange: $('pan-range'), tech: $('techs'), arrangeBtn: $('arrange-btn'), arrangeNote: $('arrange-note'), postBtn: $('post-btn'), decor: $('decor-note'), traderCard: $('trader-card'), traderOffers: $('trader-offers'), traderTime: $('trader-time'), spares: $('spares-note')
   };
   var TRADE_INFO = {
@@ -4490,7 +4538,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     if (S.octo && S.octo.state !== 'flee') return 'Advisor: <b>An octopus is after your ' + (S.ore > 0 ? 'ore pile' : 'nodules') + '!</b> Click it to shoo it away.';
     if (S.order && !S.storm) {
-      var left = S.order.need - S.order.got;
+      var left = S.order.need - S.order.got, rv = S.order.rivalRate ? S.order.need - Math.floor(S.order.rival) : 0;
+      if (rv && rv < left) return 'Advisor: <b>The rival crew is ahead: they need ' + rv + ' more, you need ' + left + '.</b>' + (S.reserve > 0 ? ' Lower the stockpile reserve to send more up.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock to speed the line.' : '') + ' Losing the race costs a reputation star.';
       return 'Advisor: <b>The ship wants ' + left + ' more ingot' + (left === 1 ? '' : 's') + ' in ' + fmtTime(S.order.until - S.t) + '.</b> Each pays ' + Math.round(S.order.premium * 100) + '% extra.' + (S.reserve > 0 ? ' Lower the stockpile reserve to send more up.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock to speed the line.' : '');
     }
     if (sim.pattern() && S.scoutsNight && !S.si.night && !S.flags.length && !sim.has('flagBundle') && sim.counts().scout)
@@ -4541,7 +4590,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.flowNote.textContent = S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily';
     ui.order.hidden = !S.order;
     if (S.order) {
-      ui.orderN.textContent = S.order.got + ' of ' + S.order.need;
+      ui.orderN.textContent = S.order.got + ' of ' + S.order.need + (S.order.rivalRate ? ' · rival ' + Math.floor(S.order.rival) : '');
+      ui.rival.hidden = !S.order.rivalRate;
+      if (S.order.rivalRate) ui.rivalBar.style.width = (S.order.rival / S.order.need * 100).toFixed(1) + '%';
       ui.orderT.textContent = fmtTime(S.order.until - S.t) + ' left · +' + Math.round(S.order.premium * 100) + '% · ' + '★'.repeat(S.rep) + '☆'.repeat(K.REP_MAX - S.rep);
       ui.orderBar.style.width = (S.order.got / S.order.need * 100).toFixed(1) + '%';
     }
@@ -4621,6 +4672,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       '<tr><th scope="row">Sea turtle</th><td class="n">' + S.stat.turtleRides + ' rides given</td></tr>' +
       '<tr><th scope="row">Den</th><td class="n">' + S.decor.length + ' of ' + sim.decorMax() + ' decorations</td></tr>' +
       '<tr><th scope="row">Ship orders</th><td class="n">' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' filled, ' + money(S.stat.orderCredits) + ' in premiums and bonuses, reputation ' + '★'.repeat(S.rep) + '☆'.repeat(K.REP_MAX - S.rep) + '</td></tr>' +
+      '<tr><th scope="row">Rival crew 🦞</th><td class="n">' + (S.rival ? 'races won ' + S.rival.lost + ', lost ' + S.rival.won + ' · they are pushing at ' + Math.round(S.rival.drive * 100) + '%' : 'arrives at ' + K.RANKS[K.RIVAL_RANK][1]) + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
       '</tbody></table>';
     html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
@@ -4674,6 +4726,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     S = sim.state();
     freshView();
     won = S.rank >= K.RANKS.length - 1;   // a game already won does not show the win card again
+    if (S.order) cargo = { x: W + 160, phase: 'in' };   // a ship that was waiting sails back in
     return true;
   }
   function newGame() {
@@ -4684,7 +4737,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     saveGame();
   }
   function freshView() {                // forget everything the view was animating from the last game
-    flights = []; lifts = []; sparks = []; floaters = []; confetti = []; rings = []; puffs = []; debris = []; lastShift = ''; cargo = { x: -1, phase: 'gone' };
+    flights = []; lifts = []; rivalLifts = []; sparks = []; floaters = []; confetti = []; rings = []; puffs = []; debris = []; lastShift = ''; cargo = { x: -1, phase: 'gone' };
     won = false; startedAt = 0; acc = 0; selected = null;
   }
   function closeIntro() { ui.intro.hidden = true; setSpeed(speed || 1); }

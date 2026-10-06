@@ -8,7 +8,7 @@ to; move an item into the game, the rules and the paper together when it is buil
 
 These came from earlier rounds of ideas and are already in the game: tides and storms,
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
-the hermit-crab trader, the sea turtle, save and load, and named crabs with veteran stars.
+the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, and the rival crew.
 
 ## Visitors and the sea
 
@@ -42,9 +42,6 @@ the hermit-crab trader, the sea turtle, save and load, and named crabs with vete
 
 ## Economy and progression
 
-- **Rival crab crew.** A computer crew on the far side of the ridge that competes for ship
-  orders; when it fills one first, yours is withdrawn. Gives orders urgency in the late
-  game.
 - **Contracts.** Longer goals beside ship orders: "deliver 200 ingots in three days" for a
   big reward and a unique decoration.
 - **Metal grades.** Rich flags make "fine" ingots worth 50% more; the smelter keeps them on

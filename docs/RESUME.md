@@ -37,7 +37,8 @@ the line, which the advisor and the Ledger tab point out.
 - **Progression:** upgrades, 5 technologies unlocking 20 worker upgrades (including night
   scouting), and movable building plots.
 - **Money and bonuses:** overclock and a flow bonus, a drifting market price, and cargo-ship
-  orders with reputation stars.
+  orders with reputation stars. From Ingot Magnate a rival lobster crew behind the ridge
+  races you for every order, with a rubber-band drive.
 - **The sea:** tides (which also push the refuel post around), storms, lava surges, an octopus
   thief, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, and the sea turtle.
 - **Crabs:** names and personal records, veteran stars (up to three, +5% each at their own
@@ -62,6 +63,5 @@ events, and changes the game only through its API. Before committing a change:
 The working style so far: commit locally, and push only when asked.
 
 **What next** (from `docs/BACKLOG.md`, in recommended order):
-1. **Rival crab crew:** a computer crew that competes for ship orders.
-2. **Engineering:** split the scripts into `sim.js`, `game.js` and `reader.js`, and check the
+1. **Engineering:** split the scripts into `sim.js`, `game.js` and `reader.js`, and check the
    fuzz, balance and browser tests into `tests/`.

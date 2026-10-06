@@ -201,7 +201,7 @@ scout ─flag─▶ drill ─nodule─▶ hauler ─▶ ORE PILE ─▶ crusher 
   - Any crab can lose a leg while active: on average once per crab per hour of work (0.03% a second), more with wear, and half as often with Tough joints.
   - A crab with a leg missing limps at 55% speed, and the leg lies on the sand until a new one is fitted.
 - **Repairs.** Repair bots fix bits and worn energy bots. Maintenance bots fix legs.
-  1. The fixer fetches the raw material: an ingot from the stockpile, or a bar from the bar stack.
+  1. The fixer fetches the raw material: an ingot from the stockpile, or a bar from the bar stack. If there is a spare part from the trader in stock, it takes that instead and skips straight to fitting.
   2. It forges the part at the lava rim in 1.4 s, or on the spot with a Pocket forge.
   3. It carries the part to the crab and fits it in 2.4 s (40% faster with Quick hands, repair bots only).
 - **Repairs cost product.** The ingot is never sold, and the bar is never smelted. The stockpile reserve keeps ingots back for repairs; bars have no reserve.
@@ -369,6 +369,23 @@ Everything costs 4,450 in total.
   3. Otherwise it spends 1.5 s grabbing up to 2 nodules and escapes.
   4. Click it at any time to shoo it away. If it is carrying anything, it drops it on the sand.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
+- **The hermit-crab trader.** The first comes at 240 s, then 240 to 360 s after each one leaves.
+  - It walks in from the left, keeps shop by the den (x = 500) for 60 s, then walks off.
+  - It offers 3 of the 6 goods below, one of each. Swap for them in the Build tab, or click the trader to jump there.
+
+    | Good | Price | Effect |
+    | --- | --- | --- |
+    | Spare drill bits ×2 | 1 bar | Repair bots fit them without fetching or forging |
+    | Spare legs ×2 | 1 bar | Maintenance bots fit them without fetching or forging |
+    | Treasure map | 2 ingots | Three flags of richness 0.85 to 0.95 appear on the claimed dunes |
+    | Crate of cells | 1 ingot | Fills the engine's store and every energy bot's cells |
+    | Gold gear | 3 bars | Every crab gets the morning bonus at once |
+    | Lucky shell | 4 bars | The next strike on a rich flag (0.75 or more) finds a pearl for sure |
+
+- **The sea turtle.** The first comes at 180 s, then 150 to 270 s after each one leaves.
+  - It swims across low over a claimed dune at 85 units a second. It comes in from the side most travelling crabs are heading away from, and it can turn back once for a passenger it has passed.
+  - It gives one crab a lift: one within 50 units of it (and 160 in depth) heading at least 160 units its way. Crabs with a flat battery or a missing leg are picked first.
+  - It drops the crab where it was going. A ride costs no power and no wear.
 
 ## 18. Crab talk
 
@@ -377,7 +394,7 @@ Crabs speak in emoji sentences: a **thing**, then a **verb**, then sometimes **w
 
 | Things | Verbs |
 | --- | --- |
-| 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, 🌊 tide, 🌩️ storm, 🐙 octopus, 🦪 pearl, 🚢 ship, 🐋 whale, 🏠 den, 🐚 shell, 🔌 plug, 🦀 you/me | ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it/done, 💔 broke, ⛔ full, ❗ found one, ❤️ thanks |
+| 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, 🌊 tide, 🌩️ storm, 🐙 octopus, 🦪 pearl, 🚢 ship, 🐋 whale, 🏠 den, 🐚 shell, 🛒 shop, 🐢 turtle, 🔌 plug, 🦀 you/me | ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it/done, 💔 broke, ⛔ full, ❗ found one, ❤️ thanks |
 
 Examples:
 - 🔋❓ "I need charge". The energy bot that picks it replies 🔋➡️🦀, and the crab says 🔋✅❤️ once charged.
@@ -400,10 +417,11 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Big field | Top bar | Big field (default) or side panel (B); hidden on small screens |
 | ? | Top bar | The introduction, with Listen all (read aloud) |
 | Crew tab | Panel | Hire (+), retire (−), workday, timeline, crab-talk legend |
-| Build tab | Panel | Upgrades, Move buildings, refuel post pinning, den decorations |
+| Build tab | Panel | Upgrades, Move buildings, refuel post pinning, den decorations, the trader's goods |
 | Tech tab | Panel | Research and worker upgrades |
 | Ledger tab | Panel | Money, prices, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away and scroll the field |
 | Click a crab | Field | See what it is doing |
 | Click the octopus | Field | Shoo it |
+| Click the trader | Field | Jump to its goods |
 | Click a locked dune | Field | Jump to the Dune claims upgrade |

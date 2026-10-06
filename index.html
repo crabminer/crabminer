@@ -242,6 +242,9 @@ body.big #t-view{display:block}
 .card.wup{margin-left:.9rem}
 .card.wup h3 .dot{display:inline-block;width:.6rem;height:.6rem;vertical-align:baseline}
 .card.arrange .hire[aria-pressed="true"]{background:var(--mark)}
+.card.trader{border:2px solid var(--mark)}
+.offer{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-top:.45rem;font-size:.76rem;color:var(--ink-soft)}
+.offer b{color:var(--ink)}
 .post-row{margin-top:.45rem;font-size:.78rem;color:var(--ink-soft)}
 .mini.wide{width:auto;padding:0 .5rem;white-space:nowrap;font-size:.76rem;font-weight:700}
 .mini.wide[aria-pressed="false"]{background:var(--mark);color:#fff;border-color:var(--mark)}
@@ -525,11 +528,12 @@ tr[data-say].saying{box-shadow:none}
       <section>
         <h2>Here is why it's fun</h2>
         <ul>
+          <li>Visitors drop by. A hermit-crab trader sets up shop with rare goods, and a sea turtle gives tired crabs a lift.</li>
           <li>The crabs are friends. They talk in emoji, wave, high-five, juggle pebbles when bored, and dance with their neighbours: over fifty little animations.</li>
           <li>It's a tiny city builder on the sea floor. You watch a whole production line come together from nothing.</li>
           <li>No crab takes orders. Each one follows a simple rule, and you balance the crew. Fix the slowest stage and money starts flowing.</li>
           <li>Mining is a gamble. Some holes come up dry, bits snap, legs fall off, and metal prices rise and fall, so no two runs are the same.</li>
-          <li>The sea has a mind of its own. High tide washes free nodules up, low tide buries flags, storms blow through, the lava surges, an octopus sneaks in to steal your ore (click it to shoo it away), cargo ships post orders that pay a premium, whales glide overhead, and now and then a drill strikes a pearl worth a jackpot.</li>
+          <li>The sea has a mind of its own. High tide washes free nodules up, low tide buries flags, storms blow through, the lava surges, an octopus sneaks in to steal your ore (click it to shoo it away), cargo ships post orders that pay a premium, a hermit-crab trader swaps rare goods for bars, a sea turtle gives crabs a lift, whales glide overhead, and now and then a drill strikes a pearl worth a jackpot.</li>
           <li>Crabs ride a thermal vent up the lava column with the bubbles, then swim down and sideways across the dunes. It's quicker than walking, and it's a ride.</li>
           <li>Crabs pull faces. They stick their tongues out while drilling, sweat at the lava, say "ouch!" when a leg comes off, snore through the night shift, and dance when you rank up.</li>
           <li>Climb six ranks from Sand Scraper to Crab Tycoon, then try to get there faster.</li>
@@ -641,7 +645,7 @@ tr[data-say].saying{box-shadow:none}
         <summary>How crabs talk</summary>
         <p class="note">Crabs speak in emoji sentences: a thing, then a verb, then sometimes who, or how they feel.</p>
         <table class="ltable"><tbody>
-          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🚢 ship · 🐋 whale · 🏠 den · 🐚 shell · 🦀 you, me</td></tr>
+          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🚢 ship · 🐋 whale · 🏠 den · 🐚 shell · 🛒 shop · 🐢 turtle · 🦀 you, me</td></tr>
           <tr><th scope="row">Verbs</th><td>❓ I need · 👍 on my way · ➡️ bringing it · ✅ got it, done · 💔 broke · ⛔ full · ❗ found one · ❤️ thanks</td></tr>
           <tr><th scope="row">Examples</th><td>🔋❓ "I need charge". An energy bot answers 🔋➡️🦀, "bringing you charge". Then 🔋✅❤️, "got it, thanks". 🦵💔😭 is a lost leg, and 🧱➡️🔥 is a maintenance bot taking a bar to the forge.</td></tr>
         </tbody></table>
@@ -650,7 +654,9 @@ tr[data-say].saying{box-shadow:none}
     <div class="tabpanel" role="tabpanel" id="p-build" aria-labelledby="t-build" hidden>
       <div class="card arrange"><div class="card-top"><h3>Arrange the line</h3><button type="button" class="hire" id="arrange-btn" aria-pressed="false">Move buildings</button></div><p class="now" id="arrange-note"></p>
         <div class="card-top post-row"><span>Refuel post, on its extension cord from the Stirling engine</span><button type="button" class="mini wide" id="post-btn" aria-pressed="true">Bots move it</button></div>
-        <p class="note" id="decor-note"></p></div>
+        <p class="note" id="decor-note"></p><p class="note" id="spares-note"></p></div>
+      <div class="card trader" id="trader-card" hidden><div class="card-top"><h3>🐚 Hermit-crab trader</h3><span class="note" id="trader-time"></span></div>
+        <p class="now">It swaps goods for bars or ingots while its shop is open.</p><div id="trader-offers"></div></div>
       <div id="cards"></div>
     </div>
     <div class="tabpanel" role="tabpanel" id="p-tech" aria-labelledby="t-tech" hidden>
@@ -811,6 +817,8 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Storms.</span> Five minutes in, and every six to nine minutes after each one ends, a storm blows through for 40 seconds, with a warning 20 seconds ahead. The water darkens, the surface heaves, rain streaks the top of the sea, lightning flashes, and the ship at the top of the riser rocks. Crabs walk at 85% speed against the current, and the riser sends ingots at half speed. Every 8 seconds the storm has a 60% chance to bury a flag nobody is working. But every 4 seconds the waves stir two or three nodules up out of the sand, so a storm is a windfall for a crew with haulers to spare.</p>
     <p><span class="runin">Lava surges.</span> Just over three minutes in, and every five to eight minutes after each one ends, the lava swells for 30 seconds and throws out burning blobs. Smelting and forging take half the time, the Stirling engine makes double charge, and the vent lifts crabs faster. The advisor suggests spending banked overclock then, because the slowest stage of many lines, the lava, is briefly twice as fast.</p>
     <p><span class="runin">Ship orders.</span> Two and a half minutes in, and every three to five minutes after each order closes, a cargo ship sails in over the riser and posts an order. It asks for a little more than the line has been making, 15% over the last minute's rate across a 100-second deadline, between 5 and 40 ingots. Each ingot sent up while the order is open pays a 30% premium. Filling the order pays a bonus of 6 credits an ingot and adds a star of reputation, up to five. Each star adds 5 points to later premiums and 10% to later bonuses. Missing the deadline costs a star. In tests over half an hour, a line left alone filled about 40% of its orders. Dropping the stockpile reserve and spending overclock while an order was open filled nearly half and earned more. Orders added about a sixth to revenue.</p>
+    <p><span class="runin">The hermit-crab trader.</span> Four minutes in, and every four to six minutes after each visit, a hermit crab walks in from the left with a striped market stall on its shell. It keeps shop beside the den for a minute and offers three goods out of six, paid in bars or ingots taken straight off the piles. Spare drill bits or spare legs (two for a bar) let the repair crews skip the walk to the stockpile and the forge. A treasure map (two ingots) plants three rich flags on the claimed dunes. A crate of cells (one ingot) fills the engine and every energy bot. A gold gear (three bars) gives the whole crew the morning bonus at once. A lucky shell (four bars) guarantees a pearl on the next rich strike. The trade is metal for time, and it pays best when a pile is full and the line is waiting on something else.</p>
+    <p><span class="runin">The sea turtle.</span> Three minutes in, and every two and a half to four and a half minutes after that, a sea turtle swims across the dunes at 85 units a second. It comes in from the side the travelling crabs are heading away from, dips to pick up one crab with at least 160 units to go its way (a flat or limping crab first), and can turn back once for a passenger it has just passed. It sets the crab down where it was going. In half-hour tests it gave four to eight lifts.</p>
     <p><span class="runin">Whales.</span> Every two to four minutes a whale glides through the open water, singing. Its shadow sweeps across the dunes, and the crabs beneath it look up and wave. The whale has no effect on the economy.</p>
     <p><span class="runin">The octopus.</span> About a minute and a half in, and every two to three minutes after that, an octopus creeps in from the left. It makes for the ore pile, or, if the pile is empty, for the nodule on the sand nearest the line. It says 🐙🪨❓ as it comes. If a crab is standing within 28 units of its target when it gets there, it flees in a cloud of ink. Otherwise it spends a second and a half grabbing up to two nodules and escapes the way it came. The player can click it at any time to shoo it off. If it is already carrying loot, it drops the loot on the sand. Unguarded, it takes about 15 nodules in half an hour, roughly seven ingots. That is less a drain than a reason to watch the field.</p>
     <p><span class="runin">Pearls.</span> A strike on a flag of richness 0.75 or more turns up a pearl one time in 25. A pearl is a jackpot paid in credits straight away: 60 on the front dune, 90 on the middle, and 130 on the back. It counts toward rank, and the pearl floats up the riser to fanfare. Over half an hour with all three dunes claimed, a mid-sized crew found four or five pearls worth 390 to 540 credits. That is a fair reward for scouting deep and drilling rich.</p>
@@ -959,6 +967,18 @@ function CrabSim() {
     SURGE_FIRST: 200, SURGE_EVERY: [300, 480], SURGE_TIME: 30, SURGE_SPEED: 2,
     // ship orders: a cargo ship wants a batch of ingots by a deadline; it pays a premium on each one and a bonus
     // for the lot, and a good record (reputation, up to five stars) raises the premium on later orders
+    // the hermit-crab trader: walks in every few minutes, sets up shop for a minute, and swaps goods for bars or ingots
+    TRADER_FIRST: 240, TRADER_EVERY: [240, 360], TRADER_STAY: 60, TRADER_SPOT: 500, TRADER_SPEED: 40,
+    TRADES: {
+      bits: { pay: { bars: 1 } },     // two spare drill bits: repair bots fit them without going to the forge
+      legs: { pay: { bars: 1 } },     // two spare legs, the same for maintenance bots
+      map: { pay: { ingots: 2 } },    // a treasure map: three rich flags appear on the claimed dunes
+      cells: { pay: { ingots: 1 } },  // a crate of cells: the engine's store and every energy bot filled up
+      gear: { pay: { bars: 3 } },     // a gold gear: the whole crew gets a morning bonus right away
+      lucky: { pay: { bars: 4 } }     // a lucky shell: the next strike on a rich flag finds a pearl for sure
+    },
+    // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
+    TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
     VENT_IN: 880, VENT_X: 918,   // where crabs step into the thermal vent, and the column it rises in
     DEPTH: 300,          // crossing the dunes from the back crest to the front costs as much as 300 units of track
@@ -1037,7 +1057,7 @@ function CrabSim() {
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'orderCredits', 'decorations',
-    'backup', 'nightFlags'];
+    'backup', 'nightFlags', 'trades', 'turtleRides'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
 
@@ -1089,7 +1109,8 @@ function CrabSim() {
       tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST,
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
-      order: null, nextOrder: K.ORDER_FIRST, rep: 0, decor: [], decorWork: 0, decorTheme: null,
+      order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
+      turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -1149,6 +1170,7 @@ function CrabSim() {
     var j = S.docks.indexOf(c); if (j >= 0) S.docks.splice(j, 1);
     if (S.post.carrier === c) { S.post.carrier = null; S.post.moved = S.t; }
     if (c.dance) { if (c.dance.dance === c) c.dance.dance = null; c.dance = null; }
+    if (c.turtle) { c.turtle.rider = null; c.turtle = null; }
   }
   function removeCrab(role) {
     var i, c = null, j;
@@ -1236,6 +1258,8 @@ function CrabSim() {
 
   // walk along the track (x) and up or down the dunes (d); true once there
   function moveTo(c, tx, td, speed) {
+    if (!c.goal) c.goal = {};
+    c.goal.x = tx; c.goal.d = td; c.goal.t = S.t;            // where it is heading this step
     var crest = Math.abs(c.d - 1 / 3) < K.CREST || Math.abs(c.d - 2 / 3) < K.CREST;
     var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1) * (S.storm ? K.STORM_WALK : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
     if (Math.abs(dx) > 0.5) {
@@ -1360,7 +1384,8 @@ function CrabSim() {
         if (sr() < q) {
           S.stat.strikes++;
           c.nod.alive = true; c.nod.eddy = -1; emit('strike', c, c.nod);
-          if (c.flag && !c.flag.gone && c.flag.q >= K.PEARL_Q && sr() < K.PEARL_CHANCE) {   // a pearl in the rich sand: jackpot
+          if (c.flag && !c.flag.gone && c.flag.q >= K.PEARL_Q && (S.luckyPearls > 0 || sr() < K.PEARL_CHANCE)) {
+            if (S.luckyPearls > 0) S.luckyPearls--;   // a pearl in the rich sand: jackpot
             var pv = K.PEARL_VALUE[c.flag.zone || 0];
             S.credits += pv; S.earned += pv; S.stat.pearls++; S.stat.pearlCredits += pv;
             emit('pearl', c, pv); inspire('pearlLamp'); ranks();
@@ -1500,7 +1525,7 @@ function CrabSim() {
           S.post.carrier = null; S.post.moved = S.t; S.post.home = { x: S.post.x, d: S.post.d }; S.post.warned = false;
           c.state = 'idle'; emit('postMoved', c);
         }
-        S.post.x = c.x + 8; S.post.d = c.d;
+        S.post.x = c.x + 8; S.post.d = clamp(c.d, 0.72, 0.97);   // the post stays on the front dune
       }
     } else if (c.state === 'queue') {
       if (S.post.carrier) return;                              // the post is on the move: wait for it
@@ -1641,7 +1666,11 @@ function CrabSim() {
       }
       if (!best) { if (!tryBackup(c)) moveTo(c, S.pos.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, spd(c)); return; }
       best[F.claim] = c; c.target = best;
-      c.state = c.carry === F.part ? 'toJob' : (c.carry === F.raw ? (has(F.pocket) ? 'fetch' : 'toForge') : 'toMat');
+      var spare = c.role === 'repair' ? 'bit' : 'leg';
+      if (c.carry === F.part) c.state = 'toJob';
+      else if (c.carry === F.raw) c.state = has(F.pocket) ? 'fetch' : 'toForge';
+      else if (S.spares[spare] > 0) { S.spares[spare]--; c.carry = F.part; c.state = 'toJob'; emit('spareUsed', c); }   // a spare from the trader
+      else c.state = 'toMat';
     }
     if (c.state === 'toMat') {
       if (moveTo(c, F.at(), 0.95, spd(c))) { c.state = 'fetch'; c.timer = K.T_FETCH; }
@@ -1756,6 +1785,7 @@ function CrabSim() {
         if (onDuty(c)) { c.state = RESUME[c.role]; emit('wake', c); }
         continue;
       }
+      if (c.turtle) { c.floating = true; continue; }          // riding the turtle: nothing to do but enjoy it
       if (!isHeld(c)) (BACK[c.state] ? backupHaul : RULES[c.role])(c);
       if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
         if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, spd(c));
@@ -1773,6 +1803,8 @@ function CrabSim() {
     sea();
     driftPost();
     octopus();
+    turtle();
+    trader();
     if (S.si.day !== S.day) morning();
     S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * dt / 60);   // lava heat drives the Stirling engine
     weather();
@@ -1909,6 +1941,102 @@ function CrabSim() {
     }
     if (!S.lavaSurge && S.t >= S.lavaAt) { S.lavaSurge = true; S.lavaEnd = S.t + K.SURGE_TIME; S.stat.surges++; emit('lavaStart'); }
     if (S.lavaSurge && S.t >= S.lavaEnd) { inspire('lavaLamp'); S.lavaSurge = false; S.lavaAt = S.t + srr(K.SURGE_EVERY[0], K.SURGE_EVERY[1]); emit('lavaEnd'); }
+  }
+  // The sea turtle swims straight across, low over one of the claimed dunes. It picks up the first crab it
+  // passes that has a long way to go in the turtle's direction (a crab that is flat or limping first) and
+  // drops it where it was going.
+  function turtle() {
+    var tu = S.turtle, i, c, best = null, bs = -1, dist, score, z, f;
+    if (!tu) {
+      if (S.t < S.nextTurtle) return;
+      z = K.ZONES[Math.floor(sr() * up('field'))];
+      var dir = sr() < 0.5 ? 1 : -1, lean = 0;
+      for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.goal && c.goal.t === S.t && Math.abs(c.goal.x - c.x) >= K.TURTLE_MIN_TRIP) lean += Math.sign(c.goal.x - c.x); }
+      if (lean) dir = lean > 0 ? 1 : -1;                     // come in from the side the crabs are travelling from
+      S.turtle = { x: dir > 0 ? -60 : K.END + 60, d: srr(z.d0, z.d1), dir: dir, rider: null, turned: false };
+      emit('turtleArrive', S.turtle);
+      return;
+    }
+    tu.x += tu.dir * K.TURTLE_SPEED * dt;
+    if (!tu.rider) {
+      for (i = 0; i < S.crabs.length; i++) {             // look ahead for the crab that would gain most from a lift
+        c = S.crabs[i];
+        if (c.state === 'sleep' || c.air || c.turtle || isHeld(c) || !c.goal || c.goal.t !== S.t) continue;
+        var ahead = (c.x - tu.x) * tu.dir;
+        if (ahead < -K.TURTLE_REACH || ahead > 400) {
+          if (!tu.turned && ahead < 0 && ahead > -300 && (c.goal.x - c.x) * -tu.dir >= K.TURTLE_MIN_TRIP) { tu.dir = -tu.dir; tu.turned = true; emit('turtleTurn', tu); }   // turn back for it, once
+          continue;
+        }
+        dist = (c.goal.x - c.x) * tu.dir;
+        if (dist < K.TURTLE_MIN_TRIP) continue;
+        score = dist + (c.limp ? 400 : 0) + (c.bat < K.LOW ? 400 : 0) - ahead * 0.5;
+        if (score > bs) { bs = score; best = c; }
+      }
+      if (best) tu.d += clamp(best.d - tu.d, -0.6 * dt, 0.6 * dt);            // steer toward it
+      if (best && (Math.abs(best.x - tu.x) > K.TURTLE_REACH || Math.abs(best.d - tu.d) * K.DEPTH > K.TURTLE_DIP)) best = null;
+      if (best) {
+        if (best.dance) { best.dance.dance = null; best.dance = null; }
+        tu.rider = best; best.turtle = tu; best.ride = { x0: best.x, d0: best.d, gx: best.goal.x, gd: best.goal.d };
+        S.stat.turtleRides++; emit('turtlePick', best, tu);
+      }
+    } else {
+      c = tu.rider;
+      f = clamp((tu.x - c.ride.x0) / ((c.ride.gx - c.ride.x0) || 1), 0, 1);
+      c.x = clamp(tu.x, 0, K.END); c.d = c.ride.d0 + (c.ride.gd - c.ride.d0) * f; c.dir = tu.dir; tu.d = c.d;
+      if ((tu.dir > 0 && tu.x >= c.ride.gx) || (tu.dir < 0 && tu.x <= c.ride.gx)) {
+        c.x = c.ride.gx; c.d = c.ride.gd; c.turtle = null; c.ride = null; tu.rider = null;
+        emit('turtleDrop', c, tu);
+      }
+    }
+    if (tu.x < -80 || tu.x > K.END + 80) {
+      if (tu.rider) { c = tu.rider; c.x = clamp(c.x, K.FIELD0, K.STIRLING - 40); c.turtle = null; c.ride = null; emit('turtleDrop', c, tu); }
+      S.turtle = null; S.nextTurtle = S.t + srr(K.TURTLE_EVERY[0], K.TURTLE_EVERY[1]);
+      emit('turtleGone');
+    }
+  }
+  // The hermit-crab trader walks in from the left, keeps shop beside the den for a minute with three goods
+  // out of six, and walks off again.
+  function trader() {
+    var tr = S.trader, keys, offers = [], i, j;
+    if (!tr) {
+      if (S.t < S.nextTrader) return;
+      keys = Object.keys(K.TRADES);
+      while (offers.length < 3) { j = keys[Math.floor(sr() * keys.length)]; if (offers.indexOf(j) < 0) offers.push(j); }
+      S.trader = { x: -40, d: 0.9, state: 'come', offers: offers, sold: {}, until: 0 };
+      emit('traderArrive', S.trader);
+      return;
+    }
+    if (tr.state === 'come') {
+      tr.x += K.TRADER_SPEED * dt;
+      if (tr.x >= K.TRADER_SPOT) { tr.x = K.TRADER_SPOT; tr.state = 'stay'; tr.until = S.t + K.TRADER_STAY; emit('traderOpen', tr); }
+    } else if (tr.state === 'stay') {
+      if (S.t >= tr.until) { tr.state = 'leave'; emit('traderLeave', tr); }
+    } else {
+      tr.x -= K.TRADER_SPEED * dt;
+      if (tr.x < -60) { S.trader = null; S.nextTrader = S.t + srr(K.TRADER_EVERY[0], K.TRADER_EVERY[1]); }
+    }
+  }
+  function trade(id) {                     // swap bars or ingots for one of the trader's goods
+    var tr = S.trader, T = K.TRADES[id], i, p, z;
+    if (!tr || tr.state !== 'stay' || !T || tr.offers.indexOf(id) < 0 || tr.sold[id]) return 'closed';
+    if ((T.pay.bars || 0) > S.bars || (T.pay.ingots || 0) > S.stock) return 'short';
+    S.bars -= T.pay.bars || 0; S.stock -= T.pay.ingots || 0;
+    if (id === 'bits') S.spares.bit += 2;
+    else if (id === 'legs') S.spares.leg += 2;
+    else if (id === 'map') {
+      for (i = 0; i < 3; i++) {
+        p = spot(); z = zoneOf(p.d);
+        S.flags.push({ id: S.nextId++, x: p.x, d: p.d, q: srr(0.85, 0.95), size: 3 + K.ZONES[z].size, by: null, zone: z, born: S.t, map: true });
+      }
+    } else if (id === 'cells') {
+      S.heat = K.HEAT_CAP;
+      for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].role === 'energy') S.crabs[i].charges = charges();
+    } else if (id === 'gear') {
+      for (i = 0; i < S.crabs.length; i++) S.crabs[i].fresh = K.MORNING_TIME;
+    } else if (id === 'lucky') S.luckyPearls++;
+    tr.sold[id] = true; S.stat.trades++;
+    emit('trade', id, tr);
+    return true;
   }
   function shoo() {                        // the player chases the octopus off; it drops whatever it took
     var o = S.octo, i;
@@ -2099,7 +2227,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, trade: trade, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }
@@ -2126,7 +2254,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
+  var traderBubble = 0, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -2281,7 +2409,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
   var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
     '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
-    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den' };
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -2447,6 +2575,20 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       case 'backup':
         say(a, a.role === 'drill' && !a.bitOk ? '⛏️💔🪨👍' : '🪨👍', 1.6);
         break;
+      case 'traderArrive': toast('A hermit-crab trader is coming', 'It keeps shop by the den for a minute. Its goods are in the Build tab.'); break;
+      case 'traderOpen':
+        near(K.TRADER_SPOT, 120).forEach(function (n) { play(n, ['wave', 'sparkleEyes'], 1.4); });
+        traderBubble = T + 3;
+        break;
+      case 'trade':
+        var tp = traderPos(); spark(tp.x, tp.y - 30 * CS, 14, pal.ingot);
+        toast('Swapped: ' + TRADE_INFO[a][0], TRADE_INFO[a][1]); traderBubble = T + 2;
+        if (a === 'map') S.flags.forEach(function (f) { if (f.map && !f.vborn) { f.vborn = T; var fx = X(f.x); rings.push({ x: fx, y: groundY(fx, f.d), t: 0, c: pal.ingot }); } });
+        break;
+      case 'spareUsed': say(a, a.role === 'repair' ? '🛒⛏️👍' : '🛒🦵👍', 1.6); break;
+      case 'turtleArrive': if (!turtleToast) { turtleToast = true; toast('A sea turtle is passing', 'It gives a crab with a long way to go a lift across the dunes.'); } break;
+      case 'turtlePick': say(a, '🐢😆', 2); a.vhop = 1; break;
+      case 'turtleDrop': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.6); say(a, '🐢❤️', 1.6); play(a, ['bow', 'wave', 'hopJoy'], 1.4); break;
       case 'decor':
         var ds = decorSlot(S.decor.length - 1);
         spark(ds.x, ds.y - 8 * CS, 12, pal.light); poof(ds.x, ds.y, 6, 0.5);
@@ -3296,6 +3438,44 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     ctx.restore();
   }
+  function traderPos() { var tr = S.trader, px = X(tr ? tr.x : K.TRADER_SPOT); return { x: px, y: groundY(px, 0.9) }; }
+  function drawTrader() {                // a hermit crab with a market stall on its shell
+    var tr = S.trader; if (!tr) return;
+    var p = traderPos(), s = scaleAt(0.9), walking = tr.state !== 'stay', dir = tr.state === 'leave' ? -1 : 1, i, bob = walking ? Math.abs(Math.sin(T * 8)) * 1.5 : Math.sin(T * 2) * 0.5;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s * dir, s); ctx.lineCap = 'round';
+    ctx.strokeStyle = '#a2523a'; ctx.lineWidth = 1.8;                      // legs
+    for (i = -2; i <= 2; i++) { var lf = walking ? Math.max(0, Math.sin(T * 9 + i)) * 3 : 0; ctx.beginPath(); ctx.moveTo(i * 4, -6 - bob); ctx.lineTo(i * 6, -lf); ctx.stroke(); }
+    ctx.fillStyle = '#f0a07a'; ctx.beginPath(); ctx.ellipse(10, -8 - bob, 7, 5, 0, 0, TAU); ctx.fill();   // its face peeking out
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12, -14 - bob, 2.2, 0, TAU); ctx.arc(16, -13 - bob, 2.2, 0, TAU); ctx.fill();
+    ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(12.6, -14 - bob, 1, 0, TAU); ctx.arc(16.6, -13 - bob, 1, 0, TAU); ctx.fill();
+    ctx.strokeStyle = pal.pupil; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(14, -8 - bob, 2.2, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+    ctx.fillStyle = '#e7d3b0'; ctx.beginPath(); ctx.ellipse(-4, -16 - bob, 15, 12, -0.2, 0, TAU); ctx.fill();   // the spiral shell
+    ctx.strokeStyle = '#b08d5a'; ctx.lineWidth = 1.3; ctx.beginPath();
+    for (i = 0; i <= 22; i++) { var th = i * 0.55, rad = 11 - i * 0.45; ctx.lineTo(-4 + Math.cos(th) * rad, -16 - bob + Math.sin(th) * rad * 0.8); } ctx.stroke();
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-14, -26 - bob); ctx.lineTo(-14, -42 - bob); ctx.moveTo(6, -26 - bob); ctx.lineTo(6, -42 - bob); ctx.stroke();   // the stall
+    for (i = 0; i < 5; i++) { ctx.fillStyle = i % 2 ? '#fff' : pal.mark; ctx.fillRect(-16 + i * 4.6, -46 - bob, 4.6, 5); }
+    drawBar(-8, -30 - bob, 0.7, 0); drawIngot(1, -31 - bob, 0.6);
+    ctx.restore();
+    if (tr.state === 'stay' || T < traderBubble) drawBubble(p.x + 18 * s, p.y - 58 * s, emojiOK ? '🐚🛒❓' : spoken('🐚🛒❓'), s, 1, true);
+  }
+  function turtlePos() { var tu = S.turtle, px = X(tu.x), gy = groundY(px, clamp(tu.d, 0.02, 0.98)); return { x: px, y: gy - 26 * CS + Math.sin(T * 2) * 3 * CS }; }
+  function drawTurtle() {                // a sea turtle paddling low over the sand
+    var tu = S.turtle; if (!tu) return;
+    var p = turtlePos(), s = CS * 1.2, f = Math.sin(T * 5), gx = p.x, gy = groundY(p.x, clamp(tu.d, 0.02, 0.98));
+    ctx.save(); ctx.fillStyle = 'rgba(8,24,40,.18)'; ctx.beginPath(); ctx.ellipse(gx, gy, 24 * s, 5 * s, 0, 0, TAU); ctx.fill(); ctx.restore();   // its shadow
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(tu.dir * s, s);
+    ctx.fillStyle = '#5c9a6a';
+    ctx.beginPath(); ctx.ellipse(-8, 6, 9, 3, 0.5 + f * 0.4, 0, TAU); ctx.fill();   // flippers
+    ctx.beginPath(); ctx.ellipse(10, 6, 10, 3, -0.5 - f * 0.4, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-18, 2, 4, 2, 0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#7fb98a'; ctx.beginPath(); ctx.ellipse(24, -1, 6, 4.5, 0, 0, TAU); ctx.fill();   // head
+    ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(26, -2.5, 1.1, 0, TAU); ctx.fill();
+    ctx.strokeStyle = pal.pupil; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(26, 0.5, 2, 0.1 * Math.PI, 0.8 * Math.PI); ctx.stroke();
+    ctx.fillStyle = '#3f7a52'; ctx.beginPath(); ctx.ellipse(0, 0, 20, 10, 0, Math.PI, TAU); ctx.lineTo(20, 2); ctx.lineTo(-20, 2); ctx.closePath(); ctx.fill();   // shell
+    ctx.strokeStyle = '#9fd1a6'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-10, -1); ctx.lineTo(-5, -7); ctx.lineTo(5, -7); ctx.lineTo(10, -1); ctx.moveTo(-5, -7); ctx.lineTo(0, -1); ctx.lineTo(5, -7); ctx.stroke();
+    ctx.restore();
+  }
   function drawStorm() {                 // dark water, slanting rain at the surface, and the odd flash of lightning
     if (stormA < 0.02 && flash < 0.02) return;
     ctx.save();
@@ -3496,6 +3676,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     var waiting = !c.moving && !c.working, m = c.vx && T < c.vx.until ? c.vx.name : null;
     if (c.vfall > 0) return { eye: 'wide', mouth: 'o', arms: 'up' };
     if (c.state === 'sleep') return { eye: 'closed', mouth: 'o', glyph: 'z', sleep: true, tilt: 0.12 };
+    if (c.turtle) return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 3 + c.vph) * 0.12 };   // riding the turtle
     if (c.air && c.air.phase === 'rise') return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 4 + c.vph) * 0.25 };
     if (c.air && c.air.phase === 'glide') return { eye: 'wide', mouth: 'open', swim: true, tilt: -0.35 };
     if (T < partyUntil) return { eye: 'happy', mouth: 'open', party: true };
@@ -3657,6 +3838,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     if (c.state === 'crush') px += Math.sin(T * 47) * 0.35;
     if (c.role === 'energy' && c.broken) px += Math.sin(T * 23) * 0.6;
     if (airborne) { ap = airPos(c); px = ap.x; gy = ap.y + 9 * s; moving = true; }
+    if (c.turtle && S.turtle) { var tp2 = turtlePos(); px = tp2.x; gy = tp2.y - 6 * CS; moving = false; }
     bob = moving ? Math.sin(c.vgait * 2) * 0.7 : Math.sin(T * 2 + c.vph) * 0.35;   // walking bob, or slow breathing
     if (c.limp && c.moving) bob += Math.abs(Math.sin(c.vgait)) * 1.8 * s;          // a hobble
     by = gy - (f.sleep ? 6 : 9) * s + bob;
@@ -3929,10 +4111,11 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
     for (i = 0; i < S.flags.length; i++) { o = S.flags[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.01, kind: 1, o: o }); }
     var air = [];
-    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
+    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0 || o.turtle) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
     for (i = 0; i < debris.length; i++) { o = debris[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.02, kind: 3, f: drawDebris.bind(null, o) }); }
     layers[2].push({ y: basePos().y, kind: 3, f: drawBase });
     layers[2].push({ y: postPos().y, kind: 3, f: drawPost });
+    if (S.trader) layers[2].push({ y: traderPos().y, kind: 3, f: drawTrader });
     layers[2].push({ y: groundY(X(S.pos.ORE), 0.8), kind: 3, f: drawOrePile });
     layers[2].push({ y: groundY(X(S.pos.BAR), 0.78), kind: 3, f: drawBarStack });
     layers[2].push({ y: groundY(X(S.pos.STOCK), 0.84), kind: 3, f: drawStockpile });
@@ -3959,7 +4142,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     drawTideCurrents(); drawWhaleShadow(); drawInk();
     drawRings(); drawFlights();
-    for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent are above everything
+    drawTurtle();
+    for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent or the turtle are above everything
     drawNight(); drawStorm(); drawGlow(); drawBombs(); drawBubbles(); drawParticles(); drawFloaters();
   }
 
@@ -4000,8 +4184,17 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
     shift: $('h-shift'), shiftLeft: $('h-shift-left'), flow: $('h-flow'), flowNote: $('h-flow-note'), oc: $('oc-btn'), ocLabel: $('oc-label'), ocBar: $('oc-bar'),
     order: $('h-order'), orderN: $('h-order-n'), orderT: $('h-order-t'), orderBar: $('h-order-bar'),
-    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), panRange: $('pan-range'), tech: $('techs'), arrangeBtn: $('arrange-btn'), arrangeNote: $('arrange-note'), postBtn: $('post-btn'), decor: $('decor-note')
+    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), panRange: $('pan-range'), tech: $('techs'), arrangeBtn: $('arrange-btn'), arrangeNote: $('arrange-note'), postBtn: $('post-btn'), decor: $('decor-note'), traderCard: $('trader-card'), traderOffers: $('trader-offers'), traderTime: $('trader-time'), spares: $('spares-note')
   };
+  var TRADE_INFO = {
+    bits: ['Spare drill bits ×2', 'Repair bots fit them straight away, no trip to the forge.'],
+    legs: ['Spare legs ×2', 'Maintenance bots fit them straight away.'],
+    map: ['Treasure map', 'Three rich flags appear on your dunes.'],
+    cells: ['Crate of cells', 'Fills the Stirling engine\'s store and every energy bot.'],
+    gear: ['Gold gear', 'The whole crew gets the morning bonus now.'],
+    lucky: ['Lucky shell', 'The next strike on a rich flag finds a pearl.']
+  };
+  function priceText(pay) { return pay.bars ? pay.bars + ' bar' + (pay.bars > 1 ? 's' : '') : pay.ingots + ' ingot' + (pay.ingots > 1 ? 's' : ''); }
   var TECH_INFO = {
     sonar: { name: 'Sonar lab', note: 'Unlocks scout upgrades.' },
     metallurgy: { name: 'Metallurgy', note: 'Unlocks drill and smelter upgrades.' },
@@ -4107,6 +4300,16 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.arrangeNote.textContent = arrange ? (pick === 'post' ? 'Now tap the front dune where the refuel post should go.' : pick ? 'Now tap the plot to move the ' + BLD_NAMES[pick].toLowerCase() + ' to.' : 'Tap a building, or the refuel post, to pick it up.') : 'The line\'s buildings stand on plots along the front dune. Shorter walks between them mean more metal.';
     ui.decor.innerHTML = '<b>Den decorations: ' + S.decor.length + ' of ' + sim.decorMax() + '</b>' + (S.decor.length ? ' · ' + S.decor.map(function (d) { return DECOR_NAMES[d.kind]; }).join(', ') : '') +
       '<br>Morning bonus ' + Math.round((K.MORNING_BONUS - 1 + S.decor.length * K.DECOR_MORNING) * 100) + '% for ' + (K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME) + ' s; dancing recharges ' + Math.round(S.decor.length * K.DECOR_DANCE * 100) + '% faster. Idle crabs make more, up to the den\'s room.';
+    var tr = S.trader, open = tr && tr.state === 'stay';
+    ui.traderCard.hidden = !tr;
+    if (tr) {
+      ui.traderTime.textContent = open ? 'open ' + fmtTime(tr.until - S.t) : (tr.state === 'come' ? 'on the way' : 'leaving');
+      ui.traderOffers.innerHTML = tr.offers.map(function (id) {
+        var T = K.TRADES[id], short = (T.pay.bars || 0) > S.bars || (T.pay.ingots || 0) > S.stock, sold = tr.sold[id];
+        return '<div class="offer"><span><b>' + TRADE_INFO[id][0] + '</b><br>' + TRADE_INFO[id][1] + '</span><button type="button" class="hire" data-trade="' + id + '"' + (!open || sold || short ? ' disabled' : '') + '>' + (sold ? 'Swapped' : 'Swap ' + priceText(T.pay)) + '</button></div>';
+      }).join('');
+    }
+    ui.spares.textContent = (S.spares.bit || S.spares.leg || S.luckyPearls) ? 'In stock from the trader: ' + S.spares.bit + ' spare bit' + (S.spares.bit === 1 ? '' : 's') + ', ' + S.spares.leg + ' spare leg' + (S.spares.leg === 1 ? '' : 's') + (S.luckyPearls ? ', a lucky shell' : '') + '.' : '';
     ui.postBtn.textContent = S.post.auto ? 'Bots move it' : 'Pinned';
     ui.postBtn.setAttribute('aria-pressed', String(S.post.auto));
     for (i = 0; i < cards.length; i++) {
@@ -4159,6 +4362,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     if (sim.pattern() && S.scoutsNight && !S.si.night && !S.flags.length && !sim.has('flagBundle') && sim.counts().scout)
       return 'Advisor: <b>The drills have run out of flags.</b> Your scouts work nights. Give them a bigger flag bundle in the Tech tab (Sonar lab), or untick "Scouts work the night".';
+    if (S.trader && S.trader.state === 'stay') return 'Advisor: <b>The hermit-crab trader is open for ' + fmtTime(S.trader.until - S.t) + '.</b> Swap bars or ingots for its goods in the Build tab.';
     if (S.storm) return 'Advisor: <b>Storm!</b> Everyone walks slower and the riser sells at half speed, but the waves are turning up free nodules. Let the haulers gather them.';
     if (S.lavaSurge) return 'Advisor: <b>Lava surge!</b> Smelting and forging run twice as fast and the engine makes double charge.' + (S.ocBank >= 5 && !S.oc ? ' Overclock now to make the most of it.' : '');
     if (waitMetal && S.stock === 0) return 'Advisor: <b>Repairs are stuck.</b> A repair bot is waiting at an empty stockpile. Keep more ingots back with the + beside the stockpile.';
@@ -4272,6 +4476,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       '<tr><th scope="row">Washed up / buried</th><td class="n">' + S.stat.washed + ' nodules / ' + S.stat.buried + ' flags</td></tr>' +
       '<tr><th scope="row">Octopus</th><td class="n">' + S.stat.octopi + ' visits, ' + S.stat.stolen + ' nodules stolen, ' + S.stat.shooed + ' shooed' + (S.octo ? ' (one is here now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Weather</th><td class="n">' + S.stat.storms + ' storms, ' + S.stat.surges + ' lava surges' + (S.storm ? ' (storm now)' : S.lavaSurge ? ' (surge now)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Trader</th><td class="n">' + S.stat.trades + ' swaps; spares: ' + S.spares.bit + ' bits, ' + S.spares.leg + ' legs' + (S.trader ? ' (in town now)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Sea turtle</th><td class="n">' + S.stat.turtleRides + ' rides given</td></tr>' +
       '<tr><th scope="row">Den</th><td class="n">' + S.decor.length + ' of ' + sim.decorMax() + ' decorations</td></tr>' +
       '<tr><th scope="row">Ship orders</th><td class="n">' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' filled, ' + money(S.stat.orderCredits) + ' in premiums and bonuses, reputation ' + '★'.repeat(S.rep) + '☆'.repeat(K.REP_MAX - S.rep) + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
@@ -4365,6 +4571,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     });
     ui.arrangeBtn.addEventListener('click', function () { arrange = !arrange; pick = null; renderPanel(); draw(); });
     ui.postBtn.addEventListener('click', function () { sim.setPostAuto(!S.post.auto); renderPanel(); });
+    ui.traderOffers.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || b.disabled) return;
+      if (sim.trade(b.getAttribute('data-trade')) === true) {} sim.drain().forEach(handle); renderPanel(); renderHUD();
+    });
     Array.prototype.forEach.call(document.querySelectorAll('[data-work]'), function (b) {
       b.addEventListener('click', function () {
         var k = b.getAttribute('data-work'), d = parseInt(b.getAttribute('data-d'), 10), o = {};
@@ -4417,6 +4627,13 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     });
     cv.addEventListener('click', function (e) {
       var rect = cv.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top, bestC = null, bd = 1e9, i, c, px, py, d, z;
+      if (S.trader) {                     // the trader: show its goods
+        var trp = traderPos();
+        if (Math.abs(trp.x - x) < 26 * CS && y > trp.y - 60 * CS && y < trp.y + 6) {
+          selectTab('t-build'); ui.traderCard.classList.remove('flash'); void ui.traderCard.offsetWidth; ui.traderCard.classList.add('flash'); ui.traderCard.scrollIntoView({ block: 'nearest' });
+          return;
+        }
+      }
       if (S.octo) {                       // shoo the octopus
         var opp = octoPos(), op = opp.x, oy = opp.y - 14 * scaleAt(S.octo.d) * 1.15;
         if (Math.hypot(op - x, oy - y) < 32 * CS) { sim.shoo(); sim.drain().forEach(handle); return; }

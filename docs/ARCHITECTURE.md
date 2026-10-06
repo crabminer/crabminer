@@ -137,6 +137,7 @@ off.
 | Power | `docks[]` (bots plugged in), `post{x,d,auto,carrier,moved,home,drift,warned}` |
 | Sea | `tide`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order`, `nextOrder`, `rep` |
 | Den | `decor[]`, `decorWork`, `decorTheme` |
+| Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle` |
 | Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes) |
 
 **A crab** is a plain object:
@@ -149,6 +150,7 @@ off.
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
 | Claims | `claimedBy` (energy bot coming), `fixBy`, `mendBy` (repair and maintenance bots coming) |
 | Rest | `lastRest`, `rested`, `fresh` (morning bonus seconds left), `dance` (partner) |
+| Travel | `goal{x,d,t}` (where `moveTo` last headed; the turtle reads it), `turtle`, `ride` (lift in progress) |
 | Per-step flags | `moving`, `working`, `floating` |
 
 The view adds its own fields to crabs. Their names start with `v` (for example `vx`,
@@ -176,7 +178,8 @@ Every 1/60 s of crab time, in this order:
       night battery), and roll for a lost leg. If it was idle, shed idle wear.
 3. `dance()`: pair idle neighbours, apply recharge and rest, and `craft()` den decorations
    from idle time.
-4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`.
+4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `turtle()`; `trader()`.
+   Crabs riding the turtle skip their own rules for the step.
 5. `morning()` when the day number changes (fresh starts, `dawn`).
 6. The engine's store gains heat; `weather()` (storms, lava surges, ship orders).
 7. `sell()`: the riser timer, flow streak, order premium and bonus, overclock banking,
@@ -244,6 +247,8 @@ resumes the role.
 - `octopus()` runs the octopus: `come → grab → flee`, with `octoTarget()` and `crabNear()`.
 - `shoo()` is the player chasing it off.
 - `weather()` runs storms, lava surges and ship orders.
+- `turtle()` runs the turtle: it chooses its side, looks ahead for the crab that would gain most from a lift, steers toward it, may turn back once, carries the crab to its goal, and leaves.
+- `trader()` runs the trader: `come → stay → leave`, with three offers drawn from `K.TRADES`. `trade(id)` takes payment and delivers the good. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
 
 **Market and money.**
 - `market()` sets the price.
@@ -273,6 +278,7 @@ notifications only: the sim never depends on anyone reading them.
 | Movement | `ride`, `land` |
 | Bonuses | `ocStart`, `ocEnd`, `flowLost` |
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
+| Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone` |
 | Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `orderStart`, `orderDone`, `orderFail` |
 
 ### 4.8 Public API
@@ -284,7 +290,7 @@ notifications only: the sim never depends on anyone reading them.
 | Build | `buy(id)`, `upgradeCost(id)`, `up(id)`, `place(building, plot)`, `placePost(x, d)`, `setPostAuto(on)`, `postTarget()` |
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
-| Play | `setReserve(n)`, `overclock(on)`, `shoo()` |
+| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `trade(id)` |
 | Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
@@ -340,9 +346,9 @@ The canvas is drawn in painter's order:
    4. A roped-off overlay if the dune is unclaimed.
    5. Everything standing on that dune, sorted by screen y: nodules, flags, crabs,
       buildings, the base, the post, the den, and debris.
-   6. On k = 2: energy-bot cables and the octopus.
+   6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
-4. Crabs in the air, riding the vent.
+4. The sea turtle, then crabs in the air, riding the vent or the turtle.
 5. Night shade with lamps, the storm overlay, lava glow, lava bombs, bubbles, particles, and
    floaters.
 
@@ -403,19 +409,21 @@ dances used by pairs.
   `coverage()` and `S.stat`, plus an SVG sparkline of the price.
 - **Advisor:** `advice()` picks one message, in priority order:
   1. octopus
-  2. ship order
-  3. storm, then lava surge
-  4. night-scout tip
-  5. repairs stuck
-  6. coverage gap
-  7. bottleneck
-  8. wear and overclock hints
+  2. trader open
+  3. ship order
+  4. storm, then lava surge
+  5. night-scout tip
+  6. repairs stuck
+  7. coverage gap
+  8. bottleneck
+  9. wear and overclock hints
 - **Input:** buttons call the sim API, then `sim.drain().forEach(handle)`, then re-render.
   Canvas clicks are handled in this order:
-  1. shoo the octopus
-  2. arrange mode: pick up and set down buildings or the post
-  3. pick a crab to show its status
-  4. a locked dune, which jumps to its upgrade
+  1. the trader (opens its goods in the Build tab)
+  2. shoo the octopus
+  3. arrange mode: pick up and set down buildings or the post
+  4. pick a crab to show its status
+  5. a locked dune, which jumps to its upgrade
 - **Keys:** Space (pause), O (overclock), B (big field), Escape (close the intro or leave
   arrange mode).
 - **Storage:** `localStorage` keeps `crabminer-best` (best Tycoon time), `crabminer-big`

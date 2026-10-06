@@ -34,6 +34,7 @@
     names.forEach(function (n) { pal[n.replace(/-(\w)/g, function (m, c) { return c.toUpperCase(); })] = cssVar('--c-' + n); });
     pal.ink = cssVar('--ink'); pal.paper = cssVar('--paper'); pal.mark = cssVar('--mark');
     makeGrain();
+    sheets = [];
   }
   var STYLE = {
     scout: function () { return [pal.scout, pal.scoutDark]; },
@@ -116,6 +117,7 @@
     lavaL = X(K.LAVA);
     dunePaths = [0, 1, 2].map(function (k) { return dunePath(function (x) { return crestY(k, x); }); });
     farPath = dunePath(farY);
+    sheets = [];
     if (grain === null) makeGrain();
     if (widthChanged) decorate();
   }
@@ -635,16 +637,34 @@
 
   // ----- drawing: the paper dunes -----
   var SAND = ['sandBack', 'sandMid', 'sandFront'];
-  function drawPaper(path, fill, fn) {
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,.32)'; ctx.shadowBlur = 16 * CS; ctx.shadowOffsetY = -4 * CS;   // the sheet casts its shadow on the one behind
-    ctx.fillStyle = fill; ctx.fill(path);
-    ctx.restore();
-    if (grain) { ctx.save(); ctx.clip(path); ctx.fillStyle = grain; ctx.fillRect(0, 0, W, H); ctx.restore(); }
-    ctx.strokeStyle = pal.sandLine; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.85;     // the cut edge catches the light
-    ctx.beginPath();
-    for (var x = -10; x <= W + 10; x += 10) { if (x === -10) ctx.moveTo(x, fn(x) + 0.8); else ctx.lineTo(x, fn(x) + 0.8); }
-    ctx.stroke(); ctx.globalAlpha = 1;
+  function drawPaper(g, path, fill, fn) {
+    g.save();
+    g.shadowColor = 'rgba(0,0,0,.32)'; g.shadowBlur = 16 * CS; g.shadowOffsetY = -4 * CS;   // the sheet casts its shadow on the one behind
+    g.fillStyle = fill; g.fill(path);
+    g.restore();
+    if (grain) { g.save(); g.clip(path); g.fillStyle = grain; g.fillRect(0, 0, W, H); g.restore(); }
+    g.strokeStyle = pal.sandLine; g.lineWidth = 1.6; g.globalAlpha = 0.85;     // the cut edge catches the light
+    g.beginPath();
+    for (var x = -10; x <= W + 10; x += 10) { if (x === -10) g.moveTo(x, fn(x) + 0.8); else g.lineTo(x, fn(x) + 0.8); }
+    g.stroke(); g.globalAlpha = 1;
+  }
+  // The blurred shadows make the paper sheets most of the cost of a frame where there is no GPU, and they
+  // only change with the size or the palette, so each sheet is drawn once to its own canvas. A sheet only
+  // shows above the next one's crest (that sheet is opaque below it), so each canvas holds just that band.
+  var sheets = [];
+  function sheet(i, path, fill, fn, next, alpha) {
+    var c = sheets[i], g, x, y0 = H, y1 = next ? 0 : H;
+    if (!c) {
+      for (x = -10; x <= W + 10; x += 10) { y0 = Math.min(y0, fn(x)); if (next) y1 = Math.max(y1, next(x)); }
+      y0 = Math.max(0, Math.floor(y0 - 24 * CS)); y1 = Math.min(H, Math.ceil(y1 + 2));   // room for the shadow it casts upward
+      c = sheets[i] = document.createElement('canvas');
+      c.width = Math.round(W * DPR); c.height = Math.max(1, Math.round((y1 - y0) * DPR)); c.y0 = y0; c.h = y1 - y0;
+      g = c.getContext('2d');
+      g.setTransform(DPR, 0, 0, DPR, 0, -y0 * DPR);
+      g.globalAlpha = alpha;
+      drawPaper(g, path, fill, fn);
+    }
+    ctx.drawImage(c, 0, c.y0, W, c.h);
   }
   function drawRipples(k) {
     var x, j, y, top = crestY(k, 0), bot = k < 2 ? base[k + 1] : H, band = bot - top;
@@ -1925,7 +1945,7 @@
     ctx.clearRect(0, 0, W, H);
     drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawCargo(); drawWhale(); drawSnow();
     // the far dune, a faint sheet behind everything
-    ctx.globalAlpha = 0.75; drawPaper(farPath, pal.sandFar, farY); ctx.globalAlpha = 1;
+    sheet(3, farPath, pal.sandFar, farY, function (x) { return crestY(0, x); }, 0.75);
     drawWeeds(-1);
     // sort everything on the sand into its dune
     for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
@@ -1944,7 +1964,7 @@
     layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
     layers[2].push({ y: groundY(X(S.pos.DEN), 0.82), kind: 3, f: drawDen });
     for (k = 0; k < 3; k++) {
-      drawPaper(dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); });
+      sheet(k, dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); }, k < 2 ? function (x) { return crestY(k + 1, x); } : null, 1);
       drawRipples(k);
       if (k === 0) { drawWeeds(0); drawRidge(); }
       if (k === 2) { drawCavern(); drawVent(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }

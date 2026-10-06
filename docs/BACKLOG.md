@@ -9,7 +9,8 @@ to; move an item into the game, the rules and the paper together when it is buil
 These came from earlier rounds of ideas and are already in the game: tides and storms,
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
 the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
-the split into `sim.js`, `game.js` and `reader.js`, and the checked-in tests.
+the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
+and cached paper-dune sheets.
 
 ## Visitors and the sea
 
@@ -85,7 +86,6 @@ the split into `sim.js`, `game.js` and `reader.js`, and the checked-in tests.
 
 ## Engineering
 
-- **Tests in CI.** Run the fuzzer, the save check and the browser checks in a GitHub Action
-  on every push, so a change cannot reach the live site with a failing test.
-- **Performance.** Cache the paper-dune layers to an offscreen canvas and redraw only when
-  the size or palette changes; the full-size canvas is heavy on slow devices.
+- **Skip drawing off screen.** The loop already stops when the tab is hidden; it could also
+  skip `draw()` (but keep stepping the sim) while the field is scrolled out of view and the
+  player is reading the paper, to save phone batteries.

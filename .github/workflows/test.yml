@@ -1,0 +1,27 @@
+name: Tests
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fuzz the simulation
+        run: node tests/fuzz.js
+      - name: Save and load
+        run: node tests/save.js
+      - name: Browser checks
+        run: node tests/browser.js shots
+        env:
+          CHROME: google-chrome
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots
+          if-no-files-found: ignore

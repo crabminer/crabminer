@@ -64,6 +64,5 @@ committing a change:
 The working style so far: commit locally, and push only when asked.
 
 **What next** (from `docs/BACKLOG.md`; none is committed to):
-1. **Engineering:** run the tests in a GitHub Action on every push, and cache the paper-dune
-   layers to an offscreen canvas for slow devices.
+1. **Engineering:** watch the first GitHub Action runs (`.github/workflows/test.yml`).
 2. **Game:** pick from the backlog's visitors, crew, economy, buildings and interface ideas.

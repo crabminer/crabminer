@@ -31,6 +31,7 @@ crabminer/
 ├── CNAME             crabminer.com, for GitHub Pages
 ├── LICENSE
 ├── tests/            fuzzer, save check, balance runs, browser checks (section 8)
+├── .github/workflows/test.yml   runs the tests on GitHub on every push
 └── docs/
     ├── RULES.md          the rules
     ├── ARCHITECTURE.md   this file
@@ -388,7 +389,7 @@ The canvas is drawn in painter's order:
    and snow.
 2. The far dune, then, for each dune k = 0, 1, 2 (back to front):
    1. The paper dune: a fill with a drop shadow, a paper-grain pattern, and a cut-edge
-      highlight. Then the ripples.
+      highlight. Then the ripples, which move, so they are drawn live.
    2. On k = 0: weeds and the basalt ridge.
    3. On k = 2: the cavern and lava, the thermal vent, the riser and lifts, plot tiles and
       foundations, and the extension cord.
@@ -398,6 +399,16 @@ The canvas is drawn in painter's order:
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
 4. The sea turtle, then crabs in the air, riding the vent or the turtle.
+
+**Cached paper sheets.** The four paper sheets (far, back, middle, front) only change with the
+size or the palette, but their blurred shadows were most of a frame's cost without a GPU:
+122 ms of drawing against 22 ms with the sheets switched off, in headless Chromium at
+1280×800. `sheet()` draws each one once to its own canvas (`sheets[]`) and copies it in with
+`drawImage`, which brought a frame to about 20 ms there, and from 870 to 60 ms at 2× pixel
+density. A sheet only shows above the next sheet's crest, which is opaque below it, so each
+canvas holds just that band: about 1.2 times one full canvas in all. `measure()` and
+`readPalette()` empty `sheets[]`. The result matches drawing directly, pixel for pixel, on
+the dunes.
 5. Night shade with lamps, the storm overlay, lava glow, lava bombs, bubbles, particles, and
    floaters.
 
@@ -557,7 +568,9 @@ built-in `WebSocket`), with nothing to install. Each exits non-zero on failure.
 | `node tests/browser.js [shot dir]` | ~35 s | The page in headless Chromium at three sizes, with screenshots |
 | `node tests/balance.js [seeds]` | ~80 s | A report, not a pass or fail: fixed crews and rank times |
 
-`tests/lib.js` holds what they share: loading the sim, stepping it, a seeded generator for the
+`.github/workflows/test.yml` runs the fuzzer, the save check and the browser checks on every
+push and pull request, and keeps the screenshots as a build artifact. `tests/lib.js` holds what
+they share: loading the sim, stepping it, a seeded generator for the
 player's choices (separate from the sim's own), and `act()`, one random player action.
 
 - **Fuzzing.** Random hires, retirements, upgrades, research, building and post moves,

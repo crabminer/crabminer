@@ -82,6 +82,10 @@ function CrabSim() {
     // Night runs from 20:00 to 06:00. Working at night is half speed, unless the crab slept or danced in the
     // last four hours. Scouts like the dark and work nights at full speed.
     DAY: 180, DAWN: 6, NIGHT_FROM: 20, NIGHT_TO: 6, NIGHT_SLOW: 0.5, REST_WINDOW: 4,
+    // glowing plankton: three patches drift over the sand, pushed by the tide. At night a crab inside one sees
+    // its way and is not slowed, rested or not. Storms and ships feed a bloom (0.25 to 1) that widens the patches.
+    GLOW_X: [150, 480, 810], GLOW_D: [0.8, 0.5, 0.2], GLOW_R: 40, GLOW_WANDER: 2, GLOW_DRIFT: 5,
+    GLOW_STORM: 0.08, GLOW_SHIP: 0.2, GLOW_EBB: 0.006,
     SHIFTS: ['all', 'day8', 'double8', 'ab', 'relief', 'custom'],
     // workday patterns: shifts of `len` hours from `start`, `count` a day with `rest` hours between, and the
     // crew split into `groups` that start in turn, evenly spread through the day
@@ -144,7 +148,7 @@ function CrabSim() {
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
-    'backup', 'nightFlags', 'trades', 'turtleRides'];
+    'backup', 'nightFlags', 'trades', 'turtleRides', 'glowLit'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
 
@@ -164,11 +168,21 @@ function CrabSim() {
   // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
   function spd(c) { return K.SPEEDS[c.role] * (c.role === 'haul' && has('springLegs') ? 1.3 : 1); }
   function flagCap() { return has('flagBundle') ? 14 : K.FLAG_CAP; }
-  function nightSlow(c) {                 // tired crabs drag at night; scouts and the A/B night repair crew do not
-    if (!S.si || !S.si.night || c.role === 'scout') return 1;
-    if (S.shift === 'ab' && (c.role === 'repair' || c.role === 'mech')) return 1;
-    return S.t - c.lastRest <= K.REST_WINDOW * K.DAY / 24 ? 1 : K.NIGHT_SLOW;
+  function tired(c) {                      // would drag at night: scouts, the A/B night repair crew and rested crabs do not
+    if (!S.si || !S.si.night || c.role === 'scout') return false;
+    if (S.shift === 'ab' && (c.role === 'repair' || c.role === 'mech')) return false;
+    return S.t - c.lastRest > K.REST_WINDOW * K.DAY / 24;
   }
+  function stir() { S.bloom = Math.min(1, S.bloom + K.GLOW_SHIP); }   // a ship coming or going churns the plankton up
+  function glowR() { return K.GLOW_R * (0.5 + S.bloom); }
+  function lit(x, d) {                     // inside a patch of glowing plankton (the track wraps round for the patches)
+    for (var i = 0, p, dx; i < S.glow.length; i++) {
+      p = S.glow[i]; dx = Math.abs(x - p.x); dx = Math.min(dx, K.END - dx);
+      if (dx + Math.abs(d - p.d) * K.DEPTH < glowR()) return true;
+    }
+    return false;
+  }
+  function nightSlow(c) { return tired(c) && !lit(c.x, c.d) ? K.NIGHT_SLOW : 1; }
   function pace(c) {
     return (BACK[c.state] ? 1 : 1 + K.VET_BONUS * c.stars) * (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
       (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) * nightSlow(c) *
@@ -197,6 +211,7 @@ function CrabSim() {
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
+      glow: K.GLOW_X.map(function (x, i) { return { x: x, d: K.GLOW_D[i] }; }), bloom: 0.25,
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
@@ -865,7 +880,7 @@ function CrabSim() {
         S.credits += bonus; S.earned += bonus; S.stat.orderCredits += bonus; S.stat.ordersFilled++;
         S.rep = Math.min(K.REP_MAX, S.rep + 1);
         if (o.rivalRate) { S.rival.lost++; S.rival.drive = Math.min(K.RIVAL_DRIVE[1], S.rival.drive * K.RIVAL_PUSH); }
-        emit('orderDone', o, bonus); inspire('shipBottle');
+        emit('orderDone', o, bonus); stir(); inspire('shipBottle');
         S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
       }
       ranks();
@@ -925,6 +940,9 @@ function CrabSim() {
       }
       active = c.moving || c.working;
       if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); continue; }
+      if (S.si.night && tired(c) && !c.air) {                // a tired crab at night: glowing plankton light its way
+        if (lit(c.x, c.d)) { S.stat.glowLit += dt; if (!c.glow) { c.glow = true; emit('glow', c); } } else c.glow = false;
+      } else c.glow = false;
       c.wear += dt * (S.oc ? K.OC_WEAR : 1) * (c.role === 'crush' && has('shockPads') ? 0.5 : 1);
       if (c.role !== 'energy' && !(c.role === 'scout' && S.si.night && has('nightBattery'))) {
         drain = K.DRAIN * (c.role === 'drill' && !c.bitOk && c.state === 'drill' ? K.BROKEN_DRAIN : 1) * (S.oc ? K.OC_DRAIN : 1);
@@ -974,6 +992,12 @@ function CrabSim() {
   function sea() {
     var i, p, f, free = [];
     S.tide = Math.sin(S.t * 2 * Math.PI / K.TIDE_PERIOD);
+    // the plankton patches wander along the sand and the tide sweeps them to and fro; the bloom ebbs
+    for (i = 0; i < S.glow.length; i++) {
+      p = S.glow[i];
+      p.x = (p.x + (K.GLOW_WANDER + S.tide * K.GLOW_DRIFT * (S.storm ? K.STORM_DRIFT : 1)) * dt + K.END) % K.END;
+    }
+    S.bloom = clamp(S.bloom + dt * ((S.storm ? K.GLOW_STORM : 0) - K.GLOW_EBB * (S.bloom - 0.25)), 0.25, 1);
     if (S.tide > K.TIDE_HIGH && S.t >= S.nextSurge) {
       S.nextSurge = S.t + K.SURGE_EVERY;
       var n = 1 + Math.floor(sr() * 2);
@@ -1053,7 +1077,7 @@ function CrabSim() {
     if (o.rival >= o.need) {               // they got there first: the ship takes their metal and sails
       S.rival.won++; S.stat.ordersLost++; S.rep = Math.max(0, S.rep - 1);
       S.rival.drive = Math.max(K.RIVAL_DRIVE[0], S.rival.drive * K.RIVAL_EASE);
-      emit('orderLost', o);
+      emit('orderLost', o); stir();
       S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
     }
   }
@@ -1078,12 +1102,12 @@ function CrabSim() {
       var made = rates(60).sold, need = clamp(Math.round(Math.max(made, 4) * K.ORDER_TIME / 60 * 1.15) + 1, 5, 40);
       S.order = { need: need, got: 0, until: S.t + K.ORDER_TIME, premium: K.ORDER_PREMIUM + S.rep * K.REP_STEP, rival: 0, rivalRate: 0 };
       if (S.rival) S.order.rivalRate = need / (K.ORDER_TIME * srr(K.RIVAL_PACE[0], K.RIVAL_PACE[1]) / S.rival.drive);
-      S.stat.orders++; emit('orderStart', S.order);
+      S.stat.orders++; emit('orderStart', S.order); stir();
     }
     if (!S.rival && S.rank >= K.RIVAL_RANK) { S.rival = { since: S.t, drive: 1, won: 0, lost: 0 }; emit('rivalArrive'); }
     if (S.order && S.order.rivalRate) rival(S.order);
     if (S.order && S.t >= S.order.until) {
-      emit('orderFail', S.order);
+      emit('orderFail', S.order); stir();
       S.rep = Math.max(0, S.rep - 1); S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
     }
     if (!S.lavaSurge && S.t >= S.lavaAt) { S.lavaSurge = true; S.lavaEnd = S.t + K.SURGE_TIME; S.stat.surges++; emit('lavaStart'); }
@@ -1436,7 +1460,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, trade: trade, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, trade: trade, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

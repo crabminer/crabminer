@@ -17,7 +17,7 @@
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
+  var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -180,7 +180,7 @@
     dance: ['🎶🦀🦀🎶', '💃🦀🕺', '🦀❤️🦀'], morning: ['☀️💪', '☀️😄👋'],
     postGrab: ['🔌➡️', '🔌🏃'], postGrabTide: ['🔌🌊👍', '🔌🌊💪'], postDrift: ['🔌🌊❗', '🔌🌊😮'],
     pearl: ['🦪❗🎉', '🦪✨🤩'], flagsWashed: ['🚩💔🌊', '🌊🚩😭'], stack: ['🪨👍', '🪨📦👍'], stackBroken: ['⛏️💔🪨👍', '⛏️💔🪨💪'],
-    spareBit: ['🛒⛏️👍', '🛒⛏️😊'], spareLeg: ['🛒🦵👍', '🛒🦵😊'], turtlePick: ['🐢😆', '🐢⬆️🤩'], turtleDrop: ['🐢❤️', '🐢👋😊'],
+    spareBit: ['🛒⛏️👍', '🛒⛏️😊'], spareLeg: ['🛒🦵👍', '🛒🦵😊'], turtlePick: ['🐢😆', '🐢⬆️🤩'], turtleDrop: ['🐢❤️', '🐢👋😊'], glow: ['✨👀😊', '✨🦀👍'],
     decor: ['🐚✨🏠', '🏠🎀😍'], orderStart: ['🚢🪙❗', '🚢👀🪙'], orderDone: ['🚢✅🎉', '🚢🪙🥳'],
     rivalArrive: ['🦞❗😨', '🦞👀😬'], rivalWin: ['🦞🚢😤', '🦞🏆😒'], storm: ['🌩️😨', '🌊🌩️😱'], lava: ['🌋🔥🎉', '🌋🔥😎'],
     octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨']
@@ -196,7 +196,7 @@
     wake: 'Waking up', ride: 'Riding the vent', land: 'Landing from the vent', oc: 'Overclocked', rave: 'The crab rave',
     dance: 'Dancing with a friend', morning: 'Morning bonus', postGrab: 'Moving the refuel post', postGrabTide: 'Fetching the post back from the tide', postDrift: 'The tide moving the post',
     pearl: 'Finding a pearl', flagsWashed: 'The tide burying flags', stack: 'Stacking nodules', stackBroken: 'Hauling with a broken bit',
-    spareBit: "Fitting the trader's spare bit", spareLeg: "Fitting the trader's spare leg", turtlePick: 'Climbing on the turtle', turtleDrop: 'Thanking the turtle',
+    spareBit: "Fitting the trader's spare bit", spareLeg: "Fitting the trader's spare leg", turtlePick: 'Climbing on the turtle', turtleDrop: 'Thanking the turtle', glow: 'Seeing by the glowing plankton',
     decor: 'Decorating the den', orderStart: 'A ship order', orderDone: 'An order filled', rivalArrive: 'The rival crew turning up', rivalWin: 'The rival filling an order',
     storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore',
     veteran: 'Earning a star', whale: 'Waving at the whale'
@@ -398,6 +398,10 @@
         break;
       case 'spareUsed': say(a, a.role === 'repair' ? TALK.spareBit : TALK.spareLeg, 1.6); break;
       case 'turtleArrive': if (!turtleToast) { turtleToast = true; toast('A sea turtle is passing', 'It gives a crab with a long way to go a lift across the dunes.'); } break;
+      case 'glow':
+        if (!a.say || a.say.until < T) { if (Math.random() < 0.4) say(a, TALK.glow, 1.4); }
+        if (!glowToast) { glowToast = true; toast('Glowing plankton light the way', 'A tired crab inside a patch of glowing plankton works at full speed at night. The tide pushes the patches along the sand, and storms and ships make them bigger.'); }
+        break;
       case 'turtlePick': say(a, TALK.turtlePick, 2); a.vhop = 1; break;
       case 'turtleDrop': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.6); say(a, TALK.turtleDrop, 1.6); play(a, ['bow', 'wave', 'hopJoy'], 1.4); break;
       case 'decor':
@@ -1265,8 +1269,7 @@
     var i, p, top = surfH + 6, bot, y, centre = 0.78 - 0.5 * nightA, push = S.tide * 10 + stormA * 34, moving = cargo.phase === 'in' && cargo.x > riserPoint(1).x + 1 || cargo.phase === 'out',
       L = whale ? Math.min(W * 0.22, 320 * CS) : 0;
     if (!plankton.length) stockPlankton();
-    // the bloom: fed by storms and passing ships, it ebbs over a few minutes
-    bloom = clamp(bloom + dt * (stormA * 0.08 + (moving ? 0.03 : 0)) - dt * 0.006 * (bloom - 0.25), 0.25, 1);
+    bloom = S.bloom;                       // the bloom lives in the sim: fed by storms and ships, it ebbs over a few minutes
     for (i = 0; i < plankton.length; i++) {
       p = plankton[i];
       p.ph += dt;
@@ -1290,6 +1293,28 @@
     for (i = motes.length - 1; i >= 0; i--) { motes[i].life += dt; motes[i].y -= dt * 4; if (motes[i].life > motes[i].max) motes.splice(i, 1); }
     if (motes.length > 260) motes.splice(0, motes.length - 260);
   }
+  // The patches on the sand that light tired crabs at night (sim.lit): a soft pool of light with sparks in it.
+  // The track wraps round for the patches, so one near an edge is drawn at both ends.
+  function drawGlowPatches() {
+    var i, j, k, p, px, cx, y, rx, ry, g, a = nightA * (0.5 + 0.5 * bloom), r = sim.glowR(), still = mqReduce.matches;
+    for (i = 0; i < S.glow.length; i++) {
+      p = S.glow[i]; px = X(p.x); y = groundY(px, p.d); rx = X(r); ry = Math.max(4 * CS, Math.abs(groundY(px, Math.min(1, p.d + r / K.DEPTH)) - y));
+      for (k = -1; k <= 1; k++) {
+        cx = px + k * W;
+        if (cx + rx < 0 || cx - rx > W) continue;
+        ctx.save(); ctx.translate(cx, y); ctx.scale(1, ry / rx);
+        g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+        g.addColorStop(0, 'rgba(' + GLOW + ',' + (0.26 * a).toFixed(3) + ')'); g.addColorStop(0.7, 'rgba(' + GLOW + ',' + (0.1 * a).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + GLOW + ',0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, TAU); ctx.fill();
+        ctx.restore();
+        for (j = 0; j < 14; j++) {           // sparks, fixed in the patch, twinkling
+          var u = Math.sin(j * 12.9898 + i * 78.233) * 43758.5453 % 1, v = Math.sin(j * 4.1414 + i * 9.17) * 24634.6345 % 1, tw = still ? 0.7 : 0.5 + 0.5 * Math.sin(T * (2 + j % 3) + j * 1.7 + i);
+          ctx.fillStyle = 'rgba(' + GLOW + ',' + (a * 0.8 * tw).toFixed(3) + ')';
+          ctx.beginPath(); ctx.arc(cx + u * rx * 0.85, y + v * ry * 0.85, 1.2 * CS, 0, TAU); ctx.fill();
+        }
+      }
+    }
+  }
   function drawPlankton() {                // drawn over the night, so the glow is not dimmed by it
     var i, p, a, n = Math.round(PLANKTON * (0.45 + 0.55 * bloom)), tw, still = mqReduce.matches, day = 1 - nightA;
     ctx.save();
@@ -1299,6 +1324,7 @@
     }
     if (nightA > 0.05) {
       ctx.globalCompositeOperation = 'lighter';
+      drawGlowPatches();
       for (i = 0; i < n; i++) {
         p = plankton[i]; if (p.y === undefined) continue;
         tw = still ? 1 : 0.6 + 0.4 * Math.sin(p.ph * 3.1 + i);
@@ -1525,8 +1551,8 @@
     for (var i = 0; i < S.crabs.length; i++) {
       var c = S.crabs[i], s = scaleAt(c.d), px = crabX(c), y = c.alt > 0 ? airPos(c).y : groundY(px, c.d) - 9 * s;
       if (c.state === 'sleep') continue;
-      var g = ctx.createRadialGradient(px, y - 6 * s, 1, px, y - 6 * s, 22 * s);
-      g.addColorStop(0, 'rgba(255,240,170,' + (0.35 * nightA).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,240,170,0)');
+      var g = ctx.createRadialGradient(px, y - 6 * s, 1, px, y - 6 * s, 22 * s), col = c.glow ? GLOW : '255,240,170';   // lit by plankton: a blue-green glow
+      g.addColorStop(0, 'rgba(' + col + ',' + (0.35 * nightA).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + col + ',0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, y - 6 * s, 22 * s, 0, TAU); ctx.fill();
     }
     ctx.restore();
@@ -2641,6 +2667,7 @@
       '<tr' + (b === 'mech' ? ' class="slow"' : '') + '><th scope="row">Legs' + (b === 'mech' ? ' <span class="flag-slow">◀ short</span>' : '') + '</th><td class="n">' + limping + ' limping now, ' + r.legsLost.toFixed(1) + ' lost and ' + r.mends.toFixed(1) + ' mended a minute, ' + r.barsUsed.toFixed(1) + ' bars used</td></tr>' +
       '<tr><th scope="row">Backup work</th><td class="n">' + S.stat.backup + ' trips fetching nodules by crabs whose own work was stuck</td></tr>' +
       '<tr><th scope="row">Night scouting</th><td class="n">' + S.stat.nightFlags + ' flags planted at night</td></tr>' +
+      '<tr><th scope="row">Plankton light</th><td class="n">' + Math.round(S.stat.glowLit) + ' s of tired crabs working at full speed at night</td></tr>' +
       '<tr><th scope="row">Wear</th><td class="n">average ' + Math.round(sim.avgWear()) + ' s without rest (trouble starts at ' + K.WEAR_FREE + ')</td></tr>' +
       '<tr><th scope="row">Thermal vent</th><td class="n">' + r.rides.toFixed(1) + ' rides a minute</td></tr>' +
       '</tbody></table>';

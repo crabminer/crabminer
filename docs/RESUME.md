@@ -41,7 +41,8 @@ the line, which the advisor and the Ledger tab point out.
   races you for every order, with a rubber-band drive.
 - **The sea:** tides (which also push the refuel post around), storms, lava surges, an octopus
   thief, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle,
-  sea life in the deep shadows, and a plankton cycle that glows at night after ship wakes and storms.
+  sea life in the deep shadows, and a plankton cycle that glows at night after ship wakes and storms. Three patches of
+  plankton drift over the sand with the tide; at night a tired crab inside one works at full speed.
 - **Crabs:** names and personal records, veteran stars (up to three, +5% each at their own
   job), emoji crab-talk grammar, 52 animations, and a crab rave on rank-up.
 - **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the

@@ -10,13 +10,11 @@ These came from earlier rounds of ideas and are already in the game: tides and s
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
 the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
 the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
-cached paper-dune sheets, whole-game charts in the Ledger, and sharing a run.
+cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, and plankton
+light that lets tired crabs work at full speed at night.
 
 ## Visitors and the sea
 
-- **Plankton that matter.** The glowing plankton are decoration now (view only). They could
-  count: crabs inside a bright patch work at full speed at night even if unrested. That needs
-  the plankton in `S`, moved by the tide, and checked in `nightSlow()`.
 - **Sunken treasure chest.** Rarely a scan on the back dune finds a chest instead of a
   deposit; a drill opens it for a jackpot of credits plus a random trader good. Another
   branch in `scout()`, a chest flag kind in `drill()`.

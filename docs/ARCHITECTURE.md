@@ -143,7 +143,7 @@ off.
 | Progress | `lv{}` (upgrade levels), `tech{}`, `wu{}` (worker upgrades), `layout{}` (building → plot), `pos{}` (derived positions) |
 | Workday | `shift` (pattern key), `work{start,len,count,rest,groups}`, `scoutsNight` |
 | Power | `docks[]` (bots plugged in), `post{x,d,auto,carrier,moved,home,drift,warned}` |
-| Sea | `tide`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
+| Sea | `tide`, `glow[{x, d}]` (the plankton patches), `bloom`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
 | Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
 | Den | `decor[]`, `decorWork`, `decorTheme` |
 | Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle` |
@@ -221,7 +221,7 @@ pocket-forge and quick-hands upgrade keys, and what fixing does.
 
 **Movement.**
 - `moveTo(c, x, d, speed)` steps toward a point. It applies `pace(c)` (battery, tiredness,
-  overclock, morning bonus, night slowness), a limp, the dune-crest slowdown, and a storm.
+  overclock, morning bonus, night slowness unless lit by plankton), a limp, the dune-crest slowdown, and a storm.
 - `spd(c)` is the walking speed for the crab's kind.
 - `go()` wraps `moveTo` and decides whether to ride the thermal vent: walk to the vent,
   rise, then glide.
@@ -265,7 +265,11 @@ resumes the role.
 `decor`, and `inspire(kind)` themes the next piece. `morning()` grants fresh starts.
 
 **The sea.**
-- `sea()` runs the tide's wash-ups and burials.
+- `sea()` runs the tide's wash-ups and burials, drifts the plankton patches in `S.glow` with the tide, and
+  ebbs `S.bloom`. `stir()` adds to the bloom when a ship comes or goes; storms feed it in `sea()`.
+- `lit(x, d)` says whether a point is inside a patch (radius `glowR()`, the track wrapping round).
+  `tired(c)` is the night slowdown without the plankton; `nightSlow(c)` is tired and not lit. `step()`
+  counts `stat.glowLit` and emits `glow` when a tired crab steps into a patch (`c.glow`).
 - `octopus()` runs the octopus: `come → grab → flee`, with `octoTarget()` and `crabNear()`.
 - `shoo()` is the player chasing it off.
 - `weather()` runs storms, lava surges and ship orders. It also brings in the rival crew at
@@ -320,7 +324,7 @@ notifications only: the sim never depends on anyone reading them.
 
 | Area | Events |
 | --- | --- |
-| Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `morning`, `dawn`, `shiftMode`, `veteran` |
+| Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `glow`, `morning`, `dawn`, `shiftMode`, `veteran` |
 | Mining | `flag`, `miss`, `flagDone`, `strike`, `uncover`, `dry`, `pearl` |
 | Line | `take`, `stack`, `feed`, `bar`, `grab`, `ingot`, `stock`, `sell`, `rank` |
 | Power | `charge`, `plug`, `refill`, `postGrab`, `postMoved`, `postDrift` |
@@ -341,7 +345,7 @@ notifications only: the sim never depends on anyone reading them.
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
 | Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `trade(id)` |
-| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)` |
+| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `glowR()` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
 `'done'`). They emit events the view can react to.
@@ -413,11 +417,14 @@ Ledger or the win card.
 **Plankton.** `updatePlankton()` moves 160 plankton through a daily cycle: deep by day,
 near the surface at night (following `nightA`), carried by the tide and storms. They flare
 when stirred: by the moving cargo ship (its wake), the whale, and storms. Crabs walking at
-night leave `motes`, glowing footprints. `bloom` (0.25 to 1) rises during storms and while
-ships sail, and ebbs over a few minutes; it sets how many plankton show and how bright they
-glow. `drawPlankton()` runs after `drawNight()` with additive blending, so the glow is not
-dimmed by the night, and also draws the anglerfish's lure. By day plankton are faint specks.
-All of it is view-only.
+night leave `motes`, glowing footprints. `bloom` is copied from `S.bloom`; it sets how many
+plankton show and how bright they glow. `drawPlankton()` runs after `drawNight()` with additive
+blending, so the glow is not dimmed by the night. It draws the sim's patches first
+(`drawGlowPatches()`: a pool of light on the sand with fixed twinkling sparks, drawn at both
+ends near the wrap), then the plankton, the motes and the anglerfish's lure. By day plankton are
+faint specks and the patches do not show. `drawNight()` gives a crab lit by a patch (`c.glow`) a
+blue-green halo instead of the lamp's yellow. Only the patches and the bloom live in the sim;
+the rest is view-only.
 
 **Cached paper sheets.** The four paper sheets (far, back, middle, front) only change with the
 size or the palette, but their blurred shadows were most of a frame's cost without a GPU:

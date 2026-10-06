@@ -752,7 +752,7 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Flow.</span> A delivery that follows the last one within 6 seconds keeps the flow going, and each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow. Steady production pays more than the same metal in bursts, which rewards a balanced line over a lopsided one.</p>
     <p><span class="runin">Overclock.</span> Every delivery banks 0.6 seconds of overclock, more while the flow runs, up to 30 seconds. The player spends it with the ⚡ button (or the O key). While it runs, the whole crew moves and works 50% faster, but uses 60% more power and wears twice as fast. It is best spent while the crew is fresh and the engine has charge to spare.</p>
     <p><span class="runin">Spending.</span> Credits buy crabs and upgrades (Table II). Repairs are paid in metal. There is no upkeep.</p>
-    <p><span class="runin">Plots and the post.</span> Seven buildings stand on seven plots along the front dune, from 560 to 818: the crabs' den, the workshop, ore pile, crushing yard, bar stack, stockpile, and the riser's collector. By default they run right to left from the lava in the order the metal flows, with the den at the field's edge. In the Build tab's arrange mode the plots show as paper tiles, and any building can be picked up and set on another plot, swapping with whatever is there. Moving the stockpile nearer the lava, for example, shortens every smelter's walk. The tiles are hidden the rest of the time, so the sand stays sand. The refuel post stands at the end of a 520-unit extension cord from the Stirling engine's outlet. The player can put it anywhere along the front dune. Otherwise the energy bots drag it, every 25 seconds or so, toward the middle of the crew.</p>
+    <p><span class="runin">Plots and the post.</span> Seven buildings stand on seven plots along the front dune, from 560 to 818: the crabs' den, the workshop, ore pile, crushing yard, bar stack, stockpile, and the riser's collector. By default they run right to left from the lava in the order the metal flows, with the den at the field's edge. In the Build tab's arrange mode the plots show as paper tiles, and any building can be picked up and set on another plot, swapping with whatever is there. Moving the stockpile nearer the lava, for example, shortens every smelter's walk. The tiles are hidden the rest of the time, so the sand stays sand. The refuel post stands at the end of a 520-unit extension cord from the Stirling engine's outlet. The player can put it anywhere along the front dune. Otherwise the energy bots drag it, every 25 seconds or so, toward the middle of the crew. The post also has a home, which is wherever it was last set down. The tide's current pushes it along the sand, one way on the rising tide and the other on the falling one, at up to 3 units a second near high and low water and three times that in a storm. Once it has slipped 40 units from home, an energy bot goes to drag it back: an idle bot, a bot that has just refuelled at it, or, if it has drifted three times that far, the next bot free from charging. A pinned post goes back to its home, and a free one to the middle of the crew. Bots plugged in or parked at the post follow it as it slides. In tests, a pinned post never strayed more than about 80 units and was out of place for under a seventh of the time.</p>
     <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 540, and the plots fill the stretch from 560 to the Stirling engine at 852, beside the lava at 888. A crab climbing over the lip from one dune to the next goes at half speed. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair crews 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
   </div>
   <div class="tablewrap">
@@ -903,6 +903,8 @@ function CrabSim() {
     // the refuel post: an extension cord runs from the Stirling engine to a post the energy bots plug into;
     // the player can set it down anywhere along the front dune, or let the bots drag it to where the work is
     CORD: 520, POST_MOVE_EVERY: 25, POST_MIN_MOVE: 110,
+    // the tide's current pushes the post along the sand; once it slips this far from home a bot drags it back
+    TIDE_DRIFT: 3, STORM_DRIFT: 3, POST_SLIP: 40,
     // friends: idle crabs side by side dance together, which recharges them and clears their heads
     DANCE_RANGE: 42, DANCE_CHARGE: 0.012, DANCE_RECOVER: 2,
     // a crab that slept or danced enough in a day starts the next one fresh: faster for the first minute
@@ -1028,7 +1030,7 @@ function CrabSim() {
     S = {
       t: 0, credits: K.START_CREDITS, earned: 0, heat: 6, price: K.PRICE, walk: 0, tick: 0, liftT: 0,
       nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, docks: [],
-      post: { x: K.STIRLING - 60, d: 0.86, auto: true, carrier: null, moved: -99 }, day: 1,
+      post: { x: K.STIRLING - 60, d: 0.86, auto: true, carrier: null, moved: -99, home: { x: K.STIRLING - 60, d: 0.86 }, drift: 0 }, day: 1,
       tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST,
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
@@ -1381,6 +1383,7 @@ function CrabSim() {
     if (c.state === 'idle') {
       if (c.charges <= 0) { c.state = 'toEngine'; return; }
       if (offShift(c)) return;
+      if (slipped() && Math.abs(S.post.x - S.post.home.x) > 3 * K.POST_SLIP && postWanted(c)) { S.post.carrier = c; c.state = 'toPost'; return; }   // badly adrift: fetch it first
       for (i = 0; i < S.crabs.length; i++) {
         w = S.crabs[i];
         if (w.role === 'energy' || w.claimedBy || w.air || w.state === 'sleep' || w.bat >= K.CHARGE_BELOW) continue;
@@ -1412,8 +1415,11 @@ function CrabSim() {
     } else if (c.state === 'toPost' || c.state === 'dragPost') {   // pick the post up and drag it, cord and all
       if (c.state === 'toPost') { if (moveTo(c, S.post.x - 8, S.post.d, sp)) { c.state = 'dragPost'; emit('postGrab', c); } }
       else {
-        var tgt = postTarget();
-        if (moveTo(c, tgt.x - 8, tgt.d, sp * 0.6)) { S.post.carrier = null; S.post.moved = S.t; c.state = 'idle'; emit('postMoved', c); }
+        var tgt = postGoal();
+        if (moveTo(c, tgt.x - 8, tgt.d, sp * 0.6)) {
+          S.post.carrier = null; S.post.moved = S.t; S.post.home = { x: S.post.x, d: S.post.d }; S.post.warned = false;
+          c.state = 'idle'; emit('postMoved', c);
+        }
         S.post.x = c.x + 8; S.post.d = c.d;
       }
     } else if (c.state === 'queue') {
@@ -1430,6 +1436,7 @@ function CrabSim() {
           c.state = 'idle';
           i = S.docks.indexOf(c); if (i >= 0) S.docks.splice(i, 1);
           emit('refill', c);
+          if (slipped() && !S.post.carrier) { S.post.carrier = c; c.state = 'dragPost'; emit('postGrab', c); }   // it is right here: take it home
         }
       }
     }
@@ -1443,8 +1450,24 @@ function CrabSim() {
     return { x: clamp(x, Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), K.STIRLING - 40), d: 0.88 };
   }
   function postWanted(c) {
-    if (!S.post.auto || S.post.carrier || S.t - S.post.moved < K.POST_MOVE_EVERY || S.docks.length) return false;
+    if (S.post.carrier) return false;
+    if (slipped()) return true;                              // the tide has moved it: put it back, plugged-in bots and all
+    if (S.docks.length || !S.post.auto || S.t - S.post.moved < K.POST_MOVE_EVERY) return false;
     return Math.abs(postTarget().x - S.post.x) > K.POST_MIN_MOVE;
+  }
+  function slipped() { return Math.abs(S.post.x - S.post.home.x) + Math.abs(S.post.d - S.post.home.d) * K.DEPTH > K.POST_SLIP; }
+  function postGoal() { return S.post.auto ? postTarget() : S.post.home; }
+  // The current runs one way on the rising tide and the other on the falling one, hardest near high and
+  // low water and in a storm. It shoves the post along the sand unless a bot has hold of it.
+  function driftPost() {
+    var p = S.post, push;
+    if (p.carrier) return;
+    push = S.tide * Math.max(0, Math.abs(S.tide) - 0.35) / 0.65 * K.TIDE_DRIFT * (S.storm ? K.STORM_DRIFT : 1);
+    if (!push) return;
+    var nx = clamp(p.x + push * dt, Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), K.STIRLING - 40);
+    p.drift = nx - p.x; p.x = nx;
+    p.d = clamp(p.d + Math.sin(S.t * 0.7) * 0.002 * dt * Math.abs(push), 0.72, 0.97);
+    if (slipped() && !p.warned) { p.warned = true; emit('postDrift', push > 0 ? 1 : -1); }
   }
 
   // ----- the two repair crews: fetch the material, forge the part in the lava, fit it -----
@@ -1609,6 +1632,7 @@ function CrabSim() {
     }
     dance();
     sea();
+    driftPost();
     octopus();
     if (S.si.day !== S.day) morning();
     S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * dt / 60);   // lava heat drives the Stirling engine
@@ -1900,6 +1924,7 @@ function CrabSim() {
     if (S.post.carrier) { S.post.carrier.state = 'idle'; S.post.carrier = null; }
     S.post.x = clamp(x, Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), K.STIRLING - 40);
     S.post.d = clamp(d, 0.72, 0.97); S.post.auto = false; S.post.moved = S.t;
+    S.post.home = { x: S.post.x, d: S.post.d }; S.post.warned = false;
     emit('postMoved', null);
   }
   function setPostAuto(on) { S.post.auto = !!on; S.post.moved = -99; }
@@ -1943,7 +1968,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
+  var driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -2171,9 +2196,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     ctx.stroke(); ctx.restore();
   }
-  function drawPost() {                // a little pole with two sockets and a green lamp
-    var p = postPos(), s = scaleAt(S.post.d), lit = S.heat >= 1;
-    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s);
+  function drawPost() {                // a little pole with two sockets and a green lamp, leaning in the current
+    var p = postPos(), s = scaleAt(S.post.d), lit = S.heat >= 1, lean = S.post.carrier ? 0 : clamp(S.post.drift * 60 / 3, -1, 1) * 0.18;
+    if (Math.abs(lean) > 0.02 && Math.random() < 0.15) poof(p.x - Math.sign(lean) * 6 * s, p.y, 1, 0.4);   // sand kicked up as it slides
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(lean); ctx.scale(s, s);
     ctx.fillStyle = pal.energyDark; roundRect(-5, -26, 10, 26, 2); ctx.fill();
     ctx.fillStyle = pal.metal; ctx.fillRect(-7, -6, 14, 3);
     ctx.fillStyle = pal.ink; ctx.fillRect(-3.5, -20, 2.5, 3); ctx.fillRect(1, -20, 2.5, 3);
@@ -2236,7 +2262,11 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       case 'dance': a.vpd = e.b.x >= a.x ? 1 : -1; e.b.vpd = -a.vpd; if (Math.random() < 0.5) say(a, '🎶🦀🦀🎶', 1.6); break;
       case 'morning': say(a, '☀️💪', 1.8); play(a, ['salute', 'flex', 'jazz', 'yawnStretch'], 1.8); break;
       case 'dawn': if (started) toast('Morning of day ' + a, 'Crabs that slept or danced in the night start the day fresh: 15% faster for a minute.'); break;
-      case 'postGrab': say(a, '🔌➡️', 1.4); break;
+      case 'postGrab': say(a, Math.abs(S.post.x - S.post.home.x) > 40 ? '🔌🌊👍' : '🔌➡️', 1.6); play(a, ['flex', 'determined'], 1.2); break;
+      case 'postDrift':
+        if (!driftToast) { driftToast = true; toast('The tide is pushing the refuel post', 'The current slides it along the sand. An energy bot will drag it back where it belongs.'); }
+        near(S.post.x, 90).forEach(function (n) { if (n.role === 'energy') { say(n, '🔌🌊❗', 1.6); play(n, 'shock', 1); } });
+        break;
       case 'postMoved': if (a) play(a, ['wave', 'flex'], 1.2); near(S.post.x, 80).forEach(function (n) { if (n.role === 'energy') play(n, 'wave', 1); }); break;
       case 'tech': S.crabs.forEach(function (n) { if (K.TECH[a].roles.indexOf(n.role) >= 0) play(n, ['jazz', 'sparkleEyes', 'cheer'], 2); }); break;
       case 'wup': S.crabs.forEach(function (n) { if (n.role === K.WUP[a].role) play(n, ['twirlEyes', 'spin', 'flex'], 2); }); break;

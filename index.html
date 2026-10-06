@@ -199,27 +199,32 @@ button:disabled{opacity:.38;cursor:not-allowed}
 .shifts .note{margin:.3rem 0 0}
 .gap{margin:.3rem 0 0;font-size:.76rem;color:var(--mark);font-weight:700}
 
-/* big playfield: the stage takes the whole screen and the controls sit in a dock on it */
-.dock{display:none}
+/* big playfield: the stage takes the whole screen and the panel floats on it as a sheet of paper */
 body.big .game{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
-body.big .panel{display:none}
-body.big .dock{
-  display:flex;flex-direction:column;grid-area:2 / 1;position:absolute;z-index:4;left:.6rem;bottom:.6rem;
-  width:min(24rem,calc(100% - 1.2rem));max-height:min(26rem,44%);
-  background:var(--paper);border-radius:6px;box-shadow:0 12px 36px var(--shadow);font-size:.8rem;line-height:1.25;
+body.big .panel{
+  grid-area:2 / 1;position:absolute;z-index:4;left:.6rem;bottom:.6rem;
+  width:min(25rem,calc(100% - 1.2rem));max-height:min(32rem,56%);
+  border-radius:6px;box-shadow:0 12px 36px var(--shadow);
 }
-.dock-tabs{display:flex;border-bottom:1px solid var(--rule)}
-.dock-tabs button{flex:1;height:2.1rem;border:0;background:transparent;font-weight:700;border-bottom:3px solid transparent}
-.dock-tabs button[aria-selected="true"]{border-bottom-color:var(--link);color:var(--link)}
-.dock-body{overflow-y:auto;padding:.5rem .6rem;min-height:0}
-.dock .role{padding:.2rem 0;gap:.4rem}
-.dock .role-name span{display:none}
-.dock .role-name b{font-size:.8rem}
-.dock .hire{height:1.7rem;min-width:3.8rem;font-size:.78rem}
-.dock .mini{width:1.6rem;height:1.6rem}
-.dock-view{display:flex;align-items:center;gap:.5rem}
-.dock-view[hidden]{display:none}
-.dock-view input{flex:1}
+body.big .panel.collapsed{max-height:none}
+.panel:not(.collapsed) #p-view{display:none}
+#t-view{display:none}
+body.big #t-view{display:block}
+.tabs button{font-size:.8rem;padding:0 .2rem}
+.view{display:flex;align-items:center;gap:.5rem;flex:none}
+.view input{flex:1}
+.card.done{opacity:.72}
+.card.locked{opacity:.55}
+.card.tech{background:transparent;border-width:2px}
+.card.wup{margin-left:.9rem}
+.card.wup h3 .dot{display:inline-block;width:.6rem;height:.6rem;vertical-align:baseline}
+.card.arrange .hire[aria-pressed="true"]{background:var(--mark)}
+.post-row{margin-top:.45rem;font-size:.78rem;color:var(--ink-soft)}
+.mini.wide{width:auto;padding:0 .5rem;white-space:nowrap;font-size:.76rem;font-weight:700}
+.mini.wide[aria-pressed="false"]{background:var(--mark);color:#fff;border-color:var(--mark)}
+.talk{margin-top:.7rem;border-top:1px solid var(--rule);padding-top:.4rem}
+.talk summary{cursor:pointer;font-weight:700;font-size:.82rem}
+.talk td{font-size:.8rem;line-height:1.5}
 body.big .toasts{top:.6rem}
 
 /* the side panel: crew, build, and ledger tabs on a sheet of paper */
@@ -436,7 +441,7 @@ tr[data-say].saying{box-shadow:none}
 <body>
 
 <!-- ===== The intro: what the game is, how to play, why it's fun ===== -->
-<div class="overlay" id="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+<div class="overlay" id="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title" hidden>
   <div class="sheet">
     <p class="kicker">crabminer</p>
     <h1 id="intro-title">It's a Crab Mining Game.</h1>
@@ -448,13 +453,14 @@ tr[data-say].saying{box-shadow:none}
           <li><b>Hire crabs</b> in the Crew tab. Each kind does one job: <span class="dot" style="background:var(--c-scout)"></span>scouts flag metal, <span class="dot" style="background:var(--c-drill)"></span>drills dig it up, <span class="dot" style="background:var(--c-crab)"></span>haulers carry it, <span class="dot" style="background:var(--c-crush)"></span>crushers press it into bars, and <span class="dot" style="background:var(--c-smelt)"></span>smelters melt the bars into ingots.</li>
           <li><b>Keep them running.</b> <span class="dot" style="background:var(--c-energy)"></span>Energy bots charge the crew and plug back in at their base by the lava. Bits snap and legs fall off. <span class="dot" style="background:var(--c-repair)"></span>Repair bots forge new bits from ingots and <span class="dot" style="background:var(--c-mech)"></span>maintenance bots forge new legs from bars, both in the lava.</li>
           <li><b>Sell metal upward.</b> The riser sends your stockpile to the surface at the market price. Steady deliveries build a flow bonus and bank overclock: press ⚡ for a burst of speed.</li>
-          <li><b>Run shifts.</b> Crabs that never rest wear out. Switch to A and B shifts or three-shift relief, and make sure every job has somebody on duty in every shift.</li>
-          <li><b>Grow.</b> Spend profit on more crabs, a bigger den, the middle and back dunes, and better gear. The advisor tells you which stage is slowest.</li>
+          <li><b>Run shifts.</b> Crabs that never rest wear out. Switch to A and B shifts or three-shift relief, and make sure every job has somebody on duty in every shift. Idle friends dance together, and a crab that slept or danced starts the next morning fresh.</li>
+          <li><b>Grow.</b> Spend profit on more crabs, a bigger den, and the middle and back dunes. Research technologies in the Tech tab to unlock worker upgrades. Rearrange the line's buildings, and move the refuel post at the end of its extension cord, from the Build tab.</li>
         </ol>
       </section>
       <section>
         <h2>Here is why it's fun</h2>
         <ul>
+          <li>The crabs are friends. They talk in emoji, wave, high-five, juggle pebbles when bored, and dance with their neighbours: over fifty little animations.</li>
           <li>It's a tiny city builder on the sea floor. You watch a whole production line come together from nothing.</li>
           <li>No crab takes orders. Each one follows a simple rule, and you balance the crew. Fix the slowest stage and money starts flowing.</li>
           <li>Mining is a gamble. Some holes come up dry, bits snap, legs fall off, and metal prices rise and fall, so no two runs are the same.</li>
@@ -490,7 +496,7 @@ tr[data-say].saying{box-shadow:none}
       <a href="#paper" id="readmore">Read the rules and the economy review</a>
     </div>
     <p class="rd-status" id="rd-status" role="status" hidden></p>
-    <p class="fine">Tip: use 2× or 4× speed once the line is running. Space pauses, O overclocks, and B switches to the big field. Click a crab to see what it is doing.</p>
+    <p class="fine">Tip: use 2× or 4× speed once the line is running. Space pauses, O overclocks, and B switches between the big field and the side panel. Click a crab to see what it is doing, and open "How crabs talk" in the Crew tab to read their emoji.</p>
   </div>
 </div>
 
@@ -541,30 +547,15 @@ tr[data-say].saying{box-shadow:none}
   </div>
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <!-- the big field's dock: controls on the field, or out of the way with the view tab -->
-  <div class="dock" id="dock" aria-label="Field controls">
-    <div class="dock-tabs">
-      <button type="button" data-dtab="ctl" aria-selected="true">Controls</button>
-      <button type="button" data-dtab="view" aria-selected="false">View</button>
-    </div>
-    <div id="dock-ctl" class="dock-body">
-      <div class="shifts">
-        <span class="seg" role="group" aria-label="Shift pattern"><button type="button" data-shift="all" aria-pressed="true">All hands</button><button type="button" data-shift="ab" aria-pressed="false">A/B</button><button type="button" data-shift="relief" aria-pressed="false">3-shift</button></span>
-      </div>
-      <div id="dock-roles"></div>
-    </div>
-    <div id="dock-view" class="dock-body dock-view" hidden>
-      <button type="button" class="mini" id="pan-l" aria-label="Scroll the field left">◀</button>
-      <input type="range" id="pan-range" min="0" max="100" value="60" aria-label="Scroll the field">
-      <button type="button" class="mini" id="pan-r" aria-label="Scroll the field right">▶</button>
-    </div>
   </div>
 
   <aside class="panel" aria-label="Controls">
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="t-crew" aria-controls="p-crew" aria-selected="true">Crew</button>
       <button type="button" role="tab" id="t-build" aria-controls="p-build" aria-selected="false">Build</button>
+      <button type="button" role="tab" id="t-tech" aria-controls="p-tech" aria-selected="false">Tech</button>
       <button type="button" role="tab" id="t-ledger" aria-controls="p-ledger" aria-selected="false">Ledger</button>
+      <button type="button" role="tab" id="t-view" aria-controls="p-view" aria-selected="false" title="Tuck the controls away and scroll the field">View</button>
     </div>
     <div class="tabpanel" role="tabpanel" id="p-crew" aria-labelledby="t-crew">
       <p class="advice" id="advice" role="status"></p>
@@ -575,12 +566,32 @@ tr[data-say].saying{box-shadow:none}
       </div>
       <div class="crewhead"><span><b id="crew-used">9 of 10</b> crabs in the den</span><span id="crew-hint"></span></div>
       <div id="roles"></div>
+      <details class="talk">
+        <summary>How crabs talk</summary>
+        <p class="note">Crabs speak in emoji sentences: a thing, then a verb, then sometimes who, or how they feel.</p>
+        <table class="ltable"><tbody>
+          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🦀 you, me</td></tr>
+          <tr><th scope="row">Verbs</th><td>❓ I need · 👍 on my way · ➡️ bringing it · ✅ got it, done · 💔 broke · ⛔ full · ❗ found one · ❤️ thanks</td></tr>
+          <tr><th scope="row">Examples</th><td>🔋❓ "I need charge". An energy bot answers 🔋➡️🦀, "bringing you charge". Then 🔋✅❤️, "got it, thanks". 🦵💔😭 is a lost leg, and 🧱➡️🔥 is a maintenance bot taking a bar to the forge.</td></tr>
+        </tbody></table>
+      </details>
     </div>
     <div class="tabpanel" role="tabpanel" id="p-build" aria-labelledby="t-build" hidden>
+      <div class="card arrange"><div class="card-top"><h3>Arrange the line</h3><button type="button" class="hire" id="arrange-btn" aria-pressed="false">Move buildings</button></div><p class="now" id="arrange-note"></p>
+        <div class="card-top post-row"><span>Refuel post, on its extension cord from the Stirling engine</span><button type="button" class="mini wide" id="post-btn" aria-pressed="true">Bots move it</button></div></div>
       <div id="cards"></div>
+    </div>
+    <div class="tabpanel" role="tabpanel" id="p-tech" aria-labelledby="t-tech" hidden>
+      <p class="note">Research a technology to unlock upgrades for the workers it covers. Each upgrade is bought once and fits every crab of that kind.</p>
+      <div id="techs"></div>
     </div>
     <div class="tabpanel ledger" role="tabpanel" id="p-ledger" aria-labelledby="t-ledger" hidden>
       <div id="ledger"></div>
+    </div>
+    <div class="tabpanel view" role="tabpanel" id="p-view" aria-labelledby="t-view" hidden>
+      <button type="button" class="mini" id="pan-l" aria-label="Scroll the field left">◀</button>
+      <input type="range" id="pan-range" min="0" max="100" value="60" aria-label="Scroll the field">
+      <button type="button" class="mini" id="pan-r" aria-label="Scroll the field right">▶</button>
     </div>
   </aside>
 </section>
@@ -596,14 +607,14 @@ tr[data-say].saying{box-shadow:none}
   </div>
 
   <div class="cols">
-    <p class="abstract" id="abstract"><i>Abstract</i>—Crabminer is a city builder played on the sea floor. The player runs a crew of robot crabs that turns buried metal into money. Scouts flag deposits, drills dig them up (and sometimes come up dry), and haulers, crushers, and smelters carry the ore through a pile, a press, and a lava cave until it is refined metal on a stockpile. A riser sells that metal at the surface. Things break. Drill bits snap, energy bots wear out, and any crab can lose a leg. Repair bots and maintenance bots forge replacement parts in the lava from the line's own ingots and bars. Crabs that work without rest tire and break down more, so the player chooses between all hands, A and B shifts, and three-shift relief, and must keep every job covered in every part of the day. Steady deliveries earn a flow bonus and bank overclock, a burst of speed the player can spend. A thermal vent lifts crabs up the lava column, and they swim down and sideways to their work. This paper sets out the rules and reviews the economy using the deterministic simulation the page itself runs.</p>
+    <p class="abstract" id="abstract"><i>Abstract</i>—Crabminer is a city builder played on the sea floor. The player runs a crew of robot crabs that turns buried metal into money. Scouts flag deposits, drills dig them up (and sometimes come up dry), and haulers, crushers, and smelters carry the ore through a pile, a press, and a lava cave until it is refined metal on a stockpile. A riser sells that metal at the surface. Things break. Drill bits snap, energy bots wear out, and any crab can lose a leg. Repair bots and maintenance bots forge replacement parts in the lava from the line's own ingots and bars. Crabs that work without rest tire and break down more, so the player chooses between all hands, A and B shifts, and three-shift relief, and must keep every job covered in every part of the day. Steady deliveries earn a flow bonus and bank overclock, a burst of speed the player can spend. Research unlocks sixteen worker upgrades. The line's buildings stand on movable plots, and energy bots refuel at a post on an extension cord that they drag to where the work is. A thermal vent lifts crabs up the lava column, and they swim down and sideways to their work. The crabs talk in emoji sentences, pull more than fifty animations, and dance with idle neighbours, which recharges them and earns a fresh start the next morning. This paper sets out the rules and reviews the economy using the deterministic simulation the page itself runs.</p>
     <p class="terms"><i>Index Terms</i>—Bottleneck, city builder, game economy, maintenance, serious games, shift work, stigmergy, swarm robotics.</p>
 
     <h2>I. The Game</h2>
     <p class="dropcap"><span class="lead">The</span> game opens on three layers of dunes, cut from paper and stacked one behind another. The front dune holds the processing line: an ore pile, a crushing yard, a bar stack, a stockpile of refined metal, and the collector at the foot of the riser. A basalt outcrop on the right holds a pool of lava. Beside it stand a Stirling engine and the energy bots' base station, and above it a thermal vent sends warm water and bubbles up to near the surface. The middle and back dunes start out roped off. They hold richer deposits, and the player can buy the claims to them.</p>
     <p>The player starts with nine crabs, room in the den for ten, and 120 credits. The aim is to earn money by selling metal upward. Lifetime earnings set the player's rank, and each new rank pays a bonus of a tenth of its threshold. The ranks are Pebble Boss at 150 credits, Nodule Baron at 400, Ingot Magnate at 1,000, Lava Lord at 2,500, and Crab Tycoon at 6,000. Reaching Crab Tycoon wins the game, and the time taken is the player's score. Play can continue afterwards.</p>
     <p>The <span class="runin">Crew</span> tab hires and retires crabs and sets the shift pattern. Each further crab of a role costs 15% of the base price more than the one before, and a retired crab refunds half of what it cost. The <span class="runin">Build</span> tab buys upgrades. The top bar shows the day and shift, the flow bonus, and the overclock button, and it sets how many ingots to hold back from sale. The <span class="runin">Ledger</span> tab holds the analysis. An advisor names the slowest stage, or the job nobody covers on some shift, in plain words.</p>
-    <p><span class="runin">Big field.</span> The Big field button (or the B key) gives the whole screen to the sea. The front dune then fills the lower half of the screen and the world grows wider than the window, so it scrolls sideways. A dock floats on the field with two tabs. Controls keeps the crew and shift buttons in view, and View tucks them away and leaves a slider for scrolling the field.</p>
+    <p><span class="runin">Big field.</span> The game opens straight into play, on the big field. The front dune fills the lower half of the screen, and the world is wider than the window, so it scrolls sideways. The panel floats on the field as a sheet of paper with five tabs: Crew, Build, Tech, Ledger, and View. View tucks the rest away and leaves a slider for scrolling the field. The Big field button (or the B key) switches to a side panel instead, and the ? button brings up the introduction.</p>
   </div>
 
   <h2>II. The Production Chain</h2>
@@ -664,7 +675,7 @@ tr[data-say].saying{box-shadow:none}
         <tr><td>Hauler crab</td><td>Fetch the nearest unclaimed nodule. After three, carry them to the ore pile. Wait if the pile is full.</td><td class="n">25</td></tr>
         <tr><td>Crusher crab</td><td>When the ore pile holds two nodules, press them into a bar, 4.5 s. Wait if the bar stack is full.</td><td class="n">40</td></tr>
         <tr><td>Smelter crab</td><td>Take a bar, hold it in the lava for 3 s, and carry the ingot to the stockpile.</td><td class="n">40</td></tr>
-        <tr><td>Energy bot</td><td>Recharge the crab with the lowest battery under 60%. When its four cells are empty, or nobody needs charge, go back to the base station by the lava and plug its cable into the Stirling engine.</td><td class="n">35</td></tr>
+        <tr><td>Energy bot</td><td>Recharge the crab with the lowest battery under 60%. When its four cells are empty, or nobody needs charge, go back to the refuel post and plug in. With nothing else to do, drag the post toward the middle of the crew.</td><td class="n">35</td></tr>
         <tr><td>Repair bot</td><td>Find the nearest broken drill or worn energy bot. Take an ingot from the stockpile, forge it into the part in the lava, carry it over, and fit it.</td><td class="n">35</td></tr>
         <tr><td>Maintenance bot</td><td>Find the nearest crab with a leg missing. Take a bar from the bar stack, forge a leg in the lava, carry it over, and fit it.</td><td class="n">35</td></tr>
       </tbody>
@@ -679,10 +690,11 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">The forge.</span> Every part is made in the lava. A repair bot takes an ingot off the stockpile, and a maintenance bot takes a bar off the bar stack. Each carries its metal to the lava's edge and holds it in the heat for 1.4 seconds until it becomes a bit or a leg, then takes the part to the crab. Repairs therefore cost product twice over: the ingot is never sold, and the bar is never smelted. A stockpile reserve keeps ingots back for repairs. Bars have no reserve, so maintenance competes with the smelters for them.</p>
   </div>
 
-  <h2>IV. Shifts and Wear</h2>
+  <h2>IV. Shifts, Wear, and Rest</h2>
   <div class="cols">
     <p><span class="runin">Wear.</span> Each crab counts the seconds it has worked without a break. The first four minutes cost nothing. After that, every five more minutes add up to double the breakdown chances (bits, cells, and legs) and slow the crab by up to a fifth. Standing idle wears off a second each second. Sleeping wears off four, and it recharges the battery for free at about 3% a second.</p>
     <p><span class="runin">The day.</span> A day lasts three simulated minutes, and the player picks one of three patterns for it. In <i>all hands</i> everyone works all day. In <i>A and B shifts</i> everyone works the day half. At night, half of each role sleeps, a different half each night, while repair and maintenance bots work on 30% faster. That is the night repair crew, and sleeping crabs make easy patients because they hold still. In <i>three-shift relief</i> the day is cut in three and each crab sleeps through one third, so two groups in three are always at work. Crabs finish the task in hand before they go to sleep.</p>
+    <p><span class="runin">Friends.</span> Two crabs standing idle side by side, a crusher waiting for ore beside a smelter waiting for bars, for example, pair up and dance. Dancing recharges them a little (1.2% a second) and clears their wear at two seconds a second. These are the clean thoughts. At dawn, every crab that slept or danced for at least 20 seconds the day before starts fresh, 25% faster for the first 90 seconds of the new day.</p>
     <p><span class="runin">Coverage.</span> A role with one crab disappears whenever that crab sleeps, and the line stops at that stage. The ledger lays out how many crabs of each role are on duty in each part of the day. The advisor names the first gap it finds, for example "nobody covers smelter crab work in shift 3". This enforces the rule of thumb any round-the-clock plant uses: at least one worker able to do every job on every shift.</p>
   </div>
 
@@ -692,7 +704,8 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Flow.</span> A delivery that follows the last one within 6 seconds keeps the flow going, and each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow. Steady production pays more than the same metal in bursts, which rewards a balanced line over a lopsided one.</p>
     <p><span class="runin">Overclock.</span> Every delivery banks 0.6 seconds of overclock, more while the flow runs, up to 30 seconds. The player spends it with the ⚡ button (or the O key). While it runs, the whole crew moves and works 50% faster, but uses 60% more power and wears twice as fast. It is best spent while the crew is fresh and the engine has charge to spare.</p>
     <p><span class="runin">Spending.</span> Credits buy crabs and upgrades (Table II). Repairs are paid in metal. There is no upkeep.</p>
-    <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 580, and the line takes up the stretch from 600 to the lava at 888. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair crews 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
+    <p><span class="runin">Plots and the post.</span> The line's six buildings (workshop, ore pile, crushing yard, bar stack, stockpile, and the riser's collector) stand on seven plots along the front dune, from 560 to 818, with one plot spare. By default they run right to left from the lava in the order the metal flows. In the Build tab's arrange mode the plots show as paper tiles, and any building can be picked up and set on another plot, swapping with whatever is there. Moving the stockpile nearer the lava, for example, shortens every smelter's walk. The tiles are hidden the rest of the time, so the sand stays sand. The refuel post stands at the end of a 520-unit extension cord from the Stirling engine's outlet. The player can put it anywhere along the front dune. Otherwise the energy bots drag it, every 25 seconds or so, toward the middle of the crew.</p>
+    <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 540, and the plots fill the stretch from 560 to the Stirling engine at 852, beside the lava at 888. A crab climbing over the lip from one dune to the next goes at half speed. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair crews 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
   </div>
   <div class="tablewrap">
     <table>
@@ -710,43 +723,79 @@ tr[data-say].saying{box-shadow:none}
     </table>
   </div>
 
-  <h2>VI. Economy Review</h2>
+  <h2>VI. Research and Worker Upgrades</h2>
+  <div class="cols">
+    <p>The Tech tab holds five technologies. Each one unlocks the worker upgrades for one or two roles (Table IV). A worker upgrade is bought once and fits every crab of its kind, present and future. The cheapest path is the Sonar lab at 150 credits, and the full set of five technologies and sixteen upgrades costs 4,050.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <caption data-speak="Table 4. Research and worker upgrades."><span class="tnum">TABLE IV</span><span class="ttitle">Research and Worker Upgrades</span></caption>
+      <thead><tr><th scope="col">Technology</th><th scope="col">Worker upgrade</th><th scope="col">Effect</th><th scope="col">Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Sonar lab (150)</td><td>Wide sonar</td><td>Scouts scan in two thirds of the time</td><td class="n">120</td></tr>
+        <tr><td></td><td>Deep sonar</td><td>Flags +0.08 richness and one more nodule</td><td class="n">200</td></tr>
+        <tr><td>Metallurgy (250)</td><td>Diamond tips</td><td>Holes 25% quicker; bits break 40% less</td><td class="n">180</td></tr>
+        <tr><td></td><td>Twin augers</td><td>Second nodule on 45% of strikes, not 20%</td><td class="n">220</td></tr>
+        <tr><td></td><td>Heat-proof tongs</td><td>Smelting 40% quicker</td><td class="n">200</td></tr>
+        <tr><td></td><td>Twin tongs</td><td>Smelters carry two bars a trip</td><td class="n">260</td></tr>
+        <tr><td>Hydraulics (250)</td><td>Big hopper</td><td>Haulers carry five nodules, not three</td><td class="n">150</td></tr>
+        <tr><td></td><td>Spring legs</td><td>Haulers walk 30% faster</td><td class="n">150</td></tr>
+        <tr><td></td><td>Hydraulic claws</td><td>Crushing a third quicker</td><td class="n">200</td></tr>
+        <tr><td></td><td>Shock pads</td><td>Crushers wear half as fast</td><td class="n">120</td></tr>
+        <tr><td>Power electronics (300)</td><td>Big cells</td><td>Energy bots hold six charges, not four</td><td class="n">160</td></tr>
+        <tr><td></td><td>Fast plug</td><td>Charging a crab takes half as long</td><td class="n">140</td></tr>
+        <tr><td>Field engineering (300)</td><td>Pocket forge (repair)</td><td>Bits forged on the spot, not at the lava</td><td class="n">180</td></tr>
+        <tr><td></td><td>Quick hands</td><td>Repair bots fit parts 40% faster</td><td class="n">120</td></tr>
+        <tr><td></td><td>Pocket forge (maintenance)</td><td>Legs forged on the spot</td><td class="n">180</td></tr>
+        <tr><td></td><td>Tough joints</td><td>Every crab loses legs half as often</td><td class="n">220</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>VII. How the Crabs Talk and Move</h2>
+  <div class="cols">
+    <p><span class="runin">Crab talk.</span> Crabs speak in short emoji sentences with a fixed grammar: a thing, then a verb, then sometimes who or a feeling. The things are 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, and 🦀 for you or me. The verbs are ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it or done, 💔 broke, ⛔ full, ❗ found one, and ❤️ thanks. A crab with a flat battery says 🔋❓. The energy bot that picks it answers 🔋➡️🦀, and the crab says 🔋✅❤️ when it is charged. A crab that loses a leg says 🦵💔😭. The maintenance bot answers 🦵👍, says 🧱➡️🔥 on its way to the forge, and arrives with 🦵➡️🦀. Crabs that are stuck say why: 🪨⛔ at a full ore pile, 🧱❓ at an empty bar stack, 🔥❓ at a post the engine cannot feed. On a device without colour emoji the crabs spell the words instead.</p>
+    <p><span class="runin">The repertoire.</span> Crabs have 52 animations, each a pose of eyes, mouth, claws, legs, a tilt of the whole body, and sometimes a prop. There are 14 celebrations (fist pump, clap, spin, jazz hands, cheer, shimmy, moonwalk, head-bang, the robot, floss, disco, eye twirl, happy hop, and the crab rave). There are 9 social moves (wave, high-five, sway, hug, salsa, do-si-do, cheek to cheek, conga, bow). There are 13 idle routines (foot tap, looking around, yawn and stretch, eye-roll, folded arms, sigh, whistling, juggling a pebble, side stretch, sitting down, peekaboo, blowing bubbles, a sneeze). And there are 16 moods (determined, struggling, flexing, thinking, stomping, slumping, shivering, dizzy, relief, ouch, shock, shrug, salute, a sleepy nod, sparkle eyes, grumbling). About 60 triggers choose among them. These include every event in the economy, from a strike or a dry hole to a fix, a charge, a sale, a flow streak, a rise in price, research, a new hire, a crab leaving, and a building moved. They also include states such as a flat battery, a heavy load, a limp, overclock, and wear, and the length of a wait: the longer a crab waits, the sillier it gets. On a rank-up the whole crew does the crab rave for five seconds under confetti. Everyone waves their claws one way while side-stepping the other, back and forth.</p>
+  </div>
+
+  <h2>VIII. Economy Review</h2>
   <div class="cols">
     <p>The review was run in Node.js on the same simulation script the page runs. It steps in fixed sixtieths of a second with its own seeded random numbers, so a given crew, shift pattern, and seed always give the same result. Figures are ingots sold per minute, averaged over two to four seeds.</p>
-    <p><span class="runin">Shifts against all hands.</span> Table III compares the three patterns over twenty minutes. With all hands, crabs pile up 11 to 15 minutes of unbroken work and pay for it in breakdowns. The two shift patterns keep average wear at one or two minutes, and A and B shifts come out ahead at every crew size. Over a short session the order flips. The starting crew sells 5.0 ingots a minute on all hands over five minutes against 4.3 on A and B shifts. By ten minutes A and B is ahead, at 4.6 against 4.2, and by twenty it leads 4.3 to 3.3. Three-shift relief costs a third of the labour. It pays when crews are large enough that every role has three or more crabs, and it keeps batteries highest because sleeping crabs recharge themselves.</p>
+    <p><span class="runin">Shifts against all hands.</span> Table III compares the three patterns over twenty minutes. With all hands, crabs pile up 10 to 15 minutes of unbroken work and pay for it in breakdowns and tiredness. The two shift patterns keep average wear under two minutes, and A and B shifts come out ahead at every crew size. Over a short session the order flips. The starting crew sells 4.6 ingots a minute on all hands over five minutes against 4.0 on A and B shifts, and 4.5 against 4.3 over ten. By twenty minutes A and B leads, 4.0 to 3.6. Three-shift relief costs a third of the labour and pays when every role has three or more crabs.</p>
+    <p><span class="runin">Rest pays.</span> Dancing and the morning bonus were measured by switching them off for an 18-crab crew over twenty minutes, averaged over four seeds. They add 20% on all hands (9.7 against 8.0 ingots a minute), 14% on A and B shifts (11.9 against 10.4), and 13% on three-shift relief (9.3 against 8.3). A first version with a smaller bonus (15% for one minute) made no measurable difference, so the bonus was raised to 25% for 90 seconds.</p>
   </div>
   <div class="tablewrap">
     <table>
       <caption data-speak="Table 3. Shift patterns over twenty minutes."><span class="tnum">TABLE III</span><span class="ttitle">Shift Patterns over Twenty Minutes</span></caption>
       <thead><tr><th scope="col">Crew</th><th scope="col">All hands</th><th scope="col">A and B</th><th scope="col">Three-shift</th><th scope="col">Average wear, all hands → A/B</th></tr></thead>
       <tbody>
-        <tr><td>10 crabs, no upgrades</td><td class="n">4.5</td><td class="n">5.3</td><td class="n">4.7</td><td class="n">12 min → 1.5 min</td></tr>
-        <tr><td>18 crabs, den, riser, and engine upgrades</td><td class="n">8.5</td><td class="n">9.4</td><td class="n">8.8</td><td class="n">11 min → 1.7 min</td></tr>
-        <tr><td>30 crabs, every upgrade</td><td class="n">24.9</td><td class="n">25.1</td><td class="n">22.9</td><td class="n">15 min → 1.6 min</td></tr>
+        <tr><td>10 crabs, no upgrades</td><td class="n">5.2</td><td class="n">6.1</td><td class="n">4.8</td><td class="n">12 min → 1.5 min</td></tr>
+        <tr><td>18 crabs, den, riser, and engine upgrades</td><td class="n">9.4</td><td class="n">12.3</td><td class="n">8.9</td><td class="n">10 min → 1.7 min</td></tr>
+        <tr><td>30 crabs, every upgrade</td><td class="n">24.4</td><td class="n">27.2</td><td class="n">24.8</td><td class="n">15 min → 1.8 min</td></tr>
       </tbody>
     </table>
   </div>
   <div class="cols" id="review">
-    <p><span class="runin">Working configurations.</span> Hill-climbing, moving one crab between roles at a time, found these crews. With ten crabs on all hands, the best is still one scout, two drills, two haulers, one crusher, two smelters, one energy bot, and one repair bot, at 6.8 ingots a minute over eight minutes. That is the starting crew plus a second smelter, which is the advisor's first tip. A maintenance bot is not worth a tenth crab yet, because legs come off slowly in a small crew. With 18 crabs on A and B shifts, the best is 3 scouts, 3 drills, 3 haulers, 2 crushers, 3 smelters, 2 energy bots, 1 repair bot, and 1 maintenance bot, at 10.9. With 30 crabs and every upgrade on A and B shifts, it is 3, 5, 8, 3, 5, 4, 1, and 1, at 27.3. On all hands the same budget does as well (28.1), because hardened bits make breakdowns cheap. Shifts matter most in the middle of the game, before those upgrades are bought.</p>
-    <p><span class="runin">Pace.</span> An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 2.4 minutes, Nodule Baron at 4.9, Ingot Magnate at 9.3, and Lava Lord at 21.6, and never reached Crab Tycoon in 40 minutes. Its wear-worn crew earned 5,700 credits. Using overclock lifted that to 7,000, and two of the three runs reached Crab Tycoon. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 17.0 and Crab Tycoon at 27.6, and earned 12,800. That is a little under seven minutes of real time at 4× speed. Switching to three-shift relief at 18 crabs reached Crab Tycoon at 35.6.</p>
-    <p><span class="runin">The vent.</span> For an 18-crab crew the vent carries about three rides a minute, mostly energy bots and repair crews heading back to the field. It raises output by about 4%. It earns its place more as spectacle than as economics, and the crabs only take it when it saves time.</p>
-    <p><span class="runin">Changes made in review.</span> The first version of wear grew without limit. A crew on all hands spiralled into breakdowns and sold one ingot a minute by the end of a 40-minute game. Wear now does nothing for four minutes and at most doubles breakdowns and slows a crab by a fifth, so all hands fades instead of dying. A and B shifts at first left half of each crew working day and night without a break, so the resting half now alternates night by night.</p>
+    <p><span class="runin">Working configurations.</span> Hill-climbing, moving one crab between roles at a time and averaging two seeds, found these crews. With ten crabs on all hands, the best is one scout, two drills, two haulers, one crusher, two smelters, one energy bot, and one repair bot, at 7.0 ingots a minute over eight minutes. That is the starting crew plus a second smelter, which is the advisor's first tip. A maintenance bot is not yet worth a tenth crab, because legs come off slowly in a small crew. With 18 crabs on A and B shifts, no single move beat 2 scouts, 3 drills, 4 haulers, 2 crushers, 3 smelters, 2 energy bots, 1 repair bot, and 1 maintenance bot, at 12.4. With 30 crabs and every upgrade on A and B shifts, the best is 3, 5, 8, 3, 5, 4, 1, and 1, at 29.0.</p>
+    <p><span class="runin">Pace.</span> An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 1.8 minutes, Nodule Baron at 3.8, Ingot Magnate at 8.1, Lava Lord at 18.4, and Crab Tycoon at 35.1, and earned 7,800 credits in 40 minutes. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 15.9 and Crab Tycoon at 24.3, and earned 15,200. That is about six minutes of real time at 4× speed. Three-shift relief from 18 crabs reached Crab Tycoon at 30.5. Adding research to the A and B strategy delays Crab Tycoon to 29.2 minutes, because the money goes into labs first. It pays back by the end: 60 ingots a minute and 16,600 credits by minute 40, against 49 and 15,200 without it.</p>
+    <p><span class="runin">The vent.</span> For an 18-crab crew the vent carries a few rides a minute, mostly energy bots and repair crews heading back to the field, and raises output by about 4%. It earns its place more as spectacle than as economics, and the crabs only take it when it saves time.</p>
+    <p><span class="runin">Changes made in review.</span> The first version of wear grew without limit, and a crew on all hands spiralled into breakdowns. Wear now does nothing for four minutes and at most doubles breakdowns and slows a crab by a fifth. A and B shifts at first left half of each crew working day and night, so the resting half now alternates night by night. All hands also showed night shading and sleepy faces, though nobody sleeps in that mode. The shading now only falls when there are shifts, and a crab with a flat battery looks exhausted and asks for charge rather than dozing.</p>
   </div>
 
-  <h2>VII. Swarm Rules</h2>
+  <h2>IX. Swarm Rules</h2>
   <div class="cols">
     <p>No crab knows the plan. Each one runs the rule in Table I, and each rule reads only local facts: the nearest nodule, the best flag, the height of a pile, the level of a battery, whether the vent is quicker. The piles and the flags do the coordinating. This is stigmergy, the name Grassé gave to coordination through traces left in a shared workplace <a class="c" href="#ref-1">[1]</a>, and it is a founding idea of swarm intelligence <a class="c" href="#ref-2">[2]</a>. Insect colonies divide work by giving each worker a threshold for each task <a class="c" href="#ref-3">[3]</a>, and robots have been built to share foraging in the same way <a class="c" href="#ref-4">[4]</a>. Here the player acts as the threshold, moving crabs to whichever stage is short and choosing who rests when. The line can deliver no faster than its slowest stage <a class="c" href="#ref-5">[5]</a>, and the Ledger tab exists to show which stage that is.</p>
   </div>
 
-  <h2>VIII. What Is Real and What Is Not</h2>
+  <h2>X. What Is Real and What Is Not</h2>
   <div class="cols">
     <p>The nodules are real. Polymetallic nodules lie on abyssal plains and consist mainly of manganese and iron oxides, with nickel, copper, and cobalt in smaller amounts <a class="c" href="#ref-6">[6]</a>. Lava erupts on the sea floor too, and basaltic lava is roughly 1,100 to 1,200 °C. Hot water rising from the sea floor is real as well: hydrothermal vents send up plumes of warm, buoyant water. A Stirling engine runs on a temperature difference rather than on fuel, so one placed between lava and cold seawater is at least sound in principle.</p>
     <p>The smelting and the forging are game rules. Copper melts at 1,085 °C, which basaltic lava can reach. Manganese melts at 1,246 °C and nickel at 1,455 °C, which it cannot, and turning an oxide ore into metal needs a reducing agent as well as heat. Vent plumes rise slowly, so a crab could not ride one to near the surface in two seconds. Sunlight does not reach a floor this deep, and the night shift is lit only by the crabs' lamps. The model is faithful about the economics: breakdowns tax output, repairs consume product, tired workers break more, and the slowest stage sets the pace.</p>
   </div>
 
-  <h2>IX. Conclusion</h2>
+  <h2>XI. Conclusion</h2>
   <div class="cols">
-    <p>Eight local rules, three piles, and one stockpile make a production line that looks managed and is not. Uncertain mining, breakdowns paid for in the line's own metal, wear that only rest removes, and a price that rewards steady flow turn it into a game with real decisions. The review finds that the economy works: every role pays for itself, every upgrade raises output, shifts beat working flat out over any real length of game, and a sensible player reaches Crab Tycoon in under half an hour of simulated time. The lesson is the old one with a night shift added: find the stage that sets the pace and feed it, keep every job covered around the clock, and let the crew sleep.</p>
+    <p>Eight local rules, three piles, a stockpile, and a refuel post make a production line that looks managed and is not. Uncertain mining, breakdowns paid for in the line's own metal, wear that only rest removes, and a price that rewards steady flow turn it into a game with real decisions. The review finds that the economy works: every role pays for itself, every upgrade raises output, shifts beat working flat out over any real length of game, and a sensible player reaches Crab Tycoon in under half an hour of simulated time. The lesson is the old one with a night shift added: find the stage that sets the pace and feed it, keep every job covered around the clock, and let the crew sleep and dance.</p>
   </div>
 
   <section data-nospeak>
@@ -780,9 +829,22 @@ function CrabSim() {
   var K = {
     STEP: 1 / 60,        // simulation time step, in seconds
     SEED: 20261005,
-    // places along the track, left to right
-    FIELD0: 20, FIELD1: 580, WORKSHOP: 600, HAUL_STAND: 622, ORE: 648, CRUSH: 694, BAR: 738, GRAB: 756,
-    STOCK: 790, COLLECTOR: 818, STIRLING: 850, RIM: 874, LAVA: 888, END: 1000,
+    // places along the track, left to right: the field, a row of building plots, then the lava
+    FIELD0: 20, FIELD1: 540, STIRLING: 852, RIM: 874, LAVA: 888, END: 1000,
+    // The line's buildings stand on plots along the front dune and can be moved between them.
+    // By default they run right to left from the lava, with one plot spare at the field's edge.
+    // The Stirling engine and the energy bots' base stay by the lava, where the heat is.
+    PLOTS: [560, 603, 646, 689, 732, 775, 818],
+    BUILDINGS: ['workshop', 'ore', 'crush', 'bar', 'stock', 'collector'],
+    LAYOUT: { workshop: 1, ore: 2, crush: 3, bar: 4, stock: 5, collector: 6 },
+    CREST: 0.035, CREST_SLOW: 0.5,   // climbing over the lip between two dunes is slow going
+    // the refuel post: an extension cord runs from the Stirling engine to a post the energy bots plug into;
+    // the player can set it down anywhere along the front dune, or let the bots drag it to where the work is
+    CORD: 520, POST_MOVE_EVERY: 25, POST_MIN_MOVE: 110,
+    // friends: idle crabs side by side dance together, which recharges them and clears their heads
+    DANCE_RANGE: 42, DANCE_CHARGE: 0.012, DANCE_RECOVER: 2,
+    // a crab that slept or danced enough in a day starts the next one fresh: faster for the first minute
+    REST_FOR_BONUS: 20, MORNING_BONUS: 1.25, MORNING_TIME: 90,
     VENT_IN: 880, VENT_X: 918,   // where crabs step into the thermal vent, and the column it rises in
     DEPTH: 300,          // crossing the dunes from the back crest to the front costs as much as 300 units of track
     // movement, in track units per second
@@ -829,10 +891,29 @@ function CrabSim() {
       riser: { costs: [100, 300], vals: [3, 1.8, 1] },
       yard: { costs: [90, 240], vals: [0, 1, 2] }
     },
+    // research: each technology unlocks the worker upgrades for some roles
+    TECH: {
+      sonar: { cost: 150, roles: ['scout'] },
+      metallurgy: { cost: 250, roles: ['drill', 'smelt'] },
+      hydraulics: { cost: 250, roles: ['haul', 'crush'] },
+      power: { cost: 300, roles: ['energy'] },
+      engineering: { cost: 300, roles: ['repair', 'mech'] }
+    },
+    // worker upgrades: bought once, they apply to every crab of the role
+    WUP: {
+      wideSonar: { role: 'scout', cost: 120 }, deepSonar: { role: 'scout', cost: 200 },
+      diamondTips: { role: 'drill', cost: 180 }, twinAugers: { role: 'drill', cost: 220 },
+      bigHopper: { role: 'haul', cost: 150 }, springLegs: { role: 'haul', cost: 150 },
+      hydraulicClaws: { role: 'crush', cost: 200 }, shockPads: { role: 'crush', cost: 120 },
+      heatTongs: { role: 'smelt', cost: 200 }, twinTongs: { role: 'smelt', cost: 260 },
+      bigCells: { role: 'energy', cost: 160 }, fastPlug: { role: 'energy', cost: 140 },
+      pocketForge: { role: 'repair', cost: 180 }, quickHands: { role: 'repair', cost: 120 },
+      mechForge: { role: 'mech', cost: 180 }, toughJoints: { role: 'mech', cost: 220 }
+    },
     RANKS: [[0, 'Sand Scraper'], [150, 'Pebble Boss'], [400, 'Nodule Baron'], [1000, 'Ingot Magnate'], [2500, 'Lava Lord'], [6000, 'Crab Tycoon']]
   };
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
-    'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus'];
+    'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
 
   var seed = K.SEED, S = null, events = [], dt = K.STEP;
@@ -851,7 +932,16 @@ function CrabSim() {
   // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
   function pace(c) {
     return (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
+      (c.fresh > 0 ? K.MORNING_BONUS : 1) *
       (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1);   // the night crew
+  }
+  function has(id) { return !!S.wu[id]; }
+  function carry() { return has('bigHopper') ? 5 : K.CARRY; }
+  function charges() { return has('bigCells') ? 6 : K.CHARGES; }
+  function layoutPos() {                  // where each building stands, and the spots crabs work at beside it
+    var x = function (b) { return K.PLOTS[S.layout[b]]; };
+    S.pos = { WORKSHOP: x('workshop'), ORE: x('ore'), HAUL_STAND: x('ore') - 24, CRUSH: x('crush'), BAR: x('bar'), GRAB: x('bar') + 16,
+      STOCK: x('stock'), COLLECTOR: x('collector') };
   }
   function wearMult(c) { return 1 + Math.min(K.WEAR_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.WEAR_SCALE); }
 
@@ -863,9 +953,14 @@ function CrabSim() {
     S = {
       t: 0, credits: K.START_CREDITS, earned: 0, heat: 6, price: K.PRICE, walk: 0, tick: 0, liftT: 0,
       nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, docks: [],
+      post: { x: K.STIRLING - 60, d: 0.86, auto: true, carrier: null, moved: -99 }, day: 1,
       shift: opts.shift || 'all', si: null, oc: false, ocBank: 0, streak: 0, lastSale: -99,
-      crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: []
+      crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
     };
+    for (k in K.LAYOUT) S.layout[k] = (opts.layout && opts.layout[k] !== undefined) ? opts.layout[k] : K.LAYOUT[k];
+    for (k in (opts.wu || {})) S.wu[k] = true;
+    for (k in (opts.tech || {})) S.tech[k] = true;
+    layoutPos();
     for (k in K.UP) S.lv[k] = (opts.lv && opts.lv[k]) || 0;
     for (i = 0; i < STATS.length; i++) S.stat[STATS[i]] = 0;
     for (i = 0; i < K.START_NODULES; i++) {
@@ -896,14 +991,14 @@ function CrabSim() {
   function addCrab(role) {
     var p, c = {
       id: S.nextId++, role: role, x: 0, d: 0.8, dir: 1, bat: 1, state: 'init', timer: 0, load: 0, carry: null,
-      target: null, claimedBy: null, fixBy: null, mendBy: null, flag: null, charges: K.CHARGES, bitOk: true, broken: false, limp: false,
-      wear: 0, air: null, alt: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
+      target: null, claimedBy: null, fixBy: null, mendBy: null, flag: null, charges: charges(), bitOk: true, broken: false, limp: false,
+      wear: 0, air: null, alt: 0, dance: null, rested: 0, fresh: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
     };
     if (role === 'scout' || role === 'drill' || role === 'haul') { p = spot(); c.x = p.x; c.d = p.d; }
-    else if (role === 'crush') { c.x = K.CRUSH; c.d = 0.8; }
-    else if (role === 'smelt') { c.x = K.GRAB; c.d = 0.78; }
+    else if (role === 'crush') { c.x = S.pos.CRUSH; c.d = 0.8; }
+    else if (role === 'smelt') { c.x = S.pos.GRAB; c.d = 0.78; }
     else if (role === 'energy') { c.x = K.STIRLING - 40; c.d = 0.9; }
-    else { c.x = K.WORKSHOP; c.d = 0.93; }
+    else { c.x = S.pos.WORKSHOP; c.d = 0.93; }
     S.crabs.push(c);
     rank();
     emit('join', c);
@@ -915,6 +1010,8 @@ function CrabSim() {
     if (c.role === 'energy' && c.target) { c.target.claimedBy = null; c.target = null; }
     if ((c.role === 'repair' || c.role === 'mech') && c.target) { c.target[FIX[c.role].claim] = null; c.target = null; }
     var j = S.docks.indexOf(c); if (j >= 0) S.docks.splice(j, 1);
+    if (S.post.carrier === c) { S.post.carrier = null; S.post.moved = S.t; }
+    if (c.dance) { if (c.dance.dance === c) c.dance.dance = null; c.dance = null; }
   }
   function removeCrab(role) {
     var i, c = null, j;
@@ -981,7 +1078,8 @@ function CrabSim() {
 
   // walk along the track (x) and up or down the dunes (d); true once there
   function moveTo(c, tx, td, speed) {
-    var k = pace(c) * (c.limp ? K.LIMP : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
+    var crest = Math.abs(c.d - 1 / 3) < K.CREST || Math.abs(c.d - 2 / 3) < K.CREST;
+    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
     if (Math.abs(dx) > 0.5) {
       c.dir = dx > 0 ? 1 : -1;
       c.x += Math.abs(dx) <= mv ? dx : c.dir * mv;
@@ -1059,17 +1157,17 @@ function CrabSim() {
       f = spot(); c.tx = f.x; c.td = f.d; c.state = 'go';
     }
     if (c.state === 'go') {
-      if (go(c, c.tx, c.td, K.SCOUT_SPEED)) { c.state = 'scan'; c.timer = K.T_SCAN; c.scan = 0; }
+      if (go(c, c.tx, c.td, K.SCOUT_SPEED)) { c.state = 'scan'; c.timer = c.scanT = K.T_SCAN * (has('wideSonar') ? 0.65 : 1); c.scan = 0; }
     } else if (c.state === 'scan') {
       c.timer -= work(c);
-      c.scan = clamp(1 - c.timer / K.T_SCAN, 0, 1);
+      c.scan = clamp(1 - c.timer / c.scanT, 0, 1);
       if (c.timer <= 0) {
         S.stat.scans++;
         sc = up('scanner');
         if (sr() < sc[0]) {
           z = zoneOf(c.d);
-          f = { id: S.nextId++, x: c.x, d: c.d, q: clamp(srr(0.45, 0.85) + K.ZONES[z].q + sc[1], 0.3, 0.97),
-            size: 2 + Math.floor(sr() * 3) + K.ZONES[z].size, by: null, zone: z, born: S.t };
+          f = { id: S.nextId++, x: c.x, d: c.d, q: clamp(srr(0.45, 0.85) + K.ZONES[z].q + sc[1] + (has('deepSonar') ? 0.08 : 0), 0.3, 0.97),
+            size: 2 + Math.floor(sr() * 3) + K.ZONES[z].size + (has('deepSonar') ? 1 : 0), by: null, zone: z, born: S.t };
           S.flags.push(f); S.stat.finds++; emit('flag', c, f);
         } else emit('miss', c);
         c.state = 'pick';
@@ -1090,7 +1188,7 @@ function CrabSim() {
     if (c.state === 'go') {
       if (c.flag && c.flag.gone) { c.flag = null; c.state = 'pick'; return; }
       if (go(c, c.tx, c.td, K.SPEED)) {
-        c.state = 'drill'; c.timer = c.holeT = K.T_DRILL * (c.bitOk ? 1 : K.BROKEN_TIME);
+        c.state = 'drill'; c.timer = c.holeT = K.T_DRILL * (c.bitOk ? 1 : K.BROKEN_TIME) * (has('diamondTips') ? 0.75 : 1);
         c.nod = { x: c.x, d: c.d, alive: false, eddy: 0, by: null };
         S.nodules.push(c.nod);
       }
@@ -1103,7 +1201,7 @@ function CrabSim() {
         if (sr() < q) {
           S.stat.strikes++;
           c.nod.alive = true; c.nod.eddy = -1; emit('strike', c, c.nod);
-          if (sr() < K.BONUS_NODULE) {                       // a rich pocket holds a second nodule
+          if (sr() < (has('twinAugers') ? 0.45 : K.BONUS_NODULE)) {                       // a rich pocket holds a second nodule
             n2 = { x: clamp(c.x + srr(-14, 14), K.FIELD0, K.FIELD1), d: clamp(c.d + srr(-0.05, 0.05), 0.02, 0.98), alive: true, eddy: -1, by: null };
             S.nodules.push(n2); emit('uncover', n2);
           }
@@ -1113,7 +1211,7 @@ function CrabSim() {
           emit('dry', c);
         }
         c.nod = null;
-        if (c.bitOk && sr() < up('bits') * wearMult(c)) { c.bitOk = false; S.stat.bitsBroken++; emit('bitBreak', c); }
+        if (c.bitOk && sr() < up('bits') * wearMult(c) * (has('diamondTips') ? 0.6 : 1)) { c.bitOk = false; S.stat.bitsBroken++; emit('bitBreak', c); }
         c.state = 'pick';
       }
     }
@@ -1121,11 +1219,11 @@ function CrabSim() {
   function haul(c) {
     if (c.state === 'init') c.state = 'seek';
     if (c.state === 'seek') {
-      if (c.load >= K.CARRY) { c.state = 'haul'; return; }
+      if (c.load >= carry()) { c.state = 'haul'; return; }
       if (c.load === 0 && !c.target && offShift(c)) return;
       if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
       if (c.target) {
-        if (go(c, c.target.x, c.target.d, K.SPEED)) { c.state = 'pick'; c.timer = K.T_PICK; }
+        if (go(c, c.target.x, c.target.d, K.SPEED * (has('springLegs') ? 1.3 : 1))) { c.state = 'pick'; c.timer = K.T_PICK; }
       } else if (c.load > 0) {
         c.state = 'haul';
       }
@@ -1141,7 +1239,7 @@ function CrabSim() {
         c.target = null; c.state = 'seek';
       }
     } else if (c.state === 'haul') {
-      if (moveTo(c, K.HAUL_STAND, 0.72 + 0.07 * (c.k % 4), K.SPEED)) { c.state = 'stack'; c.timer = K.T_STACK; }
+      if (moveTo(c, S.pos.HAUL_STAND, 0.72 + 0.07 * (c.k % 4), K.SPEED * (has('springLegs') ? 1.3 : 1))) { c.state = 'stack'; c.timer = K.T_STACK; }
     } else if (c.state === 'stack') {
       if (S.ore >= oreCap()) return;                         // the ore pile is full: wait
       c.timer -= work(c);
@@ -1155,10 +1253,10 @@ function CrabSim() {
   function crush(c) {
     if (c.state === 'init') c.state = 'home';
     if (c.state === 'home') {
-      if (moveTo(c, K.CRUSH - (c.k >= 3 ? 16 : 0), 0.72 + 0.09 * (c.k % 3), K.SPEED)) c.state = 'wait';
+      if (moveTo(c, S.pos.CRUSH - (c.k >= 3 ? 16 : 0), 0.72 + 0.09 * (c.k % 3), K.SPEED)) c.state = 'wait';
     } else if (c.state === 'wait') {
       if (offShift(c)) return;
-      if (S.ore >= K.NOD_PER_BAR) { S.ore -= K.NOD_PER_BAR; emit('feed', c); c.state = 'crush'; c.timer = K.T_CRUSH; }
+      if (S.ore >= K.NOD_PER_BAR) { S.ore -= K.NOD_PER_BAR; emit('feed', c); c.state = 'crush'; c.timer = c.crushT = K.T_CRUSH * (has('hydraulicClaws') ? 0.65 : 1); }
     } else if (c.state === 'crush') {
       c.timer -= work(c);
       if (c.timer <= 0) c.state = 'hold';
@@ -1170,26 +1268,27 @@ function CrabSim() {
     if (c.state === 'init') c.state = 'toBar';
     if (c.state === 'toBar') {
       if (offShift(c)) return;
-      if (moveTo(c, K.GRAB, 0.72 + 0.08 * (c.k % 3), K.SPEED)) { c.state = 'grab'; c.timer = K.T_GRAB; }
+      if (moveTo(c, S.pos.GRAB, 0.72 + 0.08 * (c.k % 3), K.SPEED)) { c.state = 'grab'; c.timer = K.T_GRAB; }
     } else if (c.state === 'grab') {
       if (c.carry !== 'bar') {
         if (S.bars <= 0) return;                             // nothing to smelt yet: wait
-        S.bars--; c.carry = 'bar'; emit('grab', c); c.timer = K.T_GRAB;
+        c.n = has('twinTongs') && S.bars >= 2 ? 2 : 1;      // twin tongs carry two bars at once
+        S.bars -= c.n; c.carry = 'bar'; emit('grab', c); c.timer = K.T_GRAB;
       }
       c.timer -= work(c);
       if (c.timer <= 0) c.state = 'toLava';
     } else if (c.state === 'toLava') {
-      if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = K.T_SMELT; c.heat = 0; }
+      if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = c.smeltT = K.T_SMELT * (has('heatTongs') ? 0.6 : 1); c.heat = 0; }
     } else if (c.state === 'smelt') {
       c.timer -= work(c);
-      c.heat = clamp(1 - c.timer / K.T_SMELT, 0, 1);
-      if (c.timer <= 0) { c.carry = 'ingot'; S.stat.ingots++; emit('ingot', c); c.state = 'toStock'; }
+      c.heat = clamp(1 - c.timer / c.smeltT, 0, 1);
+      if (c.timer <= 0) { c.carry = 'ingot'; S.stat.ingots += c.n; emit('ingot', c); c.state = 'toStock'; }
     } else if (c.state === 'toStock') {
-      if (moveTo(c, K.STOCK + 8, 0.86 + 0.04 * (c.k % 3), K.SPEED)) { c.state = 'drop'; c.timer = K.T_DROP; }
+      if (moveTo(c, S.pos.STOCK + 8, 0.86 + 0.04 * (c.k % 3), K.SPEED)) { c.state = 'drop'; c.timer = K.T_DROP; }
     } else if (c.state === 'drop') {
-      if (S.stock >= K.STOCK_CAP) return;                    // the stockpile is full: wait
+      if (S.stock + c.n > K.STOCK_CAP) return;               // the stockpile is full: wait
       c.timer -= work(c);
-      if (c.timer <= 0) { c.carry = null; c.heat = 0; S.stock++; emit('stock', c); c.state = 'toBar'; }
+      if (c.timer <= 0) { c.carry = null; c.heat = 0; S.stock += c.n; emit('stock', c); c.state = 'toBar'; }
     }
   }
   function energy(c) {
@@ -1204,14 +1303,15 @@ function CrabSim() {
         if (!best || w.bat < best.bat) best = w;
       }
       if (best) { best.claimedBy = c; c.target = best; c.state = 'go'; }
-      else if (c.charges < K.CHARGES) c.state = 'toEngine';        // nobody needs charge: top up
-      else moveTo(c, K.STIRLING - 46 - 16 * (c.k % 4), 0.9 - 0.05 * (c.k % 2), sp);
+      else if (c.charges < charges()) c.state = 'toEngine';        // nobody needs charge: top up
+      else if (postWanted(c)) { S.post.carrier = c; c.state = 'toPost'; }
+      else moveTo(c, S.post.x - 30 - 16 * (c.k % 4), clamp(S.post.d + 0.04 - 0.05 * (c.k % 2), 0.72, 0.97), sp);
     } else if (c.state === 'go' || c.state === 'charge') {
       w = c.target;
       if (!w || w.gone || w.state === 'sleep') { if (w) w.claimedBy = null; c.target = null; c.state = 'idle'; return; }
       if (c.state === 'go') {
         if (go(c, w.x - 12, w.d, sp) || (!c.air && Math.abs(w.x - 12 - c.x) <= 4 && Math.abs(w.d - c.d) <= 0.06)) {
-          c.state = 'charge'; c.timer = K.T_CHARGE * (c.broken ? 2 : 1);
+          c.state = 'charge'; c.timer = K.T_CHARGE * (c.broken ? 2 : 1) * (has('fastPlug') ? 0.5 : 1);
         }
       } else {
         moveTo(c, w.x - 12, w.d, sp);
@@ -1223,18 +1323,26 @@ function CrabSim() {
           c.state = c.charges > 0 ? 'idle' : 'toEngine';
         }
       }
-    } else if (c.state === 'toEngine') {                       // back to the base station by the lava
-      if (moveTo(c, K.STIRLING - 22, 0.8, sp)) c.state = 'queue';
+    } else if (c.state === 'toEngine') {                       // back to the refuel post at the end of the cord
+      if (go(c, S.post.x - 14, S.post.d - 0.03, sp) && !c.air) c.state = 'queue';
+    } else if (c.state === 'toPost' || c.state === 'dragPost') {   // pick the post up and drag it, cord and all
+      if (c.state === 'toPost') { if (moveTo(c, S.post.x - 8, S.post.d, sp)) { c.state = 'dragPost'; emit('postGrab', c); } }
+      else {
+        var tgt = postTarget();
+        if (moveTo(c, tgt.x - 8, tgt.d, sp * 0.6)) { S.post.carrier = null; S.post.moved = S.t; c.state = 'idle'; emit('postMoved', c); }
+        S.post.x = c.x + 8; S.post.d = c.d;
+      }
     } else if (c.state === 'queue') {
-      if (S.docks.length < K.DOCKS) { S.docks.push(c); c.state = 'refill'; c.timer = K.T_PLUG; emit('plug', c); }
+      if (S.post.carrier) return;                              // the post is on the move: wait for it
+      if (S.docks.length < K.DOCKS) { S.docks.push(c); c.state = 'refill'; c.timer = K.T_PLUG * (has('fastPlug') ? 0.6 : 1); emit('plug', c); }
     } else if (c.state === 'refill') {                       // plugged into the engine, one charge at a time
       c.working = true;
-      moveTo(c, K.STIRLING - 12 + 22 * S.docks.indexOf(c), 0.76, sp);
+      moveTo(c, S.post.x - 12 + 22 * S.docks.indexOf(c), S.post.d - 0.04, sp);
       if (S.heat < 1) return;                                // the engine is spent: wait while it heats up
       c.timer -= dt;
       if (c.timer <= 0) {
-        S.heat -= 1; c.charges++; c.timer = K.T_PLUG;
-        if (c.charges >= K.CHARGES) {
+        S.heat -= 1; c.charges++; c.timer = K.T_PLUG * (has('fastPlug') ? 0.6 : 1);
+        if (c.charges >= charges()) {
           c.state = 'idle';
           i = S.docks.indexOf(c); if (i >= 0) S.docks.splice(i, 1);
           emit('refill', c);
@@ -1243,18 +1351,30 @@ function CrabSim() {
     }
   }
 
+  // where the crew is working: the post is most use near the middle of them, within reach of the cord
+  function postTarget() {
+    var x = 0, d = 0, n = 0, i, c;
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role === 'energy' || c.state === 'sleep' || c.alt > 0) continue; x += c.x; d += c.d; n++; }
+    x = n ? x / n : S.post.x;
+    return { x: clamp(x, Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), K.STIRLING - 40), d: 0.88 };
+  }
+  function postWanted(c) {
+    if (!S.post.auto || S.post.carrier || S.t - S.post.moved < K.POST_MOVE_EVERY || S.docks.length) return false;
+    return Math.abs(postTarget().x - S.post.x) > K.POST_MIN_MOVE;
+  }
+
   // ----- the two repair crews: fetch the material, forge the part in the lava, fit it -----
   // Repair bots turn an ingot from the stockpile into a new drill bit or energy cell.
   // Maintenance bots turn a bar from the bar stack into a new leg.
   var FIX = {
     repair: {
-      claim: 'fixBy', raw: 'ingot', part: 'bit', at: function () { return K.STOCK - 10; },
+      claim: 'fixBy', raw: 'ingot', part: 'bit', pocket: 'pocketForge', quick: 'quickHands', at: function () { return S.pos.STOCK - 10; },
       need: function (w) { return (w.role === 'drill' && !w.bitOk) || (w.role === 'energy' && w.broken); },
       take: function () { if (S.stock <= 0) return false; S.stock--; S.stat.metalUsed++; return true; },
       done: function (w) { if (w.role === 'drill') w.bitOk = true; else w.broken = false; S.stat.repairs++; }
     },
     mech: {
-      claim: 'mendBy', raw: 'bar', part: 'leg', at: function () { return K.BAR + 14; },
+      claim: 'mendBy', raw: 'bar', part: 'leg', pocket: 'mechForge', quick: 'quickHands', at: function () { return S.pos.BAR + 14; },
       need: function (w) { return w.limp; },
       take: function () { if (S.bars <= 0) return false; S.bars--; S.stat.barsUsed++; return true; },
       done: function (w) { w.limp = false; S.stat.mends++; }
@@ -1273,9 +1393,9 @@ function CrabSim() {
         d = far(c, w.x, w.d) * (w.state === 'sleep' ? 0.6 : 1);   // sleeping crabs hold still: easy work
         if (d < bd) { bd = d; best = w; }
       }
-      if (!best) { moveTo(c, K.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, K.RSPEED); return; }
+      if (!best) { moveTo(c, S.pos.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, K.RSPEED); return; }
       best[F.claim] = c; c.target = best;
-      c.state = c.carry === F.part ? 'toJob' : (c.carry === F.raw ? 'toForge' : 'toMat');
+      c.state = c.carry === F.part ? 'toJob' : (c.carry === F.raw ? (has(F.pocket) ? 'fetch' : 'toForge') : 'toMat');
     }
     if (c.state === 'toMat') {
       if (moveTo(c, F.at(), 0.95, K.RSPEED)) { c.state = 'fetch'; c.timer = K.T_FETCH; }
@@ -1285,19 +1405,22 @@ function CrabSim() {
         c.carry = F.raw; emit('takeMat', c);
       }
       c.timer -= work(c);
-      if (c.timer <= 0) c.state = 'toForge';
+      if (c.timer <= 0) {
+        if (has(F.pocket)) { c.state = 'forge'; c.timer = c.forgeT = K.T_FORGE; c.heat = 0; }   // a pocket forge works on the spot
+        else c.state = 'toForge';
+      }
     } else if (c.state === 'toForge') {                     // the lava is the forge
-      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), K.RSPEED)) { c.state = 'forge'; c.timer = K.T_FORGE; c.heat = 0; }
+      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), K.RSPEED)) { c.state = 'forge'; c.timer = c.forgeT = K.T_FORGE; c.heat = 0; }
     } else if (c.state === 'forge') {
       c.timer -= work(c);
-      c.heat = clamp(1 - c.timer / K.T_FORGE, 0, 1);
+      c.heat = clamp(1 - c.timer / c.forgeT, 0, 1);
       if (c.timer <= 0) { c.carry = F.part; c.heat = 0; emit('forged', c); c.state = 'toJob'; }
     } else if (c.state === 'toJob' || c.state === 'fix') {
       w = c.target;
       if (!needs(w, c.role)) { if (w && w[F.claim] === c) w[F.claim] = null; c.target = null; c.state = 'idle'; return; }
       if (c.state === 'toJob') {
         if (w.air) return;                                   // wait for it to land
-        if (go(c, w.x - 14 * w.dir, w.d, K.RSPEED) && !c.air && far(c, w.x - 14 * w.dir, w.d) < 6) { c.state = 'fix'; c.timer = K.T_REPAIR; }
+        if (go(c, w.x - 14 * w.dir, w.d, K.RSPEED) && !c.air && far(c, w.x - 14 * w.dir, w.d) < 6) { c.state = 'fix'; c.timer = K.T_REPAIR * (c.role === 'repair' && has('quickHands') ? 0.6 : 1); }
       } else {
         c.timer -= work(c);
         if (c.timer <= 0) {
@@ -1365,7 +1488,9 @@ function CrabSim() {
     for (i = 0; i < S.crabs.length; i++) {
       c = S.crabs[i];
       c.moving = false; c.working = false; c.floating = false;
+      if (c.fresh > 0) c.fresh -= dt;
       if (c.state === 'sleep') {                             // off shift: rest, recharge, and shake off the wear
+        c.rested += dt;
         c.bat = Math.min(1, c.bat + K.REST_CHARGE * dt);
         c.wear = Math.max(0, c.wear - K.REST_RECOVER * dt);
         if (onDuty(c)) { c.state = RESUME[c.role]; emit('wake', c); }
@@ -1377,17 +1502,53 @@ function CrabSim() {
       }
       active = c.moving || c.working;
       if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); continue; }
-      c.wear += dt * (S.oc ? K.OC_WEAR : 1);
+      c.wear += dt * (S.oc ? K.OC_WEAR : 1) * (c.role === 'crush' && has('shockPads') ? 0.5 : 1);
       if (c.role !== 'energy') {
         drain = K.DRAIN * (c.role === 'drill' && !c.bitOk && c.state === 'drill' ? K.BROKEN_DRAIN : 1) * (S.oc ? K.OC_DRAIN : 1);
         c.bat = Math.max(0, c.bat - drain * dt);
       }
-      if (!c.limp && sr() < K.LEG_RATE * wearMult(c) * dt) { c.limp = true; S.stat.legsLost++; emit('legOff', c); }
+      if (!c.limp && sr() < K.LEG_RATE * (has('toughJoints') ? 0.5 : 1) * wearMult(c) * dt) { c.limp = true; S.stat.legsLost++; emit('legOff', c); }
     }
+    dance();
+    if (S.si.day !== S.day) morning();
     S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * dt / 60);   // lava heat drives the Stirling engine
     sell();
     if (S.t >= S.tick + 1 - 1e-9) { S.tick += 1; market(); snapshot(); }
   }
+  // Idle neighbours dance. Two crabs standing about with nothing to do, side by side, pair up and dance:
+  // it tops up their batteries a little and clears their wear, and it counts towards a fresh morning.
+  function dance() {
+    var i, j, a, b, idle = [];
+    for (i = 0; i < S.crabs.length; i++) {
+      a = S.crabs[i];
+      if (!a.moving && !a.working && !a.floating && a.state !== 'sleep' && !a.air && !isHeld(a)) idle.push(a);
+      else if (a.dance) { a.dance.dance = null; a.dance = null; }
+    }
+    for (i = 0; i < idle.length; i++) {
+      a = idle[i];
+      if (a.dance && (a.dance.gone || idle.indexOf(a.dance) < 0)) a.dance = null;
+      if (!a.dance) for (j = 0; j < idle.length; j++) {
+        b = idle[j];
+        if (b === a || b.dance || Math.abs(b.x - a.x) > K.DANCE_RANGE || Math.abs(b.d - a.d) > 0.12) continue;
+        a.dance = b; b.dance = a; emit('dance', a, b); break;
+      }
+      if (a.dance) {
+        a.bat = Math.min(1, a.bat + K.DANCE_CHARGE * dt);
+        a.wear = Math.max(0, a.wear - K.DANCE_RECOVER * dt);
+        a.rested += dt; S.stat.danced += dt;
+      }
+    }
+  }
+  function morning() {                     // a new day: crabs that rested well start it fresh
+    S.day = S.si.day;
+    for (var i = 0; i < S.crabs.length; i++) {
+      var c = S.crabs[i];
+      if (c.rested >= K.REST_FOR_BONUS) { c.fresh = K.MORNING_TIME; S.stat.mornings++; emit('morning', c); }
+      c.rested = 0;
+    }
+    emit('dawn', S.day);
+  }
+
   // flows over the last `secs` simulated seconds, per minute
   function rates(secs) {
     var h = S.hist, b = h[h.length - 1], a, i, o = {}, span;
@@ -1414,11 +1575,11 @@ function CrabSim() {
     var breaks = (n.drill * PER.holes * up('bits') + n.energy * 10 * K.EBOT_WEAR) * wm, legs = S.crabs.length * K.LEG_RATE * 60 * wm;
     var d = function (r) { return n[r] * dutyShare(r); };
     return {
-      scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]),
-      drill: d('drill') * (n.scout ? PER.drill : PER.wildcat),
-      haul: d('haul') * PER.haul,
-      crush: d('crush') * PER.crush,
-      smelt: d('smelt') * PER.smelt,
+      scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]) * (has('wideSonar') ? 1.35 : 1) * (has('deepSonar') ? 1.2 : 1),
+      drill: d('drill') * (n.scout ? PER.drill : PER.wildcat) * (has('diamondTips') ? 1.2 : 1) * (has('twinAugers') ? 1.2 : 1),
+      haul: d('haul') * PER.haul * (has('bigHopper') ? 1.4 : 1) * (has('springLegs') ? 1.25 : 1),
+      crush: d('crush') * PER.crush * (has('hydraulicClaws') ? 1.5 : 1),
+      smelt: d('smelt') * PER.smelt * (has('heatTongs') ? 1.25 : 1) * (has('twinTongs') ? 1.6 : 1),
       sell: 60 / up('riser'),
       // power: crabs kept charged per crab working, limited by the bots and by the engine behind them
       power: workers ? Math.min(d('energy') * PER.bot, up('engine') / PER.charges) / workers : 1,
@@ -1471,6 +1632,42 @@ function CrabSim() {
     emit('build', id);
     return true;
   }
+  function research(id) {
+    var t = K.TECH[id];
+    if (!t || S.tech[id]) return 'done';
+    if (S.credits < t.cost) return 'credits';
+    S.credits -= t.cost; S.stat.spent += t.cost; S.tech[id] = true;
+    emit('tech', id);
+    return true;
+  }
+  function unlocked(role) { for (var id in K.TECH) if (S.tech[id] && K.TECH[id].roles.indexOf(role) >= 0) return true; return false; }
+  function upgradeWorker(id) {
+    var u = K.WUP[id];
+    if (!u || S.wu[id]) return 'done';
+    if (!unlocked(u.role)) return 'locked';
+    if (S.credits < u.cost) return 'credits';
+    S.credits -= u.cost; S.stat.spent += u.cost; S.wu[id] = true;
+    if (id === 'bigCells') for (var i = 0; i < S.crabs.length; i++) if (S.crabs[i].role === 'energy') S.crabs[i].charges = Math.min(charges(), S.crabs[i].charges + 2);
+    emit('wup', id);
+    return true;
+  }
+  function place(b, plot) {                // move a building to a plot; whatever stands there swaps places with it
+    var other = null, k;
+    if (K.BUILDINGS.indexOf(b) < 0 || plot < 0 || plot >= K.PLOTS.length || S.layout[b] === plot) return false;
+    for (k in S.layout) if (S.layout[k] === plot) other = k;
+    if (other) S.layout[other] = S.layout[b];
+    S.layout[b] = plot;
+    layoutPos();
+    emit('layout', b, other);
+    return true;
+  }
+  function placePost(x, d) {              // the player sets the post down: it stays there until let loose
+    if (S.post.carrier) { S.post.carrier.state = 'idle'; S.post.carrier = null; }
+    S.post.x = clamp(x, Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), K.STIRLING - 40);
+    S.post.d = clamp(d, 0.72, 0.97); S.post.auto = false; S.post.moved = S.t;
+    emit('postMoved', null);
+  }
+  function setPostAuto(on) { S.post.auto = !!on; S.post.moved = -99; }
   function setReserve(n) { S.reserve = clamp(Math.round(n), 0, 12); }
   function setShift(m) { if (K.SHIFTS.indexOf(m) >= 0 && m !== S.shift) { S.shift = m; emit('shiftMode', m); } }
   function overclock(on) {
@@ -1484,7 +1681,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }
@@ -1508,7 +1705,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var CS = 1, surfH = 0, F = 0, lavaL = 0, base = [0, 0, 0], farBase = 0, dunePaths = [], farPath = null, grain = null;
   var pal = {};
   var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
-  var debris = [], nightA = 0, lastShift = '', big = false;
+  var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -1569,9 +1766,17 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     grain = ctx.createPattern(g, 'repeat');
   }
   function layerOf(d) { return d < 1 / 3 ? 0 : (d < 2 / 3 ? 1 : 2); }
+  // The sand face of each dune runs from its crest down to the next dune's crest, so a crab walking
+  // forward reaches the lip of the next dune without a jump, and humps up a little to climb over it.
   function groundY(px, d) {
-    var k = layerOf(d), f = d * 3 - k, top = crestY(k, px) + 7 * CS, bot = (k < 2 ? crestY(k + 1, px) - 5 * CS : H - 9 * CS);
-    return top + f * (bot - top);
+    var k = layerOf(d), f = d * 3 - k, top = crestY(k, px) + 4 * CS, bot = (k < 2 ? crestY(k + 1, px) + 4 * CS : H - 9 * CS), y = top + f * (bot - top), b, i;
+    for (i = 1; i <= 2; i++) { b = Math.abs(d - i / 3); if (b < K.CREST) y -= 5 * CS * (1 - b / K.CREST); }
+    return y;
+  }
+  function crabLayer(c) { return layerOf(Math.min(1, c.d + 0.04)); }   // a crab on the lip is drawn on the dune in front
+  function crestTilt(c) {                // leaning into the climb over a dune's lip
+    for (var i = 1; i <= 2; i++) { var b = c.d - i / 3; if (Math.abs(b) < K.CREST && c.moving && Math.abs(c.d - c.vd2) > 1e-5) return (c.d > c.vd2 ? 1 : -1) * (b < 0 ? -0.22 : 0.16) * c.dir; }
+    return 0;
   }
   function scaleAt(d) { return CS * (0.7 + 0.3 * d); }
   function X(lx) { return lx / K.END * W; }
@@ -1614,7 +1819,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     for (i = 0; i < n; i++) snow.push({ x: rr(0, W), y: rr(0, 1), r: rr(0.6, 1.6), vy: rr(5, 14), ph: rr(0, TAU) });
     lavaBub = [];
     for (i = 0; i < 6; i++) lavaBub.push({ u: rr(0.1, 0.95), t: rr(0, 1), dur: rr(0.9, 2), r: rr(2, 4.5) });
-    bubbles = [];
+    bubbles = []; fish = []; jellies = [];
   }
 
   // ----- small effects -----
@@ -1633,24 +1838,77 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   }
   function floater(text, x, y, big) { floaters.push({ text: text, x: x, y: y, life: 0, max: big ? 2.4 : 1.6, big: !!big }); }
   function express(c, name, dur) { c.vx = { name: name, until: T + (dur || 1.4) }; }
+
+  // ----- crab talk -----
+  // Crabs speak in short emoji sentences: a thing, then a verb, then sometimes who or how they feel.
+  //   things: 🔋 charge  🦵 leg  ⛏️ drill bit  🪨 nodule  🧱 bar  🪙 ingot  🚩 flag  🔥 forge  🌋 vent  🦀 you, me
+  //   verbs:  ❓ I need  ➡️ bringing it  👍 on my way  ✅ got it, done  💔 broke  ⛔ full, can't  ❗ found one  ❤️ thanks
+  // So "🔋❓" is "I need charge", and an energy bot answers "🔋➡️🦀", "bringing you charge".
+  var TALK = {
+    needCharge: '🔋❓', bringCharge: '🔋➡️🦀', gotCharge: '🔋✅❤️', ebotBreak: '🔋💔😵',
+    bitBreak: '⛏️💔😭', needBit: '⛏️❓', onBit: '⛏️👍', bringBit: '⛏️➡️🦀', fixedBit: '⛏️✅❤️',
+    legOff: '🦵💔😭', needLeg: '🦵❓', onLeg: '🦵👍', bringLeg: '🦵➡️🦀', mended: '🦵✅❤️',
+    strike: '🪨✅🎉', dry: '🪨❌😤', flag: '🚩❗', miss: '🚩❓🤷',
+    needOre: '🪨❓', oreFull: '🪨⛔', needBar: '🧱❓', barFull: '🧱⛔', needIngot: '🪙❓', stockFull: '🪙⛔', smelted: '🪙✅🎶',
+    toForgeIngot: '🪙➡️🔥', toForgeBar: '🧱➡️🔥', needHeat: '🔥❓',
+    wake: '☀️👋', ride: '🌋⬆️😆', land: '🦀✅', oc: '⚡💪', rave: '🎉🦀🎶'
+  };
+  var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+  var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
+    '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~' };
+  var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
+    try {
+      var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
+        g.clearRect(0, 0, 24, 24); g.fillText(t, 0, 0);
+        return Array.prototype.join.call(g.getImageData(0, 0, 24, 24).data, '');
+      };
+      c.width = c.height = 24;
+      g.font = '18px ' + EMOJI_FONT; g.textBaseline = 'top'; g.fillStyle = '#000';
+      var crab = draw2('🦀'), none = draw2('\u{10FFFD}'), blank = draw2('');
+      return crab !== blank && crab !== none;   // drawn, and not the box a missing character gets
+    } catch (e) { return false; }
+  })();
+  function spoken(text) {
+    if (emojiOK) return text;
+    var out = [], parts = Array.from(text.replace(/\uFE0F/g, ''));
+    for (var i = 0; i < parts.length; i++) out.push(WORDS[parts[i]] || parts[i]);
+    return out.join(' ').replace(/ \?/g, '?').replace(/ !/g, '!');
+  }
+  function say(c, text, dur) { if (c && text) c.say = { text: spoken(text), until: T + (dur || 1.8) }; }
+  function needs(c) {                    // what a crab asks for when it is stuck: the helpers answer
+    if (c.state === 'sleep' || c.alt > 0) return null;
+    if (c.role !== 'energy' && c.bat < 0.3 && !c.claimedBy) return TALK.needCharge;
+    if (c.limp && !c.mendBy) return TALK.needLeg;
+    if (c.role === 'drill' && !c.bitOk && !c.fixBy) return TALK.needBit;
+    if (c.role === 'haul' && c.state === 'stack' && S.ore >= sim.oreCap()) return TALK.oreFull;
+    if (c.role === 'crush' && c.state === 'wait' && S.ore < 2) return TALK.needOre;
+    if (c.role === 'crush' && c.state === 'hold') return TALK.barFull;
+    if (c.role === 'smelt' && c.state === 'grab' && c.carry !== 'bar' && S.bars <= 0) return TALK.needBar;
+    if (c.role === 'smelt' && c.state === 'drop' && S.stock >= K.STOCK_CAP) return TALK.stockFull;
+    if (c.role === 'repair' && c.state === 'fetch' && c.carry !== 'ingot' && S.stock <= 0) return TALK.needIngot;
+    if (c.role === 'mech' && c.state === 'fetch' && c.carry !== 'bar' && S.bars <= 0) return TALK.needBar;
+    if (c.role === 'energy' && c.state === 'refill' && S.heat < 1) return TALK.needHeat;
+    return null;
+  }
   function crabX(c) { return X(c.x) + (c.role === 'crush' ? [-14, 14, 0][c.k % 3] * scaleAt(c.d) : 0); }
   function clawPos(c, side) { var s = scaleAt(c.d), px = crabX(c); return { x: px + side * 15 * s, y: groundY(px, c.d) - 12 * s }; }
   function oreSlot(i) {                // the ore pile is a pyramid, six nodules wide
-    var row = 0, size = 6, k = i, s = scaleAt(0.8), rp = 4 * s, px = X(K.ORE);
+    var row = 0, size = 6, k = i, s = scaleAt(0.8), rp = 4 * s, px = X(S.pos.ORE);
     while (k >= size && size > 1) { k -= size; size--; row++; }
     return { x: px + (k - (size - 1) / 2) * rp * 2.3, y: groundY(px, 0.8) - rp * 0.8 - row * rp * 1.45 };
   }
   function barSlot(i) {                // bars are stacked like bricks, two wide
-    var s = scaleAt(0.78), px = X(K.BAR);
+    var s = scaleAt(0.78), px = X(S.pos.BAR);
     return { x: px + ((i % 2) - 0.5) * 9 * s, y: groundY(px, 0.78) - 2 * s - Math.floor(i / 2) * 4.1 * s };
   }
   function stockSlot(i) {              // refined metal, stacked in a pyramid of gold
-    var row = 0, size = 5, k = i, s = scaleAt(0.84), px = X(K.STOCK);
+    var row = 0, size = 5, k = i, s = scaleAt(0.84), px = X(S.pos.STOCK);
     while (k >= size && size > 1) { k -= size; size--; row++; }
     if (row > 4) row = 4;
     return { x: px + (k - (size - 1) / 2) * 9.6 * s, y: groundY(px, 0.84) - 2.2 * s - row * 4.2 * s };
   }
-  function collectorBase() { var px = X(K.COLLECTOR); return { x: px, y: groundY(px, 0.7) }; }
+  function collectorBase() { var px = X(S.pos.COLLECTOR); return { x: px, y: groundY(px, 0.7) }; }
   function chuteMouth() { var b = collectorBase(), s = scaleAt(0.7); return { x: b.x - 30 * s, y: b.y - 16 * s }; }
   function riserPoint(t) {             // a point along the riser, 0 at the collector and 1 at the surface
     var b = collectorBase(), s = scaleAt(0.7), x0 = b.x + 6 * s, y0 = b.y - 34 * s;
@@ -1659,6 +1917,30 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   }
   function enginePos() { var px = X(K.STIRLING); return { x: px, y: groundY(px, 0.72) }; }
   function basePos() { var px = X(K.STIRLING - 22); return { x: px, y: groundY(px, 0.8) }; }
+  function postPos() { var px = X(S.post.x); return { x: px, y: groundY(px, S.post.d) }; }
+  function drawCord() {                // the extension cord from the engine's outlet to the refuel post, lying on the sand
+    var b = basePos(), p = postPos(), n = 24, i, f, x, y, d0 = 0.8, d1 = S.post.d;
+    ctx.save(); ctx.strokeStyle = pal.ink; ctx.lineWidth = 1.6 * CS; ctx.globalAlpha = 0.55; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (i = 0; i <= n; i++) {
+      f = i / n; x = b.x + (p.x - b.x) * f;
+      y = groundY(x, d0 + (d1 - d0) * f) - 2 * CS + Math.sin(f * Math.PI * 5 + 0.7) * 2.5 * CS * Math.sin(f * Math.PI);   // loops of slack
+      if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawPost() {                // a little pole with two sockets and a green lamp
+    var p = postPos(), s = scaleAt(S.post.d), lit = S.heat >= 1;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s);
+    ctx.fillStyle = pal.energyDark; roundRect(-5, -26, 10, 26, 2); ctx.fill();
+    ctx.fillStyle = pal.metal; ctx.fillRect(-7, -6, 14, 3);
+    ctx.fillStyle = pal.ink; ctx.fillRect(-3.5, -20, 2.5, 3); ctx.fillRect(1, -20, 2.5, 3);
+    ctx.fillStyle = lit ? pal.energy : pal.warn; ctx.globalAlpha = 0.6 + 0.4 * Math.sin(T * 4);
+    ctx.beginPath(); ctx.arc(0, -29, 2.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    if (!S.post.auto) { ctx.fillStyle = pal.mark; ctx.beginPath(); ctx.moveTo(-2, -36); ctx.lineTo(2, -36); ctx.lineTo(0, -32); ctx.closePath(); ctx.fill(); }   // pinned
+    if (arrange) { ctx.strokeStyle = pick === 'post' ? pal.mark : pal.ink; ctx.setLineDash([4, 3]); ctx.lineWidth = 1.4; ctx.strokeRect(-12, -40, 24, 44); ctx.setLineDash([]); }
+    ctx.restore();
+  }
   function ventTop() { return H * 0.1; }
   function airPos(c) {                 // where a crab riding the vent, or swimming down from it, is drawn
     var px = crabX(c), gy = groundY(px, c.d) - 9 * scaleAt(c.d);
@@ -1673,60 +1955,81 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   }
   function incoming(tag) { var n = 0; for (var i = 0; i < flights.length; i++) if (flights[i].tag === tag) n++; return n; }
   function handle(e) {
-    var a = e.a, p, m, i;
+    var a = e.a, p, m, i, j;
     switch (e.type) {
-      case 'join': a.vfall = started ? 1 : 0; break;
-      case 'leave': p = crabX(a); burst(p, groundY(p, a.d) - 10, 6); break;
-      case 'strike': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.8); express(a, 'joy', 1.2); a.vhop = 1; break;
-      case 'uncover': p = X(a.x); poof(p, groundY(p, a.d), 5, 0.6); break;
-      case 'dry': p = X(a.x); poof(p, groundY(p, a.d), 6, 0.5, pal.sandBack); express(a, 'grumble', 1.5); break;
-      case 'bitBreak': p = clawPos(a, 0); spark(p.x, p.y + 10, 10, pal.drill); express(a, 'shock', 1.6); a.vhop = 0.6; break;
-      case 'flag': e.b.vborn = T; p = X(e.b.x); rings.push({ x: p, y: groundY(p, e.b.d), t: 0, c: pal.scout }); express(a, 'eureka', 1.4); a.vhop = 0.8; break;
-      case 'miss': express(a, 'shrug', 1.4); break;
-      case 'flagDone': p = X(a.x); poof(p, groundY(p, a.d) - 6, 5, 0.5); break;
-      case 'stack': fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore' }); if (a.load === 0) express(a, 'phew', 1); break;
+      case 'join': a.vfall = started ? 1 : 0; a.vjoin = true; break;
+      case 'leave': p = crabX(a); burst(p, groundY(p, a.d) - 10, 6); near(a.x, 70).forEach(function (n) { play(n, ['wave', 'bow'], 1.6); }); break;
+      case 'strike': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.8); express(a, 'joy', 1.2); a.vhop = 1; say(a, TALK.strike, 1.4); play(a, ['pump', 'hopJoy', 'clap', 'jazz'], 1.4); break;
+      case 'uncover': p = X(a.x); poof(p, groundY(p, a.d), 5, 0.6); near(a.x, 30).forEach(function (n) { if (n.role === 'drill') play(n, ['cheer', 'spin'], 1.6); }); break;
+      case 'dry': p = X(a.x); poof(p, groundY(p, a.d), 6, 0.5, pal.sandBack); express(a, 'grumble', 1.5); say(a, TALK.dry, 1.5); play(a, ['stomp', 'grumble', 'slump', 'shrug'], 1.6); break;
+      case 'bitBreak': p = clawPos(a, 0); spark(p.x, p.y + 10, 10, pal.drill); express(a, 'shock', 1.6); a.vhop = 0.6; say(a, TALK.bitBreak, 2); play(a, ['shock', 'ouch'], 1.6); break;
+      case 'flag': e.b.vborn = T; p = X(e.b.x); rings.push({ x: p, y: groundY(p, e.b.d), t: 0, c: pal.scout }); express(a, 'eureka', 1.4); a.vhop = 0.8; say(a, TALK.flag, 1.5); play(a, ['jazz', 'pump', 'disco'], 1.5); break;
+      case 'miss': express(a, 'shrug', 1.4); say(a, TALK.miss, 1.4); play(a, ['shrug', 'think', 'sigh'], 1.5); break;
+      case 'flagDone': p = X(a.x); poof(p, groundY(p, a.d) - 6, 5, 0.5); near(a.x, 40).forEach(function (n) { if (n.role === 'drill') play(n, ['bow', 'wave'], 1.4); }); break;
+      case 'stack': fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore' }); if (a.load === 0) { express(a, 'phew', 1); if (Math.random() < 0.4) play(a, ['flex', 'sigh'], 1.2); } break;
       case 'feed': fly('nod', oreSlot(S.ore + 1), clawPos(a, -1), 0.3); fly('nod', oreSlot(S.ore), clawPos(a, -1), 0.36); break;
-      case 'bar': p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars' }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); break;
+      case 'bar': p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars' }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); if (Math.random() < 0.35) play(a, ['clap', 'flex'], 1.2); break;
       case 'grab': fly('bar', barSlot(S.bars), clawPos(a, -1), 0.26); break;
-      case 'ingot': express(a, 'proud', 1.4); spark(clawPos(a, 1).x, clawPos(a, 1).y, 5, pal.lavaHot); break;
+      case 'ingot': express(a, 'proud', 1.4); if (Math.random() < 0.5) say(a, TALK.smelted, 1.3); play(a, ['flex', 'pump', 'clap'], 1.2); spark(clawPos(a, 1).x, clawPos(a, 1).y, 5, pal.lavaHot); break;
       case 'stock': fly('ingot', clawPos(a, 1), stockSlot(Math.max(0, S.stock - 1)), 0.34, { tag: 'stock' }); break;
       case 'sell':
         fly('ingot', stockSlot(S.stock), chuteMouth(), 0.4, { lift: true, value: a, streak: e.b });
+        if (a >= 15) near(S.pos.COLLECTOR, 140).forEach(function (n) { play(n, ['cheer', 'headbang', 'disco', 'sparkleEyes'], 2); });
+        else if (Math.random() < 0.3) { var nb = near(S.pos.COLLECTOR, 120); if (nb.length) play(anyOf(nb), ['clap', 'jazz', 'whistle'], 1.4); }
+        if (e.b === 5 || e.b === 10 || e.b === 20) near(S.pos.STOCK, 160).forEach(function (n) { play(n, { 5: 'shimmy', 10: 'robot', 20: 'floss' }[e.b], 2.4); });
         break;
-      case 'takeMat': if (a.role === 'repair') fly('ingot', stockSlot(S.stock), clawPos(a, 1), 0.3); else fly('bar', barSlot(S.bars), clawPos(a, 1), 0.3); break;
-      case 'forged': p = clawPos(a, 1); spark(p.x + 8 * CS, p.y, 10, pal.lavaHot); express(a, 'proud', 1.2); break;
-      case 'legOff': debris.push({ x: a.x, d: a.d, crab: a, rot: rr(-1, 1) }); p = clawPos(a, -1); spark(p.x, p.y + 8, 8, pal.metal); express(a, 'ouch', 1.8); a.vhop = 0.5; break;
-      case 'sleep': express(a, 'yawn', 1.2); break;
-      case 'wake': express(a, 'stretch', 1); break;
-      case 'ride': p = X(K.VENT_IN); burst(p, groundY(p, 0.8) - 6, 6); express(a, 'wheee', 2.5); break;
-      case 'land': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.7); a.vhop = 0.7; break;
-      case 'plug': p = basePos(); spark(p.x, p.y - 10 * CS, 4, pal.light); break;
-      case 'ocStart': for (i = 0; i < S.crabs.length; i++) { p = clawPos(S.crabs[i], 0); spark(p.x, p.y, 3, pal.light); } break;
-      case 'shiftMode': toast(SHIFT_INFO[a].name, SHIFT_INFO[a].note); break;
-      case 'charge': p = clawPos(e.b, 0); spark(p.x, p.y, 6); express(e.b, 'zap', 1.2); break;
-      case 'ebotBreak': p = clawPos(a, 0); spark(p.x, p.y, 10, pal.warn); express(a, 'shock', 1.6); break;
-      case 'refill': express(a, 'phew', 1); break;
+      case 'takeMat': if (!sim.has(a.role === 'repair' ? 'pocketForge' : 'mechForge')) say(a, a.role === 'repair' ? TALK.toForgeIngot : TALK.toForgeBar, 1.6);
+        if (a.role === 'repair') fly('ingot', stockSlot(S.stock), clawPos(a, 1), 0.3); else fly('bar', barSlot(S.bars), clawPos(a, 1), 0.3); break;
+      case 'forged': p = clawPos(a, 1); spark(p.x + 8 * CS, p.y, 10, pal.lavaHot); express(a, 'proud', 1.2); say(a, a.role === 'mech' ? TALK.bringLeg : TALK.bringBit, 2); break;
+      case 'legOff': debris.push({ x: a.x, d: a.d, crab: a, rot: rr(-1, 1) }); p = clawPos(a, -1); spark(p.x, p.y + 8, 8, pal.metal); express(a, 'ouch', 1.8); a.vhop = 0.5; say(a, TALK.legOff, 2); break;
+      case 'sleep': express(a, 'yawn', 1.2); a.anim = null; break;
+      case 'wake': express(a, 'stretch', 1.2); say(a, TALK.wake, 1.4); play(a, ['yawnStretch', 'sideStretch', 'wave'], 1.6); break;
+      case 'ride': p = X(K.VENT_IN); burst(p, groundY(p, 0.8) - 6, 6); express(a, 'wheee', 2.5); say(a, TALK.ride, 2.2); break;
+      case 'land': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.7); a.vhop = 0.7; say(a, TALK.land, 1); play(a, ['hopJoy', 'bow', 'jazz'], 1.2); break;
+      case 'plug': p = postPos(); spark(p.x, p.y - 18 * CS, 4, pal.light); break;
+      case 'ocStart': for (i = 0; i < S.crabs.length; i++) { p = clawPos(S.crabs[i], 0); spark(p.x, p.y, 3, pal.light); if (i % 3 === 0) say(S.crabs[i], TALK.oc, 1.6); if (i % 3 === 1) play(S.crabs[i], ['flex', 'determined'], 1.4); } break;
+      case 'shiftMode': toast(SHIFT_INFO[a].name, SHIFT_INFO[a].note); S.crabs.forEach(function (n) { play(n, 'salute', 1.2); }); break;
+      case 'ocEnd': S.crabs.forEach(function (n, j2) { if (j2 % 2) play(n, 'sigh', 1.2); }); break;
+      case 'flowLost': near(S.pos.STOCK, 90).forEach(function (n) { play(n, 'slump', 1.4); }); break;
+      case 'dance': a.vpd = e.b.x >= a.x ? 1 : -1; e.b.vpd = -a.vpd; if (Math.random() < 0.5) say(a, '🎶🦀🦀🎶', 1.6); break;
+      case 'morning': say(a, '☀️💪', 1.8); play(a, ['salute', 'flex', 'jazz', 'yawnStretch'], 1.8); break;
+      case 'dawn': if (started) toast('Morning of day ' + a, 'Crabs that slept or danced in the night start the day fresh: 15% faster for a minute.'); break;
+      case 'postGrab': say(a, '🔌➡️', 1.4); break;
+      case 'postMoved': if (a) play(a, ['wave', 'flex'], 1.2); near(S.post.x, 80).forEach(function (n) { if (n.role === 'energy') play(n, 'wave', 1); }); break;
+      case 'tech': S.crabs.forEach(function (n) { if (K.TECH[a].roles.indexOf(n.role) >= 0) play(n, ['jazz', 'sparkleEyes', 'cheer'], 2); }); break;
+      case 'wup': S.crabs.forEach(function (n) { if (n.role === K.WUP[a].role) play(n, ['twirlEyes', 'spin', 'flex'], 2); }); break;
+      case 'layout': var bx = S.pos[{ workshop: 'WORKSHOP', ore: 'ORE', crush: 'CRUSH', bar: 'BAR', stock: 'STOCK', collector: 'COLLECTOR' }[a]]; near(bx, 90).forEach(function (n) { play(n, ['lookAround', 'think'], 1.6); }); break;
+      case 'charge': p = clawPos(e.b, 0); spark(p.x, p.y, 6); express(e.b, 'zap', 1.2); say(e.b, TALK.gotCharge, 1.6); play(e.b, ['spin', 'shimmy', 'sparkleEyes'], 1.4); play(a, ['salute', 'wave'], 1); break;
+      case 'ebotBreak': p = clawPos(a, 0); spark(p.x, p.y, 10, pal.warn); express(a, 'shock', 1.6); say(a, TALK.ebotBreak, 2); play(a, 'dizzy', 2.4); break;
+      case 'refill': express(a, 'phew', 1); play(a, ['sigh', 'robot'], 1.2); break;
       case 'fixed':
         p = clawPos(e.b, 0); spark(p.x, p.y, 8, a.role === 'mech' ? pal.lavaHot : pal.hat); express(e.b, 'relief', 1.8); express(a, 'proud', 1.4); e.b.vhop = 0.8;
+        say(e.b, a.role === 'mech' ? TALK.mended : TALK.fixedBit, 2);
+        play(e.b, ['relief', 'hug', 'bow', 'spin'], 1.8); play(a, ['flex', 'salute', 'bow'], 1.4);
         if (a.role === 'mech') debris = debris.filter(function (dd) { return dd.crab !== e.b; });   // the leg goes back on
         break;
       case 'rank':
         if (!started) break;                             // the crew behind the intro does not rank up out loud
-        partyUntil = T + 3.2;
-        for (i = 0; i < 70; i++) confetti.push({ x: rr(0, W), y: rr(-H * 0.3, 0), vx: rr(-20, 20), vy: rr(40, 110), r: rr(0, TAU), vr: rr(-6, 6), c: [pal.ingot, pal.crab, pal.energy, pal.scout, pal.drill][i % 5], life: 0 });
+        partyUntil = T + 5;                              // the crab rave: five seconds of claws in the air
+        for (j = 0; j < S.crabs.length; j++) if (j % 3 === 0) say(S.crabs[j], TALK.rave, 2.5);
+        for (i = 0; i < 140; i++) confetti.push({ x: rr(0, W), y: rr(-H * 0.3, 0), vx: rr(-20, 20), vy: rr(40, 110), r: rr(0, TAU), vr: rr(-6, 6), c: [pal.ingot, pal.crab, pal.energy, pal.scout, pal.drill][i % 5], life: 0 });
         toast('Rank up: ' + K.RANKS[a][1] + '!', 'Bonus of $' + e.b + '. Crab profit!');
         if (a === K.RANKS.length - 1 && !won && started) { won = true; setTimeout(showWin, 1600); }
         break;
-      case 'build': p = buildSpot(a); if (p) { poof(p.x, p.y, 14, 1, pal.sandLine); spark(p.x, p.y - 10, 10, pal.hat); } break;
+      case 'build': p = buildSpot(a); if (p) { poof(p.x, p.y, 14, 1, pal.sandLine); spark(p.x, p.y - 10, 10, pal.hat); }
+        S.crabs.forEach(function (n) {
+          if (a === 'den' || (a === 'field' && (n.role === 'scout' || n.role === 'drill')) || (a === 'engine' && n.role === 'energy') || (a === 'riser' && n.role === 'smelt') || (a === 'bits' && n.role === 'drill') || (a === 'yard' && (n.role === 'haul' || n.role === 'crush')) || (a === 'scanner' && n.role === 'scout')) play(n, a === 'engine' ? 'disco' : ['cheer', 'jazz', 'clap'], 2);
+        });
+        break;
     }
   }
   function buildSpot(id) {
     var px;
     if (id === 'engine') return enginePos();
     if (id === 'riser') return collectorBase();
-    if (id === 'yard') { px = X(K.ORE); return { x: px, y: groundY(px, 0.8) }; }
+    if (id === 'yard') { px = X(S.pos.ORE); return { x: px, y: groundY(px, 0.8) }; }
     if (id === 'field') { px = X(300); return { x: px, y: groundY(px, S.lv.field === 1 ? 0.5 : 0.18) }; }
-    if (id === 'den') { px = X(K.WORKSHOP); return { x: px, y: groundY(px, 0.93) }; }
+    if (id === 'den') { px = X(S.pos.WORKSHOP); return { x: px, y: groundY(px, 0.93) }; }
     return null;
   }
 
@@ -1744,8 +2047,20 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       c = S.crabs[i]; px = crabX(c);
       if (c.vpx === undefined) { c.vpx = px; c.vd = c.d; c.vgait = rr(0, TAU); c.vph = rr(0, TAU); c.vhop = 0; if (c.vfall === undefined) c.vfall = 0; }
       c.vgait += (Math.abs(px - c.vpx) + Math.abs(c.d - c.vd) * F) * 0.32;
-      c.vpx = px; c.vd = c.d;
+      c.vpx = px; c.vd2 = c.vd; c.vd = c.d;
       if (c.vhop > 0) c.vhop = Math.max(0, c.vhop - dtReal * 2.2);
+      if (!c.moving && !c.working && c.state !== 'sleep') c.vidle = (c.vidle || 0) + dtReal * Math.max(speed, 0.25); else c.vidle = 0;
+      if (c.vjoin && !(c.vfall > 0)) { c.vjoin = false; play(c, ['salute', 'wave', 'jazz'], 1.6); }
+      if (c.target !== c.vlastT) {                       // a helper answers the crab it has just picked
+        if (c.target && c.role === 'energy' && c.state === 'go') say(c, TALK.bringCharge, 1.6);
+        if (c.target && c.role === 'repair') say(c, TALK.onBit, 1.4);
+        if (c.target && c.role === 'mech') say(c, TALK.onLeg, 1.4);
+        c.vlastT = c.target;
+      }
+      if (T > (c.vnextTalk || 0) && !(c.say && T < c.say.until)) {
+        var nd = needs(c);
+        if (nd) { say(c, nd, 1.6); c.vnextTalk = T + 4 + Math.random() * 3; } else c.vnextTalk = T + 0.5;
+      }
       if (c.vfall > 0) { c.vfall = Math.max(0, c.vfall - dtReal / 1.1); if (c.vfall === 0) poof(px, groundY(px, c.d), 8, 0.8); }
       if (speed === 0 || reduce) continue;
       if (c.state === 'drill' && Math.random() < dtReal * 14) poof(px + rr(-5, 5), groundY(px, c.d), 1, 0.7);
@@ -1774,8 +2089,14 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if (c.alt > 0 && Math.random() < dtReal * 10) { var ap = airPos(c); bubbles.push({ x: ap.x + rr(-8, 8), y: ap.y + rr(-4, 6), r: rr(1, 3), vy: rr(30, 60), ph: rr(0, TAU) }); }
     }
     var si = sim.shiftInfo();
-    nightA += ((si.night ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);
-    if (started && si.mode !== 'all' && lastShift && lastShift !== si.name) toast(si.name + ' begins', si.night ? 'Half the crew sleeps. Sleeping crabs recharge and shake off their wear.' : 'Everyone is back at work.');
+    nightA += ((si.night && si.mode !== 'all' ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);   // no night shift, no night
+    if (started && si.mode !== 'all' && lastShift && lastShift !== si.name) {
+      toast(si.name + ' begins', si.night ? 'Some of the crew sleeps. Sleeping crabs recharge and shake off their wear.' : 'Everyone is back at work.');
+      S.crabs.forEach(function (n) { if (n.state !== 'sleep') play(n, si.night ? 'shiver' : 'yawnStretch', 1.6); });
+    }
+    var trend = S.hist.length > 6 ? Math.sign(Math.round((S.price - S.hist[S.hist.length - 6].price) * 2)) : 0;
+    if (trend && trend !== lastTrend) near(S.pos.STOCK, 110).forEach(function (n) { play(n, trend > 0 ? 'sparkleEyes' : 'sigh', 1.6); });
+    lastTrend = trend;
     lastShift = si.name;
     for (i = rings.length - 1; i >= 0; i--) { rings[i].t += dtReal / 1.1; if (rings[i].t >= 1) rings.splice(i, 1); }
     for (i = floaters.length - 1; i >= 0; i--) { n = floaters[i]; n.life += dtReal; n.y -= dtReal * 22; if (n.life >= n.max) floaters.splice(i, 1); }
@@ -2074,7 +2395,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.restore();
   }
   function drawWorkshop() {            // where repair bots wait: an anvil under a little wrench sign
-    var px = X(K.WORKSHOP), y = groundY(px, 0.95), s = scaleAt(0.95);
+    var px = X(S.pos.WORKSHOP), y = groundY(px, 0.95), s = scaleAt(0.95);
     ctx.save(); ctx.translate(px + 8 * s, y); ctx.scale(s, s);
     ctx.fillStyle = pal.metalDark;
     ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-5, -6); ctx.lineTo(-11, -6); ctx.lineTo(-11, -10); ctx.lineTo(12, -10); ctx.lineTo(8, -6); ctx.lineTo(5, -6); ctx.lineTo(9, 0); ctx.closePath(); ctx.fill();
@@ -2095,7 +2416,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     for (i = 0; i < n; i++) { s = barSlot(i); drawBar(s.x, s.y, scaleAt(0.78), 0); }
   }
   function drawStockpile() {
-    var n = Math.max(0, S.stock - incoming('stock')), shown = Math.min(n, 15), i, s, px = X(K.STOCK), y = groundY(px, 0.84), sc = scaleAt(0.84);
+    var n = Math.max(0, S.stock - incoming('stock')), shown = Math.min(n, 15), i, s, px = X(S.pos.STOCK), y = groundY(px, 0.84), sc = scaleAt(0.84);
     // a pallet under the pile
     ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.7; ctx.fillRect(px - 26 * sc, y - 1.5 * sc, 52 * sc, 3 * sc); ctx.globalAlpha = 1;
     for (i = 0; i < shown; i++) { s = stockSlot(i); drawIngot(s.x, s.y, sc * 0.95, i < S.reserve); }
@@ -2181,7 +2502,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.restore();
   }
   function drawWires() {               // each energy bot drags its plug and cable while it works near the base
-    var b = basePos(), i, c, ap, px, py, dx, s, sag, plugged;
+    var b = postPos(), i, c, ap, px, py, dx, s, sag, plugged;
     for (i = 0; i < S.crabs.length; i++) {
       c = S.crabs[i];
       if (c.role !== 'energy' || c.alt > 0) continue;
@@ -2191,10 +2512,79 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if (dx > 170 * CS && !plugged) continue;             // too far: the plug has sprung back to the base
       sag = 10 * CS + dx * 0.08;
       ctx.strokeStyle = pal.ink; ctx.lineWidth = 1.2; ctx.globalAlpha = plugged ? 0.8 : 0.45;
-      ctx.beginPath(); ctx.moveTo(b.x - 6 * CS, b.y - 8 * CS); ctx.quadraticCurveTo((px + b.x) / 2, Math.max(py, b.y) + sag, px - 4 * s, py); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(b.x, b.y - 18 * CS); ctx.quadraticCurveTo((px + b.x) / 2, Math.max(py, b.y) + sag, px - 4 * s, py); ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.fillStyle = plugged ? pal.light : pal.metalDark; ctx.fillRect(px - 6 * s, py - 1.5 * s, 3 * s, 3 * s);   // the plug
     }
+  }
+  function plotRect(i) {                 // a plot is a tile of front-dune sand one building wide
+    var px = X(K.PLOTS[i]), half = (X(43) - X(0)) * 0.46;
+    return { x: px, half: half, y0: groundY(px, 0.7), y1: groundY(px, 0.97) };
+  }
+  function drawPlots() {
+    var i, p, b, occ = {}, k;
+    for (k in S.layout) occ[S.layout[k]] = k;
+    for (i = 0; i < K.PLOTS.length; i++) {
+      p = plotRect(i); b = occ[i];
+      if (b) {                           // a paper foundation under each building, so it sits on the sand rather than in it
+        ctx.save(); ctx.fillStyle = pal.sandBack; ctx.globalAlpha = 0.28;
+        ctx.beginPath(); ctx.ellipse(p.x, groundY(p.x, 0.83), p.half * 0.85, p.half * 0.22, 0, 0, TAU); ctx.fill();
+        ctx.globalAlpha = 0.5; ctx.strokeStyle = pal.sandLine; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+      }
+      if (!arrange) continue;
+      ctx.save();
+      ctx.setLineDash([5, 4]); ctx.lineWidth = 1.6;
+      ctx.strokeStyle = pick && occ[i] === pick ? pal.mark : pal.ink; ctx.globalAlpha = pick && occ[i] === pick ? 0.95 : 0.45;
+      roundRect(p.x - p.half, p.y0, p.half * 2, p.y1 - p.y0, 6 * CS); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 0.9; ctx.fillStyle = pal.ink; ctx.textAlign = 'center';
+      ctx.font = '700 ' + Math.round(7 * CS + 3) + 'px ' + cssFont;
+      ctx.fillText(b ? BLD_SHORT[b] : 'Spare', p.x, p.y1 - 4 * CS);
+      ctx.restore();
+    }
+  }
+  var BLD_NAMES = { workshop: 'Workshop', ore: 'Ore pile', crush: 'Crushing yard', bar: 'Bar stack', stock: 'Stockpile', collector: 'Collector' };
+  var BLD_SHORT = { workshop: 'Workshop', ore: 'Ore', crush: 'Crusher', bar: 'Bars', stock: 'Stock', collector: 'Riser' };
+  var arrange = false, pick = null;
+
+  // ----- sea life: shoals of fish, jellyfish, and the ship at the top of the riser -----
+  var fish = [], jellies = [];
+  function stockSea() {
+    fish = []; jellies = [];
+    for (var i = 0; i < 4; i++) fish.push({ x: rr(0, W), y: rr(surfH + 30, base[0] - 40), v: rr(18, 34) * (Math.random() < 0.5 ? -1 : 1), n: 4 + Math.floor(Math.random() * 5), ph: rr(0, TAU) });
+    for (i = 0; i < 3; i++) jellies.push({ x: rr(0, W), y: rr(surfH + 40, base[0] - 60), ph: rr(0, TAU), v: rr(4, 9) });
+  }
+  function drawSea(dt) {
+    var i, j, f, x, y, jl, pulse;
+    if (fish.length === 0) stockSea();
+    ctx.save();
+    for (i = 0; i < fish.length; i++) {
+      f = fish[i]; f.x += f.v * dt; f.ph += dt;
+      if (f.x < -80) f.x = W + 60; if (f.x > W + 80) f.x = -60;
+      for (j = 0; j < f.n; j++) {
+        x = f.x - Math.sign(f.v) * (j % 3) * 14 - j * 3; y = f.y + Math.sin(f.ph * 2 + j) * 6 + (j % 2) * 9;
+        ctx.globalAlpha = 0.4; ctx.fillStyle = pal.foam;
+        ctx.beginPath(); ctx.ellipse(x, y, 5, 2, 0, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x - Math.sign(f.v) * 4, y); ctx.lineTo(x - Math.sign(f.v) * 8, y - 2.5); ctx.lineTo(x - Math.sign(f.v) * 8, y + 2.5); ctx.closePath(); ctx.fill();
+      }
+    }
+    for (i = 0; i < jellies.length; i++) {
+      jl = jellies[i]; jl.ph += dt; pulse = Math.sin(jl.ph * 2.2);
+      jl.y += (pulse > 0 ? -jl.v : jl.v * 0.4) * dt; jl.x += Math.sin(jl.ph * 0.3) * 4 * dt;
+      if (jl.y < surfH + 20) jl.y = base[0] - 40;
+      ctx.globalAlpha = 0.35; ctx.fillStyle = pal.scout;
+      ctx.beginPath(); ctx.ellipse(jl.x, jl.y, 9 + pulse * 1.5, 6 - pulse, 0, Math.PI, TAU); ctx.fill();
+      ctx.strokeStyle = pal.scout; ctx.lineWidth = 1;
+      for (j = -2; j <= 2; j++) { ctx.beginPath(); ctx.moveTo(jl.x + j * 3, jl.y); ctx.quadraticCurveTo(jl.x + j * 3 + Math.sin(jl.ph * 3 + j) * 3, jl.y + 8, jl.x + j * 3, jl.y + 16 - pulse * 2); ctx.stroke(); }
+    }
+    ctx.restore();
+    // the ship at the surface that takes the metal
+    var top = riserPoint(1), sx = top.x, sy = waveY(LAYERS[2], sx) - 4;
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(Math.sin(T * 0.8) * 0.03);
+    ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.moveTo(-46, -6); ctx.lineTo(46, -6); ctx.lineTo(36, 8); ctx.lineTo(-36, 8); ctx.closePath(); ctx.fill();
+    ctx.fillRect(-20, -18, 22, 12); ctx.fillRect(14, -26, 3, 20);
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(15, -26); ctx.lineTo(4, -4); ctx.stroke();
+    ctx.restore();
   }
   function drawNight() {               // night falls over the sea; the lava and the lamps keep glowing
     if (nightA < 0.02) return;
@@ -2282,30 +2672,123 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.globalAlpha = 1;
   }
 
+  // ----- the crabs' repertoire: 52 animations -----
+  // Each takes the crab and the seconds since it began, and returns a pose: eyes, mouth, a tilt of the whole
+  // body (radians), an offset, where the two claws go (left x, y, right x, y, in shell units from the body),
+  // what the legs do, and a prop. Events and states pick them; see moodFor() and the event hooks.
+  function osc(u, hz) { return Math.sin(u * hz * TAU); }
+  var ANIMS = {
+    // celebrations
+    pump: function (c, u) { var p = Math.abs(osc(u, 2.2)); return { eye: 'happy', mouth: 'open', dy: -p * 2, arm: c.dir > 0 ? [-15, -2, 10, -14 - p * 4] : [-10, -14 - p * 4, 15, -2] }; },
+    clap: function (c, u) { var g = 3 + Math.abs(osc(u, 3)) * 7; return { eye: 'happy', mouth: 'open', arm: [-g, -9, g, -9], prop: Math.abs(osc(u, 3)) < 0.15 ? 'sparkle' : null }; },
+    spin: function (c, u) { return { eye: 'wide', mouth: 'open', tilt: Math.min(u, 0.85) / 0.85 * TAU, dy: -Math.sin(Math.min(1, u / 0.85) * Math.PI) * 7, arm: [-14, -10, 14, -10] }; },
+    jazz: function (c, u) { var w = osc(u, 6) * 2; return { eye: 'happy', mouth: 'grin', arm: [-13 + w, -15, 13 - w, -15] }; },
+    cheer: function (c, u) { var w = osc(u, 2.4); return { eye: 'happy', mouth: 'open', tilt: w * 0.08, arm: [-12 + w * 4, -16, 12 + w * 4, -16] }; },
+    shimmy: function (c, u) { var w = osc(u, 5); return { eye: 'happy', mouth: 'grin', dx: w * 2, tilt: w * 0.12, arm: [-14, -6 + w * 2, 14, -6 - w * 2] }; },
+    moonwalk: function (c, u) { return { eye: 'normal', mouth: 'grin', dx: -c.dir * (u % 1.6) * 6, legs: 'step', tilt: -0.06 * c.dir, arm: [-15, -4, 15, -4] }; },
+    headbang: function (c, u) { var w = osc(u, 4); return { eye: 'closed', mouth: 'open', tilt: w * 0.18, dy: -Math.abs(w) * 2, arm: [-12, -14, 12, -14] }; },
+    robot: function (c, u) { var st = Math.floor(u * 3) % 4; return { eye: 'focus', mouth: 'flat', tilt: st % 2 ? 0.06 : -0.06, arm: [[-15, -10, 15, -2], [-15, -2, 15, -10], [-8, -12, 15, -2], [-15, -2, 8, -12]][st] }; },
+    floss: function (c, u) { var w = osc(u, 2.4); return { eye: 'happy', mouth: 'tongue', dx: -w * 3, arm: [-6 + w * 10, 2, 6 + w * 10, 2] }; },
+    disco: function (c, u) { var f = Math.floor(u * 1.6) % 2; return { eye: 'star', mouth: 'grin', tilt: f ? 0.1 : -0.1, arm: f ? [-18, 4, 12, -18] : [-12, -18, 18, 4] }; },
+    twirlEyes: function (c, u) { return { eye: 'orbit', mouth: 'o', tilt: osc(u, 1) * 0.1, arm: [-15, -6, 15, -6] }; },
+    hopJoy: function (c, u) { var h = Math.abs(osc(u, 1.8)); return { eye: 'happy', mouth: 'open', dy: -h * 7, arm: [-13, -12, 13, -12] }; },
+    // social: dances and greetings between friends
+    wave: function (c, u) { var w = osc(u, 2.5); return { eye: 'happy', mouth: 'smile', arm: c.dir > 0 ? [-15, -2, 13 + w * 4, -16] : [-13 + w * 4, -16, 15, -2] }; },
+    highFive: function (c, u) { var p = c.vpd || c.dir, k = Math.min(1, u / 0.4); return { eye: 'happy', mouth: 'open', arm: p > 0 ? [-15, -2, 14 + 6 * k, -12 - 6 * k] : [-14 - 6 * k, -12 - 6 * k, 15, -2] }; },
+    sway: function (c, u) { var w = osc(u, 0.8); return { eye: 'happy', mouth: 'smile', tilt: w * 0.16, dx: w * 2, arm: [-14, -8 + w * 3, 14, -8 - w * 3] }; },
+    hug: function (c, u) { return { eye: 'heart', mouth: 'smile', tilt: (c.vpd || 1) * 0.12, arm: [-5, -5, 5, -5] }; },
+    salsa: function (c, u) { var w = osc(u, 1.6); return { eye: 'happy', mouth: 'grin', dx: w * 5, tilt: -w * 0.1, legs: 'step', arm: [-12, -10 - w * 4, 12, -10 + w * 4] }; },
+    dosido: function (c, u) { var a = u * TAU * 0.5; return { eye: 'happy', mouth: 'open', dx: Math.cos(a) * 8 * (c.vpd || 1), dy: Math.sin(a) * 2, legs: 'step', arm: [-10, -12, 10, -12] }; },
+    cheek: function (c, u) { return { eye: 'closed', mouth: 'smile', tilt: (c.vpd || 1) * 0.22 + osc(u, 0.6) * 0.04, arm: [-12, -6, 12, -6] }; },
+    conga: function (c, u) { var b = Math.abs(osc(u, 2)); return { eye: 'happy', mouth: 'open', dy: -b * 3, legs: 'step', arm: c.dir > 0 ? [6, -6, 18, -6] : [-18, -6, -6, -6] }; },
+    bow: function (c, u) { var k = Math.sin(Math.min(1, u / 1.2) * Math.PI); return { eye: 'closed', mouth: 'smile', tilt: c.dir * 0.35 * k, arm: [-12, 2, 12, 2] }; },
+    // idle: what a crab does while it waits
+    tap: function (c, u) { return { eye: 'bored', mouth: 'flat', legs: 'tap', arm: [-6, 0, 6, 0] }; },
+    lookAround: function (c, u) { return { eye: 'normal', mouth: 'flat', look: { x: osc(u, 0.45), y: osc(u, 0.9) * 0.5 }, tilt: osc(u, 0.45) * 0.05 }; },
+    yawnStretch: function (c, u) { var k = Math.sin(Math.min(1, u / 1.6) * Math.PI); return { eye: 'closed', mouth: 'o', arm: [-10 - 4 * k, -4 - 12 * k, 10 + 4 * k, -4 - 12 * k], dy: -k * 2 }; },
+    eyeRoll: function (c, u) { return { eye: 'roll', mouth: 'flat', arm: [5, 1, -5, 1] }; },
+    crossArms: function (c, u) { return { eye: 'bored', mouth: 'flat', arm: [5, 1, -5, 1], tilt: -0.04 }; },
+    sigh: function (c, u) { return { eye: 'closed', mouth: 'o', body: Math.sin(Math.min(1, u / 1.5) * Math.PI) * 2, arm: [-14, 2, 14, 2] }; },
+    whistle: function (c, u) { return { eye: 'happy', mouth: 'o', tilt: osc(u, 0.7) * 0.06, prop: 'note' }; },
+    juggle: function (c, u) { return { eye: 'up', mouth: 'grin', prop: 'pebble', arm: [-7, -8 - Math.abs(osc(u, 1.5)) * 3, 7, -8 - Math.abs(osc(u + 0.33, 1.5)) * 3] }; },
+    sideStretch: function (c, u) { var w = osc(u, 0.4); return { eye: 'closed', mouth: 'smile', tilt: w * 0.25, arm: w > 0 ? [-16, 3, 10, -17] : [-10, -17, 16, 3] }; },
+    sit: function (c, u) { return { eye: 'happy', mouth: 'smile', legs: 'sit', body: 3, arm: [-12, 3, 12, 3] }; },
+    peekaboo: function (c, u) { var hide = (u % 2) < 1; return { eye: hide ? 'closed' : 'wide', mouth: hide ? 'smile' : 'open', arm: hide ? [-4, -11, 4, -11] : [-15, -12, 15, -12] }; },
+    blowBubbles: function (c, u) { return { eye: 'happy', mouth: 'o', prop: 'bubbles' }; },
+    sneeze: function (c, u) { var wind = u < 0.7; return { eye: wind ? 'squint' : 'closed', mouth: 'o', tilt: wind ? -0.15 * c.dir : 0.25 * c.dir, prop: !wind && u < 0.9 ? 'bubbles' : null }; },
+    // moods while working, waiting, or hurting
+    determined: function (c, u) { return { eye: 'normal', mouth: 'grit', brows: true, tilt: c.dir * 0.1 }; },
+    struggle: function (c, u) { return { eye: 'squint', mouth: 'tongue', sweat: true, tilt: osc(u, 3) * 0.08 }; },
+    flex: function (c, u) { var p = Math.abs(osc(u, 1.5)); return { eye: 'happy', mouth: 'grin', arm: c.dir > 0 ? [-14, -2, 9, -13 - p * 3] : [-9, -13 - p * 3, 14, -2] }; },
+    think: function (c, u) { return { eye: 'up', mouth: 'flat', arm: c.dir > 0 ? [-15, -2, 5, 2] : [-5, 2, 15, -2], glyph: '…' }; },
+    stomp: function (c, u) { return { eye: 'angry', mouth: 'frown', dy: -Math.abs(osc(u, 3)) * 3, arm: [-11, -11, 11, -11] }; },
+    slump: function (c, u) { return { eye: 'sad', mouth: 'frown', body: 2, tilt: 0.06, arm: [-12, 4, 12, 4] }; },
+    shiver: function (c, u) { return { eye: 'wide', mouth: 'grit', dx: osc(u, 14) * 0.8, arm: [-6, -3, 6, -3] }; },
+    dizzy: function (c, u) { return { eye: 'swirl', mouth: 'wavy', tilt: osc(u, 0.8) * 0.2 }; },
+    relief: function (c, u) { return { eye: 'heart', mouth: 'smile', tilt: osc(u, 1) * 0.1, arm: [-5, -5, 5, -5] }; },
+    ouch: function (c, u) { return { eye: 'wide', mouth: 'wavy', tilt: osc(u, 3.5) * 0.1, arm: [-9, 1, 9, 1] }; },
+    shock: function (c, u) { return { eye: 'wide', mouth: 'o', dy: -Math.max(0, Math.sin(Math.min(1, u / 0.4) * Math.PI)) * 5, arm: [-12, -13, 12, -13] }; },
+    shrug: function (c, u) { return { eye: 'up', mouth: 'flat', tilt: 0.2, arm: [-15, -9, 15, -9] }; },
+    salute: function (c, u) { return { eye: 'normal', mouth: 'smile', arm: c.dir > 0 ? [-15, -2, 6, -13] : [-6, -13, 15, -2] }; },
+    nod: function (c, u) { var m = u % 2.6, k = m < 2 ? m / 2 : 0; return { eye: k > 0.1 ? 'sleepy' : 'wide', mouth: 'flat', tilt: c.dir * 0.3 * k * k, arm: [-14, 2, 14, 2] }; },
+    sparkleEyes: function (c, u) { return { eye: 'star', mouth: 'grin', prop: 'sparkle' }; },
+    grumble: function (c, u) { return { eye: 'angry', mouth: 'frown', tilt: osc(u, 17) * 0.07, arm: [-11, -11, 11, -11] }; }
+  };
+  var ANIM_NAMES = Object.keys(ANIMS).concat(['rave']);
+  var DUETS = ['sway', 'salsa', 'dosido', 'cheek', 'conga', 'highFive', 'floss', 'disco', 'moonwalk', 'robot', 'shimmy', 'headbang'];
+  function anyOf(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function play(c, names, dur) {         // start an animation on a crab: one name, or a random one of several
+    if (!c || c.state === 'sleep' || c.alt > 0) return;
+    c.anim = { name: typeof names === 'string' ? names : anyOf(names), start: T, until: T + (dur || 2.2) };
+  }
+  function near(x, r) { return S.crabs.filter(function (c) { return Math.abs(c.x - x) < r && c.state !== 'sleep' && !(c.alt > 0); }); }
+  function moodFor(c) {                  // ongoing states pick a looping animation; u counts from when it began
+    var u = T - (c.vmoodT || T), idle = c.vidle || 0;
+    if (c.dance && c.dance.state !== 'sleep') return ANIMS[DUETS[(c.id + c.dance.id) % DUETS.length]](c, T);
+    if (c.role === 'energy' && c.broken) return ANIMS.dizzy(c, T);
+    if (c.role !== 'energy' && c.bat < K.LOW) return ANIMS.nod(c, T + c.vph);
+    if (c.limp && c.moving) return ANIMS.struggle(c, T);
+    if (c.role === 'haul' && c.load >= sim.carry() && c.moving) return ANIMS.struggle(c, T);
+    if (c.state === 'scan') return ANIMS.think(c, T);
+    if (S.oc && (c.moving || c.working)) return ANIMS.determined(c, T);
+    if (c.wear > K.WEAR_FREE && !c.moving && !c.working) return ANIMS[Math.sin(T * 0.3 + c.vph) > 0 ? 'sigh' : 'slump'](c, T % 3);
+    if (!c.moving && !c.working && idle > 0.6) {               // the longer the wait, the sillier it gets
+      var ladder = idle < 3 ? ['lookAround'] : idle < 6 ? ['tap', 'lookAround'] : idle < 10 ? ['crossArms', 'eyeRoll', 'tap'] : idle < 16 ? ['whistle', 'juggle', 'blowBubbles', 'sideStretch'] : ['sit', 'peekaboo', 'sneeze', 'whistle', 'juggle'];
+      var name = ladder[Math.floor((idle / 4 + c.id) % ladder.length)];
+      return ANIMS[name](c, idle % 4);
+    }
+    return null;
+  }
+
   // ----- drawing: crabs, and the faces they pull -----
   // A face is two eyes on stalks and a mouth on the shell. Events set a short-lived mood;
   // otherwise the face follows the task: tongue out to drill, teeth gritted to crush, sweat at the lava.
   function face(c) {
     var waiting = !c.moving && !c.working, m = c.vx && T < c.vx.until ? c.vx.name : null;
-    if (c.vfall > 0) return { eye: 'wide', mouth: 'o' };
-    if (c.state === 'sleep') return { eye: 'closed', mouth: m === 'yawn' ? 'o' : 'smile', glyph: 'z', sleep: true };
-    if (c.air && c.air.phase === 'rise') return { eye: 'happy', mouth: 'open', glyph: 'wheee!' };
-    if (c.air && c.air.phase === 'glide') return { eye: 'wide', mouth: 'open', swim: true };
+    if (c.vfall > 0) return { eye: 'wide', mouth: 'o', arms: 'up' };
+    if (c.state === 'sleep') return { eye: 'closed', mouth: 'o', glyph: 'z', sleep: true, tilt: 0.12 };
+    if (c.air && c.air.phase === 'rise') return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 4 + c.vph) * 0.25 };
+    if (c.air && c.air.phase === 'glide') return { eye: 'wide', mouth: 'open', swim: true, tilt: -0.35 };
     if (T < partyUntil) return { eye: 'happy', mouth: 'open', party: true };
-    if (m === 'joy') return { eye: 'happy', mouth: 'open', glyph: '!' };
-    if (m === 'eureka') return { eye: 'wide', mouth: 'open', glyph: '!' };
-    if (m === 'shrug') return { eye: 'up', mouth: 'flat', glyph: '?' };
-    if (m === 'grumble') return { eye: 'angry', mouth: 'frown', glyph: '#@!' };
-    if (m === 'shock') return { eye: 'wide', mouth: 'o', glyph: '!!' };
-    if (m === 'zap') return { eye: 'star', mouth: 'grin' };
-    if (m === 'relief') return { eye: 'happy', mouth: 'smile', glyph: '♥' };
-    if (m === 'proud') return { eye: 'happy', mouth: 'grin', glyph: '♪' };
-    if (m === 'phew') return { eye: 'closed', mouth: 'smile', sweat: true };
-    if (m === 'ouch') return { eye: 'wide', mouth: 'wavy', glyph: 'ouch!' };
-    if (m === 'stretch') return { eye: 'happy', mouth: 'o' };
+    if (c.anim && T < c.anim.until) return ANIMS[c.anim.name](c, T - c.anim.start);
+    if (!sim.isHeld(c)) { var mood = moodFor(c); if (mood) return mood; }
+    var wig = Math.sin(T * 18 + c.vph);
+    if (m === 'joy') return { eye: 'happy', mouth: 'open', arms: 'pump', tilt: wig * 0.12 };
+    if (m === 'eureka') return { eye: 'wide', mouth: 'open', arms: 'point', tilt: -0.08 };
+    if (m === 'shrug') return { eye: 'up', mouth: 'flat', arms: 'shrug', tilt: 0.2 };
+    if (m === 'grumble') return { eye: 'angry', mouth: 'frown', arms: 'fists', tilt: Math.sin(T * 34) * 0.07 };
+    if (m === 'shock') return { eye: 'wide', mouth: 'o', arms: 'up' };
+    if (m === 'zap') return { eye: 'star', mouth: 'grin', tilt: wig * 0.1 };
+    if (m === 'relief') return { eye: 'heart', mouth: 'smile', arms: 'hug', tilt: Math.sin(T * 6) * 0.1 };
+    if (m === 'proud') return { eye: 'happy', mouth: 'grin', arms: 'pump' };
+    if (m === 'phew') return { eye: 'closed', mouth: 'smile', sweat: true, arms: 'wipe' };
+    if (m === 'ouch') return { eye: 'wide', mouth: 'wavy', arms: 'hold', tilt: Math.sin(T * 22) * 0.1 };
+    if (m === 'stretch') return { eye: 'happy', mouth: 'o', arms: 'wave' };
+    if (m === 'yawn') return { eye: 'closed', mouth: 'o', arms: 'wipe' };
+    if (m === 'wheee') return { eye: 'happy', mouth: 'open', arms: 'up' };
     if (sim.isHeld(c)) return { eye: 'wide', mouth: 'grit' };
-    if (c.role === 'energy' && c.broken) return { eye: 'swirl', mouth: 'wavy' };
-    if (c.role !== 'energy' && c.bat < K.LOW) return { eye: 'sleepy', mouth: 'flat', glyph: 'z' };
+    if (c.role === 'energy' && c.broken) return { eye: 'swirl', mouth: 'wavy', tilt: Math.sin(T * 3 + c.vph) * 0.15 };
+    if (c.role !== 'energy' && c.bat < K.LOW) return { eye: 'sleepy', mouth: 'flat', sweat: true, tilt: 0.08 };   // flat, not asleep
     if (c.role === 'drill' && !c.bitOk) return c.state === 'drill' ? { eye: 'squint', mouth: 'wavy', sweat: true } : { eye: 'sad', mouth: 'wavy' };
     if (c.limp && c.moving) return { eye: 'sad', mouth: 'wavy' };
     switch (c.state) {
@@ -2320,6 +2803,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     if (c.role === 'haul' && c.load >= K.CARRY && c.moving) return { eye: 'normal', mouth: 'tongue', sweat: true };
     if (S.oc && !waiting) return { eye: 'wide', mouth: 'grin', brows: true };   // overclocked: all in
+    if (waiting && Math.sin(T * 0.35 + c.vph * 2) > 0.8) return { eye: 'roll', mouth: 'flat', arms: 'cross' };   // an eye-roll, arms folded
     if (waiting) return { eye: 'bored', mouth: Math.sin(T * 0.4 + c.vph * 3) > 0.93 ? 'o' : 'flat' };
     return { eye: 'normal', mouth: 'smile' };
   }
@@ -2353,7 +2837,15 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       ctx.closePath(); ctx.fill();
       return;
     }
+    if (f.eye === 'heart') {
+      ctx.fillStyle = pal.warn; ctx.beginPath();
+      ctx.moveTo(x, y + 1.6 * s); ctx.bezierCurveTo(x - 2.6 * s, y - 0.2 * s, x - 1.4 * s, y - 2.4 * s, x, y - 1 * s);
+      ctx.bezierCurveTo(x + 1.4 * s, y - 2.4 * s, x + 2.6 * s, y - 0.2 * s, x, y + 1.6 * s); ctx.fill();
+      return;
+    }
     var pr = f.eye === 'wide' ? 0.95 * s : 1.3 * s, ox = look.x * 0.9 * s, oy = look.y * 0.7 * s;
+    if (f.eye === 'roll') { ox = Math.cos(T * 7 + side) * 1.1 * s; oy = -Math.abs(Math.sin(T * 7 + side)) * 1.1 * s; }
+    if (f.eye === 'orbit') { ox = Math.cos(T * 9 + side * 1.5) * 1.2 * s; oy = Math.sin(T * 9 + side * 1.5) * 1.2 * s; }
     if (f.eye === 'focus') ox = -side * 0.9 * s;
     if (f.eye === 'up') oy = -1.1 * s;
     ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(x + ox, y + oy, pr, 0, TAU); ctx.fill();
@@ -2396,9 +2888,24 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         ctx.moveTo(-w, y); for (var k = 1; k <= 6; k++) ctx.lineTo(-w + k * w / 3, y + (k % 2 ? -0.7 : 0.7) * s); ctx.stroke(); break;
     }
   }
-  function drawBubble(x, y, text, s, a) {
+  function armPose(pose, side, s, by, c) {   // claws that say how a crab feels
+    switch (pose) {
+      case 'pump': return side === c.dir ? [side * 10 * s, by - 16 * s - Math.abs(Math.sin(T * 12)) * 3 * s] : [side * 15 * s, by - 2 * s];
+      case 'point': return side === 1 ? [20 * s, by - 10 * s] : [-14 * s, by - 2 * s];
+      case 'shrug': return [side * 15 * s, by - 9 * s];
+      case 'fists': return [side * 11 * s, by - 11 * s + Math.sin(T * 30 + side) * 1.5 * s];
+      case 'up': return [side * 12 * s, by - 13 * s];
+      case 'hug': return [side * 5 * s, by - 5 * s];
+      case 'wipe': return side === 1 ? [6 * s, by - 10 * s] : [-15 * s, by - 2 * s];
+      case 'hold': return [side * 9 * s, by + 1 * s];
+      case 'wave': return side === 1 ? [14 * s + Math.sin(T * 14) * 4 * s, by - 15 * s] : [-15 * s, by - 2 * s];
+      case 'cross': return [-side * 5 * s, by + 1 * s];
+    }
+    return [side * 17 * s, by - 3 * s];
+  }
+  function drawBubble(x, y, text, s, a, emoji) {
     ctx.save(); ctx.globalAlpha = a;
-    ctx.font = '700 ' + Math.round(9 * s + 2) + 'px ' + cssFont;
+    ctx.font = (emoji && emojiOK ? '' : '700 ') + Math.round((emoji && emojiOK ? 10 : 9) * s + 2) + 'px ' + (emoji && emojiOK ? EMOJI_FONT : cssFont);
     var w = Math.max(ctx.measureText(text).width + 7 * s, 12 * s), h = 11 * s;
     ctx.fillStyle = pal.paper; ctx.strokeStyle = pal.ink; ctx.lineWidth = 0.8;
     roundRect(x - w / 2, y - h / 2, w, h, 4 * s); ctx.fill(); ctx.stroke();
@@ -2426,7 +2933,16 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     by = gy - (f.sleep ? 6 : 9) * s + bob;
     look = { x: c.dir, y: 0 };
     if (!moving && !c.working) look = { x: Math.sin(T * 0.6 + c.vph), y: Math.cos(T * 0.9 + c.vph) * 0.4 };
+    var rave = f.party ? Math.sin(T * 6.6) : 0;          // the crab rave: everyone in step
+    if (f.party) { px -= rave * 7 * s; moving = false; }  // side-step one way while the claws wave the other
+    if (f.dx) px += f.dx * s;
+    if (f.dy) { gy += f.dy * s; by += f.dy * s; }
+    if (f.body) by += f.body * s;
+    if (f.look) look = f.look;
+    if (f.legs === 'sit') { by = gy - 6 * s; f.sleep2 = true; }
+    var tilt = (f.tilt || 0) + (airborne ? 0 : crestTilt(c)) + rave * 0.08;
     ctx.save(); ctx.translate(px, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (tilt) { ctx.translate(0, by); ctx.rotate(tilt); ctx.translate(0, -by); }
 
     // overclock: speed streaks behind a crab that is hurrying
     if (S.oc && (c.moving || c.working) && !airborne) {
@@ -2444,13 +2960,15 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo(fx, by + (4 + Math.sin(ph) * 3) * s); ctx.stroke();
         continue;
       }
-      if (f.sleep) {
+      if (f.sleep || f.sleep2) {
         hx = side * (5 + i * 2.2) * s;
         ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo(hx + side * 4 * s, gy); ctx.stroke();
         continue;
       }
       ph = c.vgait + i * 2.094 + (side > 0 ? 0 : Math.PI);
-      lift = moving ? Math.max(0, Math.sin(ph)) * 3.2 * s : (f.party ? Math.max(0, Math.sin(T * 14 + i + side)) * 2 * s : 0);
+      if (f.legs === 'tap' && i === 0 && side === c.dir) { hx = side * 5 * s; fx = side * 11.5 * s; lift = Math.abs(osc(T, 3)) * 3 * s; ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke(); continue; }
+      if (f.legs === 'step') { hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s; lift = Math.max(0, Math.sin(T * 8 + i * 2 + (side > 0 ? 0 : Math.PI))) * 2.5 * s; ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke(); continue; }
+      lift = moving ? Math.max(0, Math.sin(ph)) * 3.2 * s : (f.party ? Math.max(0, Math.cos(T * 6.6) * side) * 3 * s : 0);
       hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s + (moving ? Math.cos(ph) * 2.4 * s * c.dir : 0);
       ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke();
     }
@@ -2470,9 +2988,12 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     // claws
     for (side = -1; side <= 1; side += 2) {
       ax = side * 17 * s; ay = by - 3 * s; w = 2.9;
-      if (f.party) { ax = side * 13 * s; ay = by - 14 * s - Math.sin(T * 10 + side + c.vph) * 3 * s; }
-      else if (f.eye === 'wide' && c.vx && T < c.vx.until && c.vx.name === 'shock') { ax = side * 12 * s; ay = by - 12 * s; }
-      else if (f.glyph === '?') { ax = side * 15 * s; ay = by - 8 * s; }                        // a shrug
+      if (f.party) { ax = side * 8 * s + rave * 11 * s; ay = by - 15 * s - Math.abs(Math.cos(T * 6.6)) * 2 * s; }   // claws up, waving together
+      else if (f.arm) { ax = f.arm[side < 0 ? 0 : 2] * s; ay = by + f.arm[side < 0 ? 1 : 3] * s; }
+      else if (f.arms) {
+        var A = armPose(f.arms, side, s, by, c);
+        ax = A[0]; ay = A[1];
+      }
       else if (role === 'haul') {
         if (c.state === 'pick' && side === c.dir) ay += Math.abs(Math.sin(c.timer * 7)) * 7 * s;
         if (c.state === 'stack' && side === 1) ay -= Math.abs(Math.sin(c.timer * 9)) * 5 * s;
@@ -2543,7 +3064,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if (role === 'mech' && c.state === 'fix') spark(px + c.dir * 16 * s, by, 1, pal.lavaHot);
     } else {
       roundRect(-7 * s, by - 15 * s, 14 * s, 9 * s, 2 * s); ctx.fillStyle = dark; ctx.fill();
-      for (i = 0; i < K.CHARGES; i++) { ctx.fillStyle = i < c.charges ? pal.light : pal.metalDark; ctx.fillRect((-5.4 + i * 2.9) * s, by - 13 * s, 2 * s, 5 * s); }
+      var nc = sim.charges(), cw = 11.6 / nc;
+      for (i = 0; i < nc; i++) { ctx.fillStyle = i < c.charges ? pal.light : pal.metalDark; ctx.fillRect((-5.6 + i * cw) * s, by - 13 * s, cw * 0.7 * s, 5 * s); }
       ctx.fillStyle = pal.metal; ctx.fillRect(-1.5 * s, by - 16.6 * s, 3 * s, 1.8 * s);
       if (c.state === 'refill') { ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(7 * s, by - 10 * s); ctx.lineTo(16 * s, by - 6 * s + Math.sin(T * 9) * 1.5); ctx.stroke(); }
     }
@@ -2586,6 +3108,10 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       }
     }
     drawMouth(by + 1.4 * s, s, f, dark);
+    if (f.prop === 'pebble') { var jh = Math.abs(osc(T, 1.5)); drawNod(Math.sin(T * 4.7) * 5 * s, by - 16 * s - jh * 8 * s, 2.2 * s, 1, T * 3); }
+    if (f.prop === 'note') { ctx.save(); ctx.globalAlpha = 1 - ((T * 0.8 + c.vph) % 1); ctx.fillStyle = pal.ink; ctx.font = '700 ' + Math.round(9 * s) + 'px ' + cssFont; ctx.fillText('♪', 8 * s + ((T * 0.8 + c.vph) % 1) * 6 * s, by - 6 * s - ((T * 0.8 + c.vph) % 1) * 14 * s); ctx.restore(); }
+    if (f.prop === 'sparkle') { ctx.fillStyle = pal.light; for (i = 0; i < 4; i++) { var sa = T * 3 + i * 1.57, sr2 = 13 * s; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(T * 9 + i); ctx.beginPath(); ctx.arc(Math.cos(sa) * sr2, by - 8 * s + Math.sin(sa) * sr2 * 0.5, 1.4 * s, 0, TAU); ctx.fill(); } ctx.globalAlpha = 1; }
+    if (f.prop === 'bubbles' && Math.random() < 0.25) bubbles.push({ x: px + c.dir * 3 * s, y: by + 1 * s, r: rr(1, 2.6) * s, vy: rr(16, 30), ph: rr(0, TAU) });
     if (f.sweat) {
       var sy = ((T * 0.9 + c.vph) % 1);
       ctx.fillStyle = pal.sweat; ctx.globalAlpha = 1 - sy;
@@ -2602,8 +3128,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     ctx.restore();
 
-    // what the crab is thinking
-    if (f.glyph) {
+    // what the crab is saying, or else thinking
+    if (c.say && T < c.say.until) drawBubble(px + 12 * s, by - 28 * s, c.say.text, s, clamp((c.say.until - T) / 0.3, 0, 1), true);
+    else if (f.glyph) {
       var gl = f.glyph, gy2 = by - 26 * s;
       if (gl === 'z') gl = ['z', 'zz', 'zzz'][Math.floor(T * 1.5 + c.vph) % 3];
       if (f.sleep) gy2 = by - 18 * s;
@@ -2659,7 +3186,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     if (!W || !H || !S) return;
     var i, k, list, o, px, layers = [[], [], []];
     ctx.clearRect(0, 0, W, H);
-    drawSurface(); drawSnow();
+    drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawSnow();
     // the far dune, a faint sheet behind everything
     ctx.globalAlpha = 0.75; drawPaper(farPath, pal.sandFar, farY); ctx.globalAlpha = 1;
     drawWeeds(-1);
@@ -2667,20 +3194,21 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
     for (i = 0; i < S.flags.length; i++) { o = S.flags[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.01, kind: 1, o: o }); }
     var air = [];
-    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : layerOf(o.d)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
+    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
     for (i = 0; i < debris.length; i++) { o = debris[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.02, kind: 3, f: drawDebris.bind(null, o) }); }
     layers[2].push({ y: basePos().y, kind: 3, f: drawBase });
-    layers[2].push({ y: groundY(X(K.ORE), 0.8), kind: 3, f: drawOrePile });
-    layers[2].push({ y: groundY(X(K.BAR), 0.78), kind: 3, f: drawBarStack });
-    layers[2].push({ y: groundY(X(K.STOCK), 0.84), kind: 3, f: drawStockpile });
-    layers[2].push({ y: groundY(X(K.COLLECTOR), 0.7), kind: 3, f: drawCollector });
+    layers[2].push({ y: postPos().y, kind: 3, f: drawPost });
+    layers[2].push({ y: groundY(X(S.pos.ORE), 0.8), kind: 3, f: drawOrePile });
+    layers[2].push({ y: groundY(X(S.pos.BAR), 0.78), kind: 3, f: drawBarStack });
+    layers[2].push({ y: groundY(X(S.pos.STOCK), 0.84), kind: 3, f: drawStockpile });
+    layers[2].push({ y: groundY(X(S.pos.COLLECTOR), 0.7), kind: 3, f: drawCollector });
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
-    layers[2].push({ y: groundY(X(K.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
+    layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
     for (k = 0; k < 3; k++) {
       drawPaper(dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); });
       drawRipples(k);
       if (k === 0) { drawWeeds(0); drawRidge(); }
-      if (k === 2) { drawCavern(); drawVent(); drawRiser(); drawLifts(); }
+      if (k === 2) { drawCavern(); drawVent(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }
       if (k > 0) drawLocked(k);
       list = layers[k];
       list.sort(function (a, b) { return a.y - b.y; });
@@ -2731,7 +3259,32 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     roles: $('roles'), cards: $('cards'), ledger: $('ledger'), toasts: $('toasts'),
     intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
     shift: $('h-shift'), shiftLeft: $('h-shift-left'), flow: $('h-flow'), flowNote: $('h-flow-note'), oc: $('oc-btn'), ocLabel: $('oc-label'), ocBar: $('oc-bar'),
-    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), dockRoles: $('dock-roles'), panRange: $('pan-range')
+    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), panRange: $('pan-range'), tech: $('techs'), arrangeBtn: $('arrange-btn'), arrangeNote: $('arrange-note'), postBtn: $('post-btn')
+  };
+  var TECH_INFO = {
+    sonar: { name: 'Sonar lab', note: 'Unlocks scout upgrades.' },
+    metallurgy: { name: 'Metallurgy', note: 'Unlocks drill and smelter upgrades.' },
+    hydraulics: { name: 'Hydraulics', note: 'Unlocks hauler and crusher upgrades.' },
+    power: { name: 'Power electronics', note: 'Unlocks energy bot upgrades.' },
+    engineering: { name: 'Field engineering', note: 'Unlocks repair and maintenance bot upgrades.' }
+  };
+  var WUP_INFO = {
+    wideSonar: ['Wide sonar', 'Scans take a third less time.'],
+    deepSonar: ['Deep sonar', 'Scouts find richer deposits: +0.08 richness and one more nodule a flag.'],
+    diamondTips: ['Diamond tips', 'Holes take a quarter less time, and bits break 40% less often.'],
+    twinAugers: ['Twin augers', 'A strike turns up a second nodule 45% of the time instead of 20%.'],
+    bigHopper: ['Big hopper', 'Haulers carry five nodules instead of three.'],
+    springLegs: ['Spring legs', 'Haulers walk 30% faster.'],
+    hydraulicClaws: ['Hydraulic claws', 'Crushing takes a third less time.'],
+    shockPads: ['Shock pads', 'Crushers wear out half as fast.'],
+    heatTongs: ['Heat-proof tongs', 'Bars melt 40% faster.'],
+    twinTongs: ['Twin tongs', 'Smelters carry two bars a trip.'],
+    bigCells: ['Big cells', 'Energy bots hold six charges instead of four.'],
+    fastPlug: ['Fast plug', 'Charging a crab takes half as long, and plugging in at the base is quicker.'],
+    pocketForge: ['Pocket forge', 'Repair bots forge bits on the spot instead of walking to the lava.'],
+    quickHands: ['Quick hands', 'Repair bots fit parts 40% faster.'],
+    mechForge: ['Pocket forge', 'Maintenance bots forge legs on the spot.'],
+    toughJoints: ['Tough joints', 'Every crab loses legs half as often.']
   };
   function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
   function fmtTime(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }
@@ -2755,7 +3308,17 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         '<button type="button" class="hire" data-act="hire" aria-label="Hire one ' + NAMES[r].toLowerCase() + '">+ $0</button></span></div>';
     });
     ui.roles.innerHTML = html;
-    ui.dockRoles.innerHTML = html;       // the big field's dock carries the same crew controls
+    html = '';
+    Object.keys(K.TECH).forEach(function (id) {   // each technology, then the worker upgrades it unlocks
+      html += '<div class="card tech" data-tech="' + id + '"><div class="card-top"><h3>' + TECH_INFO[id].name + '</h3><button type="button" class="hire" data-act="research">$' + K.TECH[id].cost + '</button></div><p class="now">' + TECH_INFO[id].note + '</p></div>';
+      K.TECH[id].roles.forEach(function (role) {
+        Object.keys(K.WUP).forEach(function (w) {
+          if (K.WUP[w].role !== role) return;
+          html += '<div class="card wup" data-wup="' + w + '"><div class="card-top"><h3><span class="dot" style="background:var(--c-' + (role === 'haul' ? 'crab' : role) + ')"></span> ' + WUP_INFO[w][0] + '</h3><button type="button" class="hire" data-act="wup">$' + K.WUP[w].cost + '</button></div><p class="now">' + NAMES[role] + 's: ' + WUP_INFO[w][1] + '</p></div>';
+        });
+      });
+    });
+    ui.tech.innerHTML = html;
     html = '';
     Object.keys(K.UP).forEach(function (id) {
       html += '<div class="card" data-up="' + id + '"><div class="card-top"><h3>' + UP_INFO[id].name + '<span class="pips"></span></h3>' +
@@ -2783,6 +3346,20 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       ret.disabled = n[r] <= 0;
       ret.title = n[r] ? 'Retire one for a refund of ' + money(sim.refund(r)) : '';
     }
+    Array.prototype.forEach.call(ui.tech.querySelectorAll('[data-tech]'), function (card) {
+      var t = card.getAttribute('data-tech'), b = card.querySelector('button'), done = !!S.tech[t];
+      b.textContent = done ? 'Researched' : money(K.TECH[t].cost); b.disabled = done || S.credits < K.TECH[t].cost;
+      card.classList.toggle('done', done);
+    });
+    Array.prototype.forEach.call(ui.tech.querySelectorAll('[data-wup]'), function (card) {
+      var w = card.getAttribute('data-wup'), b = card.querySelector('button'), done = sim.has(w), open = sim.unlocked(K.WUP[w].role);
+      b.textContent = done ? 'Fitted' : (open ? money(K.WUP[w].cost) : 'Locked'); b.disabled = done || !open || S.credits < K.WUP[w].cost;
+      card.classList.toggle('done', done); card.classList.toggle('locked', !open);
+    });
+    ui.arrangeBtn.setAttribute('aria-pressed', String(arrange));
+    ui.arrangeNote.textContent = arrange ? (pick === 'post' ? 'Now tap the front dune where the refuel post should go.' : pick ? 'Now tap the plot to move the ' + BLD_NAMES[pick].toLowerCase() + ' to.' : 'Tap a building, or the refuel post, to pick it up.') : 'The line\'s buildings stand on plots along the front dune. Shorter walks between them mean more metal.';
+    ui.postBtn.textContent = S.post.auto ? 'Bots move it' : 'Pinned';
+    ui.postBtn.setAttribute('aria-pressed', String(S.post.auto));
     for (i = 0; i < cards.length; i++) {
       id = cards[i].getAttribute('data-up'); u = K.UP[id]; lvl = S.lv[id]; max = u.costs.length; cost = sim.upgradeCost(id);
       pips = ''; for (v = 0; v < max; v++) pips += '<i class="' + (v < lvl ? 'on' : '') + '"></i>';
@@ -2945,12 +3522,6 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     sim.drain().forEach(handle);
     renderPanel(); renderHUD();
   }
-  function attract() {                 // what plays behind the intro: a working crew, no money spent
-    S = sim.reset({ crew: { scout: 1, drill: 2, haul: 2, crush: 1, smelt: 2, energy: 1, repair: 1, mech: 1 } });
-    sim.drain();
-    for (var i = 0; i < 60 * 25; i++) sim.step();                // let the line get going before anyone sees it
-    sim.drain();
-  }
   function closeIntro() { ui.intro.hidden = true; setSpeed(speed || 1); }
   function openIntro() {
     ui.intro.hidden = false;
@@ -2985,19 +3556,20 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       renderPanel(); renderHUD();
     }
     ui.roles.addEventListener('click', onRoleClick);
-    ui.dockRoles.addEventListener('click', onRoleClick);
+    ui.tech.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || b.disabled) return;
+      var card = b.closest('.card'), t = card.getAttribute('data-tech'), w = card.getAttribute('data-wup');
+      if (t && sim.research(t) === true) toast('Researched: ' + TECH_INFO[t].name, TECH_INFO[t].note);
+      if (w && sim.upgradeWorker(w) === true) toast('Fitted: ' + WUP_INFO[w][0], WUP_INFO[w][1]);
+      sim.drain().forEach(handle); renderPanel(); renderHUD();
+    });
+    ui.arrangeBtn.addEventListener('click', function () { arrange = !arrange; pick = null; renderPanel(); draw(); });
+    ui.postBtn.addEventListener('click', function () { sim.setPostAuto(!S.post.auto); renderPanel(); });
     Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) {
       b.addEventListener('click', function () { sim.setShift(b.getAttribute('data-shift')); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     });
     ui.oc.addEventListener('click', function () { sim.overclock(!S.oc); sim.drain().forEach(handle); renderHUD(); });
     ui.bigBtn.addEventListener('click', function () { setBig(!document.body.classList.contains('big')); });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-dtab]'), function (b) {
-      b.addEventListener('click', function () {
-        var id = b.getAttribute('data-dtab');
-        Array.prototype.forEach.call(document.querySelectorAll('[data-dtab]'), function (o) { o.setAttribute('aria-selected', String(o === b)); });
-        $('dock-ctl').hidden = id !== 'ctl'; $('dock-view').hidden = id !== 'view';
-      });
-    });
     function pan(f) { stage.scrollBy({ left: f * stage.clientWidth, behavior: mqReduce.matches ? 'auto' : 'smooth' }); }
     $('pan-l').addEventListener('click', function () { pan(-0.6); });
     $('pan-r').addEventListener('click', function () { pan(0.6); });
@@ -3030,6 +3602,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     document.addEventListener('keydown', function (e) {
       if (e.target.closest && e.target.closest('input, select, textarea')) return;
       if (e.key === 'Escape' && !ui.intro.hidden && started) { closeIntro(); return; }
+      if (e.key === 'Escape' && arrange) { arrange = false; pick = null; renderPanel(); return; }
       if (!ui.intro.hidden || !ui.win.hidden) return;
       if (e.key === ' ' && !(e.target.closest && e.target.closest('button, a'))) { e.preventDefault(); setSpeed(speed ? 0 : 1); }
       if ((e.key === 'b' || e.key === 'B') && !e.ctrlKey && !e.metaKey && !e.altKey) setBig(!document.body.classList.contains('big'));
@@ -3037,6 +3610,23 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     });
     cv.addEventListener('click', function (e) {
       var rect = cv.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top, bestC = null, bd = 1e9, i, c, px, py, d, z;
+      if (arrange) {                     // pick a building up, then put it down on another plot
+        var hit = -1, pr, k2, here = null, pp = postPos();
+        if (pick === 'post') {          // the post goes wherever the front dune is tapped, within the cord's reach
+          var dd = 0.72, bestD = 1e9, dv;
+          for (dv = 0.72; dv <= 0.97; dv += 0.01) { var gyv = groundY(x, dv); if (Math.abs(gyv - y) < bestD) { bestD = Math.abs(gyv - y); dd = dv; } }
+          sim.placePost(Xinv(x), dd); pick = null; toast('Moved the refuel post', 'It stays put until you let the energy bots move it again (Build tab).');
+          sim.drain().forEach(handle); renderPanel(); draw(); return;
+        }
+        if (Math.abs(x - pp.x) < 18 * CS && y > pp.y - 45 * CS && y < pp.y + 6) { pick = 'post'; renderPanel(); draw(); return; }
+        for (i = 0; i < K.PLOTS.length; i++) { pr = plotRect(i); if (Math.abs(x - pr.x) <= pr.half && y >= pr.y0 - 50 * CS && y <= pr.y1 + 10) hit = i; }
+        if (hit < 0) { pick = null; renderPanel(); return; }
+        for (k2 in S.layout) if (S.layout[k2] === hit) here = k2;
+        if (!pick) { pick = here; }
+        else { if (sim.place(pick, hit)) toast('Moved the ' + BLD_NAMES[pick].toLowerCase(), here ? 'It swapped places with the ' + BLD_NAMES[here].toLowerCase() + '.' : 'The crabs will find it there.'); pick = null; }
+        sim.drain(); renderPanel(); draw();
+        return;
+      }
       for (i = 0; i < S.crabs.length; i++) {
         c = S.crabs[i]; px = crabX(c); py = groundY(px, c.d) - 10 * scaleAt(c.d);
         if (c.alt > 0) { var ap = airPos(c); px = ap.x; py = ap.y; }
@@ -3065,6 +3655,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       $(t.getAttribute('aria-controls')).hidden = !on;
     });
     if (id === 't-ledger') renderLedger();
+    document.querySelector('.panel').classList.toggle('collapsed', id === 't-view');
   }
 
   // ----- loop and lifecycle -----
@@ -3102,15 +3693,18 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   window.crabminer = { sim: sim, state: function () { return S; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
-  try { if (localStorage.getItem('crabminer-big') === '1') { document.body.classList.add('big'); ui.bigBtn.setAttribute('aria-pressed', 'true'); } } catch (e) { /* storage may be unavailable */ }
+  var bigPref = null;
+  try { bigPref = localStorage.getItem('crabminer-big'); } catch (e) { /* storage may be unavailable */ }
+  if (bigPref !== '0') { document.body.classList.add('big'); ui.bigBtn.setAttribute('aria-pressed', 'true'); }   // the big field is the default
   measure();
-  attract();
   wire();
+  started = true; newGame();            // straight into the game; the ? button brings up the intro
+  ui.intro.hidden = true;
   renderPanel(); renderHUD();
-  if (stage.scrollWidth > stage.clientWidth) stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * 0.55;
+  if (stage.scrollWidth > stage.clientWidth) stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * (document.body.classList.contains('big') ? 0.62 : 0.55);
   draw();
   start();
-  ui.start.focus();
+  toast('It\'s a Crab Mining Game.', 'Hire crabs, sell metal up the riser, and climb to Crab Tycoon. Press ? for how to play.');
 })();
 </script>
 <!-- ===== SCRIPT 3 of 3: read aloud ===== -->
@@ -3161,13 +3755,14 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     [/\bIEEE\b/g, 'I triple E'],
     [/\s*°C/g, ' degrees Celsius'],
     [/(\d) s\b/g, '$1 seconds'],
+    [/\bTable IV\b/g, 'Table 4'],
     [/\bTable III\b/g, 'Table 3'],
     [/\bTable II\b/g, 'Table 2'],
     [/\bTable I\b/g, 'Table 1'],
     [/\bNode\.js\b/g, 'Node J S']
   ];
 
-  var ROMAN = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10 };
+  var ROMAN = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10, XI: 11 };
   function stop1(s) { s = s.trim(); return /[.!?]$/.test(s) ? s : s + '.'; }
   function clean(el) { // text of an element without citations, drawings, or silent parts
     var copy = el.cloneNode(true), drop = copy.querySelectorAll('.c, svg, [data-nospeak]'), i;

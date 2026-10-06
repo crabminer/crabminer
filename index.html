@@ -294,6 +294,48 @@ body.big .toasts{top:.6rem}
 }
 .note{color:var(--ink-soft);font-size:.76rem;margin:.4rem 0 0}
 
+/* ---------- small screens (iPhone SE and the like): one-row top bar, the controls in a bottom sheet ---------- */
+@media (max-width:30rem){
+  .game,body.big .game{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(9rem,1fr) auto}
+  .hud{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:.6rem;padding:.3rem .5rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .hud::-webkit-scrollbar{display:none}
+  .hud > *{flex:none}
+  .hud-money{order:-5} .oc{order:-4} .hud-ctl{order:-3;margin-left:0} .hud-order{order:-2}
+  .hud-brand,#big-btn{display:none}
+  .hud-item small{display:block;font-size:.58rem}
+  .hud-rank{flex:none;width:7.5rem}
+  #h-rank-next,#h-trend,#h-flow-note{display:none}
+  .seg button{min-width:2rem;height:2.1rem}
+  .oc{min-height:2.1rem;padding:.1rem .4rem}
+  body.big .panel,.panel{
+    position:relative;grid-area:auto;left:auto;bottom:auto;width:auto;
+    height:min(54svh,22rem);max-height:none;border-radius:0;box-shadow:0 -8px 24px var(--shadow)
+  }
+  .panel.collapsed,body.big .panel.collapsed{height:auto}
+  #t-view{display:block}
+  .tabs button{height:2.4rem;font-size:.76rem}
+  .tabpanel{padding:.4rem .5rem .8rem}
+  #p-crew:not([hidden]){display:flex;flex-direction:column}
+  #p-crew > *{flex:none}
+  #p-crew .crewhead{order:1;margin:0 0 .1rem;font-size:.76rem}
+  #p-crew #roles{order:2}
+  #p-crew .shifts{order:3;margin-top:.5rem}
+  #p-crew .talk{order:4}
+  .advice{font-size:.74rem;padding:.3rem .45rem;margin-bottom:.35rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .role{grid-template-columns:auto minmax(0,1fr) auto;gap:.35rem;padding:.25rem 0}
+  .role-name span{display:none}
+  .role-name b{font-size:.82rem}
+  .role-ctl .mini{width:2.2rem;height:2.2rem;font-size:1.1rem}
+  .role-ctl output{min-width:1.3rem}
+  .hire{height:2.2rem;min-width:4.2rem;font-size:.82rem}
+  .card{padding:.45rem .5rem}
+  .card p{font-size:.72rem}
+  .toasts{left:.4rem;top:.4rem;max-width:calc(100% - .8rem)}
+  .toast{font-size:.72rem;padding:.3rem .5rem}
+  .toast b{font-size:.78rem}
+  .toast:not(:last-child){display:none}
+}
+
 /* ---------- overlays: the intro and the win card ---------- */
 .overlay{
   position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:1rem;overflow-y:auto;
@@ -574,7 +616,7 @@ tr[data-say].saying{box-shadow:none}
         <summary>How crabs talk</summary>
         <p class="note">Crabs speak in emoji sentences: a thing, then a verb, then sometimes who, or how they feel.</p>
         <table class="ltable"><tbody>
-          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🚢 ship · 🐋 whale · 🦀 you, me</td></tr>
+          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🚢 ship · 🐋 whale · 🏠 den · 🐚 shell · 🦀 you, me</td></tr>
           <tr><th scope="row">Verbs</th><td>❓ I need · 👍 on my way · ➡️ bringing it · ✅ got it, done · 💔 broke · ⛔ full · ❗ found one · ❤️ thanks</td></tr>
           <tr><th scope="row">Examples</th><td>🔋❓ "I need charge". An energy bot answers 🔋➡️🦀, "bringing you charge". Then 🔋✅❤️, "got it, thanks". 🦵💔😭 is a lost leg, and 🧱➡️🔥 is a maintenance bot taking a bar to the forge.</td></tr>
         </tbody></table>
@@ -582,7 +624,8 @@ tr[data-say].saying{box-shadow:none}
     </div>
     <div class="tabpanel" role="tabpanel" id="p-build" aria-labelledby="t-build" hidden>
       <div class="card arrange"><div class="card-top"><h3>Arrange the line</h3><button type="button" class="hire" id="arrange-btn" aria-pressed="false">Move buildings</button></div><p class="now" id="arrange-note"></p>
-        <div class="card-top post-row"><span>Refuel post, on its extension cord from the Stirling engine</span><button type="button" class="mini wide" id="post-btn" aria-pressed="true">Bots move it</button></div></div>
+        <div class="card-top post-row"><span>Refuel post, on its extension cord from the Stirling engine</span><button type="button" class="mini wide" id="post-btn" aria-pressed="true">Bots move it</button></div>
+        <p class="note" id="decor-note"></p></div>
       <div id="cards"></div>
     </div>
     <div class="tabpanel" role="tabpanel" id="p-tech" aria-labelledby="t-tech" hidden>
@@ -699,6 +742,7 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Wear.</span> Each crab counts the seconds it has worked without a break. The first four minutes cost nothing. After that, every five more minutes add up to double the breakdown chances (bits, cells, and legs) and slow the crab by up to a fifth. Standing idle wears off a second each second. Sleeping wears off four, and it recharges the battery for free at about 3% a second.</p>
     <p><span class="runin">The day.</span> A day lasts three simulated minutes, and the player picks one of three patterns for it. In <i>all hands</i> everyone works all day. In <i>A and B shifts</i> everyone works the day half. At night, half of each role sleeps, a different half each night, while repair and maintenance bots work on 30% faster. That is the night repair crew, and sleeping crabs make easy patients because they hold still. In <i>three-shift relief</i> the day is cut in three and each crab sleeps through one third, so two groups in three are always at work. Crabs finish the task in hand before they go to sleep.</p>
     <p><span class="runin">Friends.</span> Two crabs standing idle side by side, a crusher waiting for ore beside a smelter waiting for bars, for example, pair up and dance. Dancing recharges them a little (1.2% a second) and clears their wear at two seconds a second. These are the clean thoughts. At dawn, every crab that slept or danced for at least 20 seconds the day before starts fresh, 25% faster for the first 90 seconds of the new day.</p>
+    <p><span class="runin">The den.</span> The crabs' den is a round house on the first plot. Idle time is not wasted. Every five crab-minutes of standing about, counted across the crew, turns into a decoration for the den, made by the idle crab nearest to it. Most are everyday crafts: a shell garland, a sea-glass mosaic, a pebble cairn, a kelp wreath, a coral sculpture, a sand castle, a nodule totem. A big moment inspires something special: a trophy after a rank-up, a pearl lamp after a pearl, an octopus-ink painting after a shoo, a driftwood sculpture after a storm, a ship in a bottle after a filled order, and a lava lamp after a surge. Each decoration adds a point to the morning bonus and three seconds to it, and makes dancing recharge 5% faster. The den holds four, and each den upgrade makes room for two more.</p>
     <p><span class="runin">Coverage.</span> A role with one crab disappears whenever that crab sleeps, and the line stops at that stage. The ledger lays out how many crabs of each role are on duty in each part of the day. The advisor names the first gap it finds, for example "nobody covers smelter crab work in shift 3". This enforces the rule of thumb any round-the-clock plant uses: at least one worker able to do every job on every shift.</p>
   </div>
 
@@ -708,7 +752,7 @@ tr[data-say].saying{box-shadow:none}
     <p><span class="runin">Flow.</span> A delivery that follows the last one within 6 seconds keeps the flow going, and each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow. Steady production pays more than the same metal in bursts, which rewards a balanced line over a lopsided one.</p>
     <p><span class="runin">Overclock.</span> Every delivery banks 0.6 seconds of overclock, more while the flow runs, up to 30 seconds. The player spends it with the ⚡ button (or the O key). While it runs, the whole crew moves and works 50% faster, but uses 60% more power and wears twice as fast. It is best spent while the crew is fresh and the engine has charge to spare.</p>
     <p><span class="runin">Spending.</span> Credits buy crabs and upgrades (Table II). Repairs are paid in metal. There is no upkeep.</p>
-    <p><span class="runin">Plots and the post.</span> The line's six buildings (workshop, ore pile, crushing yard, bar stack, stockpile, and the riser's collector) stand on seven plots along the front dune, from 560 to 818, with one plot spare. By default they run right to left from the lava in the order the metal flows. In the Build tab's arrange mode the plots show as paper tiles, and any building can be picked up and set on another plot, swapping with whatever is there. Moving the stockpile nearer the lava, for example, shortens every smelter's walk. The tiles are hidden the rest of the time, so the sand stays sand. The refuel post stands at the end of a 520-unit extension cord from the Stirling engine's outlet. The player can put it anywhere along the front dune. Otherwise the energy bots drag it, every 25 seconds or so, toward the middle of the crew.</p>
+    <p><span class="runin">Plots and the post.</span> Seven buildings stand on seven plots along the front dune, from 560 to 818: the crabs' den, the workshop, ore pile, crushing yard, bar stack, stockpile, and the riser's collector. By default they run right to left from the lava in the order the metal flows, with the den at the field's edge. In the Build tab's arrange mode the plots show as paper tiles, and any building can be picked up and set on another plot, swapping with whatever is there. Moving the stockpile nearer the lava, for example, shortens every smelter's walk. The tiles are hidden the rest of the time, so the sand stays sand. The refuel post stands at the end of a 520-unit extension cord from the Stirling engine's outlet. The player can put it anywhere along the front dune. Otherwise the energy bots drag it, every 25 seconds or so, toward the middle of the crew.</p>
     <p><span class="runin">Getting about.</span> The track is 1,000 units long. The field runs from 20 to 540, and the plots fill the stretch from 560 to the Stirling engine at 852, beside the lava at 888. A crab climbing over the lip from one dune to the next goes at half speed. Crossing from the back crest to the front of the dunes costs as much as 300 units of track. Crabs walk 60 units a second, scouts and repair crews 78, and energy bots 95. A crab on the lava side of the line with a long trip to the left can instead step into the thermal vent. It floats up with the bubbles into the top tenth of the sea, which takes about 1.8 seconds, and then swims down and sideways at 200 units a second, landing on its target. Each crab checks the time both ways and only rides when riding is at least 10% quicker. Short trips are always walked.</p>
   </div>
   <div class="tablewrap">
@@ -847,11 +891,14 @@ function CrabSim() {
     // places along the track, left to right: the field, a row of building plots, then the lava
     FIELD0: 20, FIELD1: 540, STIRLING: 852, RIM: 874, LAVA: 888, END: 1000,
     // The line's buildings stand on plots along the front dune and can be moved between them.
-    // By default they run right to left from the lava, with one plot spare at the field's edge.
+    // By default they run right to left from the lava, with the crabs' den at the field's edge.
     // The Stirling engine and the energy bots' base stay by the lava, where the heat is.
     PLOTS: [560, 603, 646, 689, 732, 775, 818],
-    BUILDINGS: ['workshop', 'ore', 'crush', 'bar', 'stock', 'collector'],
-    LAYOUT: { workshop: 1, ore: 2, crush: 3, bar: 4, stock: 5, collector: 6 },
+    BUILDINGS: ['den', 'workshop', 'ore', 'crush', 'bar', 'stock', 'collector'],
+    LAYOUT: { den: 0, workshop: 1, ore: 2, crush: 3, bar: 4, stock: 5, collector: 6 },
+    // the den: crabs standing idle make decorations for it, and a homely den makes for better mornings and dances
+    DECOR_WORK: 300, DECOR_BASE: 4, DECOR_PER_LV: 2, DECOR_MORNING: 0.01, DECOR_MORNING_TIME: 3, DECOR_DANCE: 0.05,
+    DECOR_KINDS: ['shellGarland', 'seaGlass', 'cairn', 'kelpWreath', 'coral', 'sandCastle', 'noduleTotem'],
     CREST: 0.035, CREST_SLOW: 0.5,   // climbing over the lip between two dunes is slow going
     // the refuel post: an extension cord runs from the Stirling engine to a post the energy bots plug into;
     // the player can set it down anywhere along the front dune, or let the bots drag it to where the work is
@@ -941,7 +988,7 @@ function CrabSim() {
   };
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
-    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'orderCredits'];
+    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'orderCredits', 'decorations'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
 
   var seed = K.SEED, S = null, events = [], dt = K.STEP;
@@ -960,7 +1007,7 @@ function CrabSim() {
   // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
   function pace(c) {
     return (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
-      (c.fresh > 0 ? K.MORNING_BONUS : 1) *
+      (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) *
       (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1);   // the night crew
   }
   function has(id) { return !!S.wu[id]; }
@@ -968,7 +1015,7 @@ function CrabSim() {
   function charges() { return has('bigCells') ? 6 : K.CHARGES; }
   function layoutPos() {                  // where each building stands, and the spots crabs work at beside it
     var x = function (b) { return K.PLOTS[S.layout[b]]; };
-    S.pos = { WORKSHOP: x('workshop'), ORE: x('ore'), HAUL_STAND: x('ore') - 24, CRUSH: x('crush'), BAR: x('bar'), GRAB: x('bar') + 16,
+    S.pos = { DEN: x('den'), WORKSHOP: x('workshop'), ORE: x('ore'), HAUL_STAND: x('ore') - 24, CRUSH: x('crush'), BAR: x('bar'), GRAB: x('bar') + 16,
       STOCK: x('stock'), COLLECTOR: x('collector') };
   }
   function wearMult(c) { return 1 + Math.min(K.WEAR_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.WEAR_SCALE); }
@@ -985,7 +1032,7 @@ function CrabSim() {
       tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST,
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
-      order: null, nextOrder: K.ORDER_FIRST, rep: 0,
+      order: null, nextOrder: K.ORDER_FIRST, rep: 0, decor: [], decorWork: 0, decorTheme: null,
       shift: opts.shift || 'all', si: null, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -1236,7 +1283,7 @@ function CrabSim() {
           if (c.flag && !c.flag.gone && c.flag.q >= K.PEARL_Q && sr() < K.PEARL_CHANCE) {   // a pearl in the rich sand: jackpot
             var pv = K.PEARL_VALUE[c.flag.zone || 0];
             S.credits += pv; S.earned += pv; S.stat.pearls++; S.stat.pearlCredits += pv;
-            emit('pearl', c, pv); ranks();
+            emit('pearl', c, pv); inspire('pearlLamp'); ranks();
           }
           if (sr() < (has('twinAugers') ? 0.45 : K.BONUS_NODULE)) {                       // a rich pocket holds a second nodule
             n2 = { x: clamp(c.x + srr(-14, 14), K.FIELD0, K.FIELD1), d: clamp(c.d + srr(-0.05, 0.05), 0.02, 0.98), alive: true, eddy: -1, by: null };
@@ -1473,7 +1520,7 @@ function CrabSim() {
   // ----- the riser, the market, and the ledger -----
   function ranks() {
     while (S.rank + 1 < K.RANKS.length && S.earned >= K.RANKS[S.rank + 1][0]) {
-      S.rank++;
+      S.rank++; inspire('trophy');
       var bonus = Math.round(K.RANKS[S.rank][0] * K.RANK_BONUS);
       S.credits += bonus;
       emit('rank', S.rank, bonus);
@@ -1501,7 +1548,7 @@ function CrabSim() {
         var bonus = Math.round(o.need * K.ORDER_BONUS * (1 + S.rep * 0.1));
         S.credits += bonus; S.earned += bonus; S.stat.orderCredits += bonus; S.stat.ordersFilled++;
         S.rep = Math.min(K.REP_MAX, S.rep + 1);
-        emit('orderDone', o, bonus);
+        emit('orderDone', o, bonus); inspire('shipBottle');
         S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
       }
       ranks();
@@ -1578,6 +1625,7 @@ function CrabSim() {
       if (!a.moving && !a.working && !a.floating && a.state !== 'sleep' && !a.air && !isHeld(a)) idle.push(a);
       else if (a.dance) { a.dance.dance = null; a.dance = null; }
     }
+    craft(idle);
     for (i = 0; i < idle.length; i++) {
       a = idle[i];
       if (a.dance && (a.dance.gone || idle.indexOf(a.dance) < 0)) a.dance = null;
@@ -1587,7 +1635,7 @@ function CrabSim() {
         a.dance = b; b.dance = a; emit('dance', a, b); break;
       }
       if (a.dance) {
-        a.bat = Math.min(1, a.bat + K.DANCE_CHARGE * dt);
+        a.bat = Math.min(1, a.bat + K.DANCE_CHARGE * (1 + S.decor.length * K.DECOR_DANCE) * dt);
         a.wear = Math.max(0, a.wear - K.DANCE_RECOVER * dt);
         a.rested += dt; S.stat.danced += dt;
       }
@@ -1685,7 +1733,7 @@ function CrabSim() {
         for (i = 0; i < S.flags.length; i++) if (!S.flags[i].by) free.push(S.flags[i]);
         if (free.length && sr() < 0.6) { f = free[Math.floor(sr() * free.length)]; removeFlag(f); S.stat.buried++; emit('bury', f); }
       }
-      if (S.t >= S.stormEnd) { S.storm = false; S.stormWarned = false; S.stormAt = S.t + srr(K.STORM_EVERY[0], K.STORM_EVERY[1]); emit('stormEnd'); }
+      if (S.t >= S.stormEnd) { inspire('driftwood'); S.storm = false; S.stormWarned = false; S.stormAt = S.t + srr(K.STORM_EVERY[0], K.STORM_EVERY[1]); emit('stormEnd'); }
     }
     if (!S.order && S.t >= S.nextOrder) {                   // a ship arrives wanting a little more than the line is making
       var made = rates(60).sold, need = clamp(Math.round(Math.max(made, 4) * K.ORDER_TIME / 60 * 1.15) + 1, 5, 40);
@@ -1697,7 +1745,7 @@ function CrabSim() {
       S.rep = Math.max(0, S.rep - 1); S.order = null; S.nextOrder = S.t + srr(K.ORDER_EVERY[0], K.ORDER_EVERY[1]);
     }
     if (!S.lavaSurge && S.t >= S.lavaAt) { S.lavaSurge = true; S.lavaEnd = S.t + K.SURGE_TIME; S.stat.surges++; emit('lavaStart'); }
-    if (S.lavaSurge && S.t >= S.lavaEnd) { S.lavaSurge = false; S.lavaAt = S.t + srr(K.SURGE_EVERY[0], K.SURGE_EVERY[1]); emit('lavaEnd'); }
+    if (S.lavaSurge && S.t >= S.lavaEnd) { inspire('lavaLamp'); S.lavaSurge = false; S.lavaAt = S.t + srr(K.SURGE_EVERY[0], K.SURGE_EVERY[1]); emit('lavaEnd'); }
   }
   function shoo() {                        // the player chases the octopus off; it drops whatever it took
     var o = S.octo, i;
@@ -1706,15 +1754,31 @@ function CrabSim() {
       for (i = 0; i < o.carry; i++) S.nodules.push({ x: clamp(o.x + srr(-10, 10), K.FIELD0, K.FIELD1 + 40), d: clamp(o.d + srr(-0.04, 0.04), 0.7, 0.97), alive: true, eddy: -1, by: null });
       S.stat.stolen -= o.carry;
     }
-    emit('octoShoo', o, o.carry);
+    emit('octoShoo', o, o.carry); inspire('inkPainting');
     o.carry = 0; o.state = 'flee'; o.fx = o.x; o.dir = -1; S.stat.shooed++;
     return true;
   }
+  // Idle time is not wasted: every minute of it, counted across the crew, becomes a decoration for the den,
+  // made by the idle crab nearest to it. Big moments inspire special pieces.
+  function decorMax() { return K.DECOR_BASE + K.DECOR_PER_LV * S.lv.den; }
+  function craft(idle) {
+    var i, best = null, kind;
+    if (S.decor.length >= decorMax()) { S.decorWork = 0; return; }
+    S.decorWork += idle.length * dt;
+    if (S.decorWork < K.DECOR_WORK || !idle.length) return;
+    S.decorWork -= K.DECOR_WORK;
+    for (i = 0; i < idle.length; i++) if (!best || Math.abs(idle[i].x - S.pos.DEN) < Math.abs(best.x - S.pos.DEN)) best = idle[i];
+    kind = S.decorTheme || K.DECOR_KINDS[Math.floor(sr() * K.DECOR_KINDS.length)];
+    S.decorTheme = null;
+    S.decor.push({ kind: kind, at: S.t }); S.stat.decorations++;
+    emit('decor', best, kind);
+  }
+  function inspire(kind) { S.decorTheme = kind; }
   function morning() {                     // a new day: crabs that rested well start it fresh
     S.day = S.si.day;
     for (var i = 0; i < S.crabs.length; i++) {
       var c = S.crabs[i];
-      if (c.rested >= K.REST_FOR_BONUS) { c.fresh = K.MORNING_TIME; S.stat.mornings++; emit('morning', c); }
+      if (c.rested >= K.REST_FOR_BONUS) { c.fresh = K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME; S.stat.mornings++; emit('morning', c); }
       c.rested = 0;
     }
     emit('dawn', S.day);
@@ -1852,7 +1916,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, decorMax: decorMax, placePost: placePost, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }
@@ -1869,6 +1933,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var root = document.documentElement;
   var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   var mqDark = window.matchMedia('(prefers-color-scheme: dark)');
+  var mqSmall = window.matchMedia('(max-width: 30rem)');
   var TAU = Math.PI * 2;
 
   var sim = CrabSim(), K = sim.K, S = null;
@@ -1959,7 +2024,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   function measure() {
     var cw = stage.clientWidth, h = stage.clientHeight, widthChanged;
     if (!cw || !h) return;
-    big = document.body.classList.contains('big');
+    big = document.body.classList.contains('big') || mqSmall.matches;   // small screens always get the big field's dunes
     CS = big ? clamp(Math.min(h / 360, cw / 640), 0.8, 1.9) : clamp(Math.min(h / 470, cw / 860), 0.65, 1.45);
     var w = Math.max(cw, Math.round((big ? 1150 : 860) * CS));   // the big field is wider than the screen: it scrolls
     widthChanged = w !== W;
@@ -2033,7 +2098,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
   var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
     '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
-    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale' };
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -2191,6 +2256,12 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         near(a.x, 150).forEach(function (n) { if (n.role === 'scout' || n.role === 'drill') { say(n, '🚩💔🌊', 1.8); play(n, ['slump', 'shrug'], 1.6); } });
         if (!buryToast) { buryToast = true; toast('Low tide', 'The sand is shifting. Flags nobody is working can get buried.'); }
         break;
+      case 'decor':
+        var ds = decorSlot(S.decor.length - 1);
+        spark(ds.x, ds.y - 8 * CS, 12, pal.light); poof(ds.x, ds.y, 6, 0.5);
+        if (a) { say(a, '🐚✨🏠', 2); play(a, ['flex', 'jazz', 'clap'], 1.8); near(S.pos.DEN, 90).forEach(function (n) { if (n !== a) play(n, ['clap', 'sparkleEyes'], 1.4); }); }
+        toast('The crabs made a ' + DECOR_NAMES[e.b] + ' for the den', 'The den has ' + S.decor.length + ' of ' + sim.decorMax() + ' decorations. Every one makes mornings brighter and dances more restful.');
+        break;
       case 'orderStart':
         cargo.phase = 'in'; if (cargo.x < 0) cargo.x = W + 160;
         toast('A cargo ship wants ' + a.need + ' ingots', 'Send them up within ' + fmtTime(a.until - S.t) + ' for a ' + Math.round(a.premium * 100) + '% premium on each, and a bonus for the lot.');
@@ -2235,7 +2306,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         if (e.b) toast('The octopus got away', 'It took ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + '. Next time, click it before it reaches the pile.');
         buryToast = false;
         break;
-      case 'layout': var bx = S.pos[{ workshop: 'WORKSHOP', ore: 'ORE', crush: 'CRUSH', bar: 'BAR', stock: 'STOCK', collector: 'COLLECTOR' }[a]]; near(bx, 90).forEach(function (n) { play(n, ['lookAround', 'think'], 1.6); }); break;
+      case 'layout': var bx = S.pos[{ den: 'DEN', workshop: 'WORKSHOP', ore: 'ORE', crush: 'CRUSH', bar: 'BAR', stock: 'STOCK', collector: 'COLLECTOR' }[a]]; near(bx, 90).forEach(function (n) { play(n, ['lookAround', 'think'], 1.6); }); break;
       case 'charge': p = clawPos(e.b, 0); spark(p.x, p.y, 6); express(e.b, 'zap', 1.2); say(e.b, TALK.gotCharge, 1.6); play(e.b, ['spin', 'shimmy', 'sparkleEyes'], 1.4); play(a, ['salute', 'wave'], 1); break;
       case 'ebotBreak': p = clawPos(a, 0); spark(p.x, p.y, 10, pal.warn); express(a, 'shock', 1.6); say(a, TALK.ebotBreak, 2); play(a, 'dizzy', 2.4); break;
       case 'refill': express(a, 'phew', 1); play(a, ['sigh', 'robot'], 1.2); break;
@@ -2676,6 +2747,91 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.beginPath(); ctx.arc(19.8, -34.2, 1.8, 0, TAU); ctx.stroke();
     ctx.restore();
   }
+  // ----- the den, and the decorations the crabs make for it -----
+  var DECOR_NAMES = { shellGarland: 'shell garland', seaGlass: 'sea-glass mosaic', cairn: 'pebble cairn', kelpWreath: 'kelp wreath',
+    coral: 'coral sculpture', sandCastle: 'sand castle', noduleTotem: 'nodule totem', trophy: 'rank trophy', pearlLamp: 'pearl lamp',
+    inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp' };
+  function decorSlot(i) {                // decorations ring the den on the sand, nearest first
+    var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), spots = [[-24, 0], [24, 0], [-36, 4], [36, 4], [-30, -8], [30, -8], [-48, -2], [48, -2], [-58, 4], [58, 4], [-44, -10], [44, -10], [-68, -2], [68, -2]];
+    var sp = spots[i % spots.length];
+    return { x: p + sp[0] * s, y: y + sp[1] * s, s: s };
+  }
+  function drawDecor(kind, x, y, s) {
+    var i;
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.lineCap = 'round';
+    switch (kind) {
+      case 'shellGarland':
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-9, -12); ctx.lineTo(-9, 0); ctx.moveTo(9, -12); ctx.lineTo(9, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-9, -11); ctx.quadraticCurveTo(0, -4, 9, -11); ctx.stroke();
+        for (i = 0; i < 4; i++) { ctx.fillStyle = ['#ffd1dc', '#fff0c8', '#d6f0ff', '#ffe0b0'][i]; ctx.beginPath(); ctx.arc(-6 + i * 4, -8 + Math.abs(i - 1.5) * -1.2, 1.8, 0, Math.PI); ctx.fill(); }
+        break;
+      case 'seaGlass':
+        for (i = 0; i < 9; i++) { ctx.fillStyle = ['#7fd6c2', '#9ac6ff', '#b6e39a', '#d7f3ff'][i % 4]; ctx.globalAlpha = 0.85; ctx.fillRect(-6 + (i % 3) * 4, -12 + Math.floor(i / 3) * 4, 3.4, 3.4); }
+        ctx.globalAlpha = 1; ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8; ctx.strokeRect(-6.5, -12.5, 12.5, 12.5);
+        break;
+      case 'cairn':
+        for (i = 0; i < 4; i++) drawNod(0, -2 - i * 3.6, 3.6 - i * 0.6, 1, i * 0.4);
+        break;
+      case 'kelpWreath':
+        ctx.strokeStyle = pal.weed; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(0, -8, 6, 0, TAU); ctx.stroke();
+        ctx.fillStyle = pal.weed2; for (i = 0; i < 6; i++) { var a = i * TAU / 6; ctx.beginPath(); ctx.ellipse(Math.cos(a) * 6, -8 + Math.sin(a) * 6, 2, 1, a, 0, TAU); ctx.fill(); }
+        ctx.fillStyle = pal.warn; ctx.beginPath(); ctx.arc(0, -2, 1.4, 0, TAU); ctx.fill();
+        break;
+      case 'coral':
+        ctx.strokeStyle = '#ff7f8f'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -10); ctx.moveTo(0, -5); ctx.lineTo(-5, -11); ctx.moveTo(0, -7); ctx.lineTo(5, -14); ctx.moveTo(-5, -11); ctx.lineTo(-7, -15); ctx.stroke();
+        break;
+      case 'sandCastle':
+        ctx.fillStyle = pal.sandLine; ctx.fillRect(-7, -8, 14, 8); ctx.fillRect(-9, -12, 4, 12); ctx.fillRect(5, -12, 4, 12); ctx.fillRect(-2, -14, 4, 6);
+        ctx.fillStyle = pal.warn; ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(0, -19); ctx.lineTo(4, -17); ctx.closePath(); ctx.fill();
+        break;
+      case 'noduleTotem':
+        for (i = 0; i < 3; i++) { drawNod(0, -3 - i * 5, 3.2, 1, 0); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-1.2, -3.6 - i * 5, 0.7, 0, TAU); ctx.arc(1.2, -3.6 - i * 5, 0.7, 0, TAU); ctx.fill(); }
+        break;
+      case 'trophy':
+        ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.moveTo(-5, -14); ctx.lineTo(5, -14); ctx.quadraticCurveTo(5, -6, 0, -6); ctx.quadraticCurveTo(-5, -6, -5, -14); ctx.fill();
+        ctx.fillRect(-1, -6, 2, 4); ctx.fillRect(-4, -2, 8, 2);
+        ctx.strokeStyle = pal.ingot; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(-6, -11, 2, Math.PI * 0.5, Math.PI * 1.5); ctx.arc(6, -11, 2, Math.PI * 1.5, Math.PI * 0.5); ctx.stroke();
+        break;
+      case 'pearlLamp':
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -14); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.35 + 0.2 * Math.sin(T * 2)) + ')'; ctx.beginPath(); ctx.arc(0, -16, 6, 0, TAU); ctx.fill();
+        ctx.fillStyle = '#f4f0ff'; ctx.beginPath(); ctx.arc(0, -16, 2.8, 0, TAU); ctx.fill();
+        break;
+      case 'inkPainting':
+        ctx.fillStyle = pal.paper; ctx.fillRect(-7, -16, 14, 12); ctx.strokeStyle = pal.mechDark; ctx.lineWidth = 1.2; ctx.strokeRect(-7, -16, 14, 12);
+        ctx.strokeStyle = '#3b1f5c'; ctx.lineWidth = 1.4; ctx.beginPath(); for (i = 0; i <= 12; i++) { var th = i * 0.6; ctx.lineTo(Math.cos(th) * i * 0.4, -10 + Math.sin(th) * i * 0.4); } ctx.stroke();
+        break;
+      case 'driftwood':
+        ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.quadraticCurveTo(-2, -9, 4, -14); ctx.moveTo(-1, -6); ctx.lineTo(6, -8); ctx.moveTo(1, -10); ctx.lineTo(-4, -15); ctx.stroke();
+        break;
+      case 'shipBottle':
+        ctx.fillStyle = 'rgba(160,220,255,.45)'; ctx.strokeStyle = pal.foam; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.ellipse(0, -6, 8, 4.5, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.fillRect(7, -7.5, 4, 3);
+        ctx.fillStyle = pal.crabDark; ctx.fillRect(-4, -6, 7, 2); ctx.fillStyle = pal.metal; ctx.fillRect(-2, -9, 1, 3);
+        break;
+      case 'lavaLamp':
+        ctx.fillStyle = pal.metalDark; ctx.fillRect(-3, -2, 6, 2); ctx.fillRect(-2, -18, 4, 2);
+        ctx.fillStyle = 'rgba(255,150,60,.35)'; ctx.fillRect(-3, -16, 6, 14);
+        ctx.fillStyle = pal.lava; ctx.beginPath(); ctx.ellipse(0, -9 + Math.sin(T * 1.3) * 4, 2, 2.6, 0, 0, TAU); ctx.fill();
+        break;
+    }
+    ctx.restore();
+  }
+  function drawDen() {                   // a round crab house with a door, a flag, and whatever the crabs have made for it
+    var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), i, d;
+    for (i = 0; i < S.decor.length; i++) { d = decorSlot(i); if (d.y < y - 20 * s) drawDecor(S.decor[i].kind, d.x, d.y, d.s); }   // the ones behind first
+    ctx.save(); ctx.translate(p, y); ctx.scale(s, s);
+    ctx.fillStyle = pal.crab; ctx.beginPath(); ctx.ellipse(0, -10, 18, 14, 0, Math.PI, TAU); ctx.lineTo(18, 0); ctx.lineTo(-18, 0); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.crabDark; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.beginPath(); ctx.ellipse(-6, -16, 7, 3, -0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = pal.crabDark; ctx.beginPath(); ctx.ellipse(0, 0, 6, 8, 0, Math.PI, TAU); ctx.fill();   // the door
+    ctx.fillStyle = pal.light; ctx.globalAlpha = 0.6 + 0.3 * Math.sin(T * 1.5); ctx.beginPath(); ctx.arc(-10, -9, 2.4, 0, TAU); ctx.arc(10, -9, 2.4, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;   // lit windows
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, -34); ctx.stroke();
+    ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.moveTo(0, -34); ctx.lineTo(8, -31 + Math.sin(T * 3)); ctx.lineTo(0, -28); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    for (i = 0; i < S.decor.length; i++) { d = decorSlot(i); if (d.y >= y - 20 * s) drawDecor(S.decor[i].kind, d.x, d.y, d.s); }
+  }
   function drawOrePile() {
     var n = Math.max(0, S.ore - incoming('ore')), i, s, sc = scaleAt(0.8);
     for (i = 0; i < n; i++) { s = oreSlot(i); drawNod(s.x, s.y, (3.6 + ((i * 37) % 7) / 10) * sc, 1, ((i * 53) % 9) / 10 - 0.4); }
@@ -2811,8 +2967,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       ctx.restore();
     }
   }
-  var BLD_NAMES = { workshop: 'Workshop', ore: 'Ore pile', crush: 'Crushing yard', bar: 'Bar stack', stock: 'Stockpile', collector: 'Collector' };
-  var BLD_SHORT = { workshop: 'Workshop', ore: 'Ore', crush: 'Crusher', bar: 'Bars', stock: 'Stock', collector: 'Riser' };
+  var BLD_NAMES = { den: 'Den', workshop: 'Workshop', ore: 'Ore pile', crush: 'Crushing yard', bar: 'Bar stack', stock: 'Stockpile', collector: 'Collector' };
+  var BLD_SHORT = { den: 'Den', workshop: 'Workshop', ore: 'Ore', crush: 'Crusher', bar: 'Bars', stock: 'Stock', collector: 'Riser' };
   var arrange = false, pick = null;
 
   // ----- sea life: shoals of fish, jellyfish, and the ship at the top of the riser -----
@@ -3585,6 +3741,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     layers[2].push({ y: groundY(X(S.pos.COLLECTOR), 0.7), kind: 3, f: drawCollector });
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
     layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
+    layers[2].push({ y: groundY(X(S.pos.DEN), 0.82), kind: 3, f: drawDen });
     for (k = 0; k < 3; k++) {
       drawPaper(dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); });
       drawRipples(k);
@@ -3642,7 +3799,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
     shift: $('h-shift'), shiftLeft: $('h-shift-left'), flow: $('h-flow'), flowNote: $('h-flow-note'), oc: $('oc-btn'), ocLabel: $('oc-label'), ocBar: $('oc-bar'),
     order: $('h-order'), orderN: $('h-order-n'), orderT: $('h-order-t'), orderBar: $('h-order-bar'),
-    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), panRange: $('pan-range'), tech: $('techs'), arrangeBtn: $('arrange-btn'), arrangeNote: $('arrange-note'), postBtn: $('post-btn')
+    bigBtn: $('big-btn'), shiftNote: $('shift-note'), gaps: $('shift-gaps'), panRange: $('pan-range'), tech: $('techs'), arrangeBtn: $('arrange-btn'), arrangeNote: $('arrange-note'), postBtn: $('post-btn'), decor: $('decor-note')
   };
   var TECH_INFO = {
     sonar: { name: 'Sonar lab', note: 'Unlocks scout upgrades.' },
@@ -3741,6 +3898,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     });
     ui.arrangeBtn.setAttribute('aria-pressed', String(arrange));
     ui.arrangeNote.textContent = arrange ? (pick === 'post' ? 'Now tap the front dune where the refuel post should go.' : pick ? 'Now tap the plot to move the ' + BLD_NAMES[pick].toLowerCase() + ' to.' : 'Tap a building, or the refuel post, to pick it up.') : 'The line\'s buildings stand on plots along the front dune. Shorter walks between them mean more metal.';
+    ui.decor.innerHTML = '<b>Den decorations: ' + S.decor.length + ' of ' + sim.decorMax() + '</b>' + (S.decor.length ? ' · ' + S.decor.map(function (d) { return DECOR_NAMES[d.kind]; }).join(', ') : '') +
+      '<br>Morning bonus ' + Math.round((K.MORNING_BONUS - 1 + S.decor.length * K.DECOR_MORNING) * 100) + '% for ' + (K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME) + ' s; dancing recharges ' + Math.round(S.decor.length * K.DECOR_DANCE * 100) + '% faster. Idle crabs make more, up to the den\'s room.';
     ui.postBtn.textContent = S.post.auto ? 'Bots move it' : 'Pinned';
     ui.postBtn.setAttribute('aria-pressed', String(S.post.auto));
     for (i = 0; i < cards.length; i++) {
@@ -3877,6 +4036,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       '<tr><th scope="row">Washed up / buried</th><td class="n">' + S.stat.washed + ' nodules / ' + S.stat.buried + ' flags</td></tr>' +
       '<tr><th scope="row">Octopus</th><td class="n">' + S.stat.octopi + ' visits, ' + S.stat.stolen + ' nodules stolen, ' + S.stat.shooed + ' shooed' + (S.octo ? ' (one is here now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Weather</th><td class="n">' + S.stat.storms + ' storms, ' + S.stat.surges + ' lava surges' + (S.storm ? ' (storm now)' : S.lavaSurge ? ' (surge now)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Den</th><td class="n">' + S.decor.length + ' of ' + sim.decorMax() + ' decorations</td></tr>' +
       '<tr><th scope="row">Ship orders</th><td class="n">' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' filled, ' + money(S.stat.orderCredits) + ' in premiums and bonuses, reputation ' + '★'.repeat(S.rep) + '☆'.repeat(K.REP_MAX - S.rep) + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
       '</tbody></table>';
@@ -4090,6 +4250,9 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     requestAnimationFrame(function () { resizeQueued = false; measure(); draw(); });
   });
   document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
+  if (window.ResizeObserver) {          // the stage changes size without the window doing so: the sheet folding away, say
+    new ResizeObserver(function () { if (stage.clientHeight !== H || stage.clientWidth > W) { measure(); draw(); } }).observe(stage);
+  }
   onChange(mqDark, function () { readPalette(); draw(); });
   if (window.MutationObserver) {
     new MutationObserver(function () { readPalette(); draw(); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });

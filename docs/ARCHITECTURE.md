@@ -518,7 +518,11 @@ and scrolling as it goes.
   - Default (`body.big`): the stage fills the screen and the panel floats bottom-left.
   - Side panel: a grid of stage plus a 23rem column.
   - At or below `30rem` (phones, iPhone SE): a one-row, sideways-scrolling top bar, and a
-    full-width bottom sheet with the crew list first and 34px+ tap targets.
+    full-width bottom sheet (at most 46% of the screen) with the crew list first. The crew
+    is a two-column grid with short names (`SHORT` in Script 2), so all eight kinds fit
+    without scrolling; tap targets are about 26–28px. On an iPhone SE in Safari (about
+    375×553 visible) the field gets roughly 250px.
+  - Buttons are compact everywhere: speed and hire buttons about 1.7rem high, tabs 2.15rem.
 - **Reduced motion:** decorative particles, snow and rays are cut. The game itself still
   runs.
 - **Print:** the game and overlays are hidden, and the paper prints in black on white.

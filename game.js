@@ -166,19 +166,50 @@
   //   things: 🔋 charge  🦵 leg  ⛏️ drill bit  🪨 nodule  🧱 bar  🪙 ingot  🚩 flag  🔥 forge  🌋 vent  🦀 you, me
   //   verbs:  ❓ I need  ➡️ bringing it  👍 on my way  ✅ got it, done  💔 broke  ⛔ full, can't  ❗ found one  ❤️ thanks
   // So "🔋❓" is "I need charge", and an energy bot answers "🔋➡️🦀", "bringing you charge".
+  // Crab talk: each situation has a few ways of saying it, and say() picks one, so the crew does not
+  // repeat itself. Every emoji used here needs a word in WORDS for devices that cannot draw emoji.
   var TALK = {
-    needCharge: '🔋❓', bringCharge: '🔋➡️🦀', gotCharge: '🔋✅❤️', ebotBreak: '🔋💔😵',
-    bitBreak: '⛏️💔😭', needBit: '⛏️❓', onBit: '⛏️👍', bringBit: '⛏️➡️🦀', fixedBit: '⛏️✅❤️',
-    legOff: '🦵💔😭', needLeg: '🦵❓', onLeg: '🦵👍', bringLeg: '🦵➡️🦀', mended: '🦵✅❤️',
-    strike: '🪨✅🎉', dry: '🪨❌😤', flag: '🚩❗', miss: '🚩❓🤷',
-    needOre: '🪨❓', oreFull: '🪨⛔', needBar: '🧱❓', barFull: '🧱⛔', needIngot: '🪙❓', stockFull: '🪙⛔', smelted: '🪙✅🎶',
-    toForgeIngot: '🪙➡️🔥', toForgeBar: '🧱➡️🔥', needHeat: '🔥❓',
-    wake: '☀️👋', ride: '🌋⬆️😆', land: '🦀✅', oc: '⚡💪', rave: '🎉🦀🎶'
+    needCharge: ['🔋❓', '🔋😩❓'], bringCharge: ['🔋➡️🦀', '⚡🏃🦀'], gotCharge: ['🔋✅❤️', '⚡😊👍'], ebotBreak: ['🔋💔😵', '🔧💥😵'],
+    bitBreak: ['⛏️💔😭', '⛏️💥😫'], needBit: ['⛏️❓', '⛏️💔❓'], onBit: ['⛏️👍', '🔧🏃'], bringBit: ['⛏️➡️🦀', '⛏️🏃💨'], fixedBit: ['⛏️✅❤️', '⛏️✨😊'],
+    legOff: ['🦵💔😭', '🦵🙈😱'], needLeg: ['🦵❓', '🦵😩❓'], onLeg: ['🦵👍', '🔧🏃'], bringLeg: ['🦵➡️🦀', '🦵🏃💨'], mended: ['🦵✅❤️', '🦵✨💃'],
+    strike: ['🪨✅🎉', '🪨🪨😆'], dry: ['🪨❌😤', '🕳️❌😒'], flag: ['🚩❗', '🚩👀✨'], miss: ['🚩❓🤷', '🚩🙈❓'],
+    needOre: ['🪨❓', '🪨😴❓'], oreFull: ['🪨⛔', '🪨📦😅'], needBar: ['🧱❓', '🧱👀❓'], barFull: ['🧱⛔', '🧱🧱😅'],
+    needIngot: ['🪙❓', '🪙👀❓'], stockFull: ['🪙⛔', '🪙📦😅'], smelted: ['🪙✅🎶', '🔥🪙😎'],
+    toForgeIngot: ['🪙➡️🔥', '🪙🏃🔥'], toForgeBar: ['🧱➡️🔥', '🧱🏃🔥'], needHeat: ['🔥❓', '🔥🥶❓'],
+    wake: ['☀️👋', '🥱☀️'], ride: ['🌋⬆️😆', '💨⬆️🤩'], land: ['🦀✅', '🦀👌'], oc: ['⚡💪', '⚡🏃💨'], rave: ['🎉🦀🎶', '🕺🦀💃'],
+    dance: ['🎶🦀🦀🎶', '💃🦀🕺', '🦀❤️🦀'], morning: ['☀️💪', '☀️😄👋'],
+    postGrab: ['🔌➡️', '🔌🏃'], postGrabTide: ['🔌🌊👍', '🔌🌊💪'], postDrift: ['🔌🌊❗', '🔌🌊😮'],
+    pearl: ['🦪❗🎉', '🦪✨🤩'], flagsWashed: ['🚩💔🌊', '🌊🚩😭'], stack: ['🪨👍', '🪨📦👍'], stackBroken: ['⛏️💔🪨👍', '⛏️💔🪨💪'],
+    spareBit: ['🛒⛏️👍', '🛒⛏️😊'], spareLeg: ['🛒🦵👍', '🛒🦵😊'], turtlePick: ['🐢😆', '🐢⬆️🤩'], turtleDrop: ['🐢❤️', '🐢👋😊'],
+    decor: ['🐚✨🏠', '🏠🎀😍'], orderStart: ['🚢🪙❗', '🚢👀🪙'], orderDone: ['🚢✅🎉', '🚢🪙🥳'],
+    rivalArrive: ['🦞❗😨', '🦞👀😬'], rivalWin: ['🦞🚢😤', '🦞🏆😒'], storm: ['🌩️😨', '🌊🌩️😱'], lava: ['🌋🔥🎉', '🌋🔥😎'],
+    octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨']
   };
+  var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
+    needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
+    bitBreak: 'A drill bit snapping', needBit: 'Asking for a new bit', onBit: 'On the way with a bit', bringBit: 'Carrying a bit over', fixedBit: 'A bit fitted',
+    legOff: 'A leg coming off', needLeg: 'Asking for a new leg', onLeg: 'On the way with a leg', bringLeg: 'Carrying a leg over', mended: 'A leg mended',
+    strike: 'Striking metal', dry: 'A dry hole', flag: 'Flagging a deposit', miss: 'A scan that found nothing',
+    needOre: 'Waiting for nodules', oreFull: 'The ore pile is full', needBar: 'Waiting for bars', barFull: 'The bar stack is full',
+    needIngot: 'Waiting for ingots', stockFull: 'The stockpile is full', smelted: 'An ingot smelted',
+    toForgeIngot: 'An ingot to the forge', toForgeBar: 'A bar to the forge', needHeat: 'The engine is cold',
+    wake: 'Waking up', ride: 'Riding the vent', land: 'Landing from the vent', oc: 'Overclocked', rave: 'The crab rave',
+    dance: 'Dancing with a friend', morning: 'Morning bonus', postGrab: 'Moving the refuel post', postGrabTide: 'Fetching the post back from the tide', postDrift: 'The tide moving the post',
+    pearl: 'Finding a pearl', flagsWashed: 'The tide burying flags', stack: 'Stacking nodules', stackBroken: 'Hauling with a broken bit',
+    spareBit: "Fitting the trader's spare bit", spareLeg: "Fitting the trader's spare leg", turtlePick: 'Climbing on the turtle', turtleDrop: 'Thanking the turtle',
+    decor: 'Decorating the den', orderStart: 'A ship order', orderDone: 'An order filled', rivalArrive: 'The rival crew turning up', rivalWin: 'The rival filling an order',
+    storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore',
+    veteran: 'Earning a star', whale: 'Waving at the whale'
+  };
+  var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
+  Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
   var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
   var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
     '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
-    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star', '🦞': 'rival' };
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star', '🦞': 'rival',
+    '😩': 'ugh', '😊': ':)', '🔧': 'fix', '💥': 'bang', '😫': 'ugh', '🙈': 'oops', '😱': 'eek!', '🕳': 'hole', '😒': 'meh', '👀': 'look',
+    '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
+    '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -197,7 +228,18 @@
     for (var i = 0; i < parts.length; i++) out.push(WORDS[parts[i]] || parts[i]);
     return out.join(' ').replace(/ \?/g, '?').replace(/ !/g, '!');
   }
-  function say(c, text, dur) { if (c && text) c.say = { text: spoken(text), until: T + (dur || 1.8) }; }
+  // How a bubble moves, from what it says: happy ones bounce glyph by glyph, cross ones shake, questions
+  // tilt, love pulses, alarms jump, and sad ones droop. Every bubble pops in.
+  var MOODS = [['sad', /😭|😱|😵|😫|😨|💔|😬/], ['angry', /😤|⛔|❌|😒|👊/], ['love', /❤|😍|😊/],
+    ['joy', /🎉|🎶|😆|🤩|🥳|💃|🕺|😎|✨|💪|😄/], ['alarm', /❗|😮|💥/], ['ask', /❓|🤷|👀/]];
+  function moodOf(text) { for (var i = 0; i < MOODS.length; i++) if (MOODS[i][1].test(text)) return MOODS[i][0]; return 'pop'; }
+  function say(c, text, dur) {
+    if (!c || !text) return;
+    var key = TALK_KEY.get(text) || 'other';
+    if (Array.isArray(text)) text = text[Math.floor(Math.random() * text.length)];
+    c.say = { text: spoken(text), until: T + (dur || 1.8), start: T, mood: moodOf(text) };
+    talkCount[key] = (talkCount[key] || 0) + 1;
+  }
   function needs(c) {                    // what a crab asks for when it is stuck: the helpers answer
     if (c.state === 'sleep' || c.alt > 0) return null;
     if (c.role !== 'energy' && c.bat < 0.3 && !c.claimedBy) return TALK.needCharge;
@@ -314,13 +356,13 @@
       case 'shiftMode': toast(SHIFT_INFO[a].name, SHIFT_INFO[a].note); S.crabs.forEach(function (n) { play(n, 'salute', 1.2); }); break;
       case 'ocEnd': S.crabs.forEach(function (n, j2) { if (j2 % 2) play(n, 'sigh', 1.2); }); break;
       case 'flowLost': near(S.pos.STOCK, 90).forEach(function (n) { play(n, 'slump', 1.4); }); break;
-      case 'dance': a.vpd = e.b.x >= a.x ? 1 : -1; e.b.vpd = -a.vpd; if (Math.random() < 0.5) say(a, '🎶🦀🦀🎶', 1.6); break;
-      case 'morning': say(a, '☀️💪', 1.8); play(a, ['salute', 'flex', 'jazz', 'yawnStretch'], 1.8); break;
+      case 'dance': a.vpd = e.b.x >= a.x ? 1 : -1; e.b.vpd = -a.vpd; if (Math.random() < 0.5) say(a, TALK.dance, 1.6); break;
+      case 'morning': say(a, TALK.morning, 1.8); play(a, ['salute', 'flex', 'jazz', 'yawnStretch'], 1.8); break;
       case 'dawn': if (started) toast('Morning of day ' + a, 'Crabs that slept or danced in the night start the day fresh: 15% faster for a minute.'); break;
-      case 'postGrab': say(a, Math.abs(S.post.x - S.post.home.x) > 40 ? '🔌🌊👍' : '🔌➡️', 1.6); play(a, ['flex', 'determined'], 1.2); break;
+      case 'postGrab': say(a, Math.abs(S.post.x - S.post.home.x) > 40 ? TALK.postGrabTide : TALK.postGrab, 1.6); play(a, ['flex', 'determined'], 1.2); break;
       case 'postDrift':
         if (!driftToast) { driftToast = true; toast('The tide is pushing the refuel post', 'The current slides it along the sand. An energy bot will drag it back where it belongs.'); }
-        near(S.post.x, 90).forEach(function (n) { if (n.role === 'energy') { say(n, '🔌🌊❗', 1.6); play(n, 'shock', 1); } });
+        near(S.post.x, 90).forEach(function (n) { if (n.role === 'energy') { say(n, TALK.postDrift, 1.6); play(n, 'shock', 1); } });
         break;
       case 'postMoved': if (a) play(a, ['wave', 'flex'], 1.2); near(S.post.x, 80).forEach(function (n) { if (n.role === 'energy') play(n, 'wave', 1); }); break;
       case 'tech': S.crabs.forEach(function (n) { if (K.TECH[a].roles.indexOf(n.role) >= 0) play(n, ['jazz', 'sparkleEyes', 'cheer'], 2); }); break;
@@ -328,7 +370,7 @@
       case 'pearl':
         p = clawPos(a, 1); spark(p.x, p.y, 18, pal.light); spark(p.x, p.y, 10, pal.ingot);
         fly('pearl', p, chuteMouth(), 0.9, { lift: true, value: e.b, pearl: true });
-        say(a, '🦪❗🎉', 2.2); play(a, ['spin', 'jazz', 'hopJoy'], 2);
+        say(a, TALK.pearl, 2.2); play(a, ['spin', 'jazz', 'hopJoy'], 2);
         near(a.x, 120).forEach(function (n) { if (n !== a) play(n, ['cheer', 'clap', 'sparkleEyes'], 1.8); });
         toast('Pearl jackpot! +$' + e.b, 'A drill crab found a pearl in a rich deposit. Crab profit!');
         break;
@@ -338,11 +380,11 @@
         break;
       case 'bury':
         p = X(a.x); poof(p, groundY(p, a.d) - 6, 14, 0.8); surgeToast = false;
-        near(a.x, 150).forEach(function (n) { if (n.role === 'scout' || n.role === 'drill') { say(n, '🚩💔🌊', 1.8); play(n, ['slump', 'shrug'], 1.6); } });
+        near(a.x, 150).forEach(function (n) { if (n.role === 'scout' || n.role === 'drill') { say(n, TALK.flagsWashed, 1.8); play(n, ['slump', 'shrug'], 1.6); } });
         if (!buryToast) { buryToast = true; toast('Low tide', 'The sand is shifting. Flags nobody is working can get buried.'); }
         break;
       case 'backup':
-        say(a, a.role === 'drill' && !a.bitOk ? '⛏️💔🪨👍' : '🪨👍', 1.6);
+        say(a, a.role === 'drill' && !a.bitOk ? TALK.stackBroken : TALK.stack, 1.6);
         break;
       case 'traderArrive': toast('A hermit-crab trader is coming', 'It keeps shop by the den for a minute. Its goods are in the Build tab.'); break;
       case 'traderOpen':
@@ -354,36 +396,36 @@
         toast('Swapped: ' + TRADE_INFO[a][0], TRADE_INFO[a][1]); traderBubble = T + 2;
         if (a === 'map') S.flags.forEach(function (f) { if (f.map && !f.vborn) { f.vborn = T; var fx = X(f.x); rings.push({ x: fx, y: groundY(fx, f.d), t: 0, c: pal.ingot }); } });
         break;
-      case 'spareUsed': say(a, a.role === 'repair' ? '🛒⛏️👍' : '🛒🦵👍', 1.6); break;
+      case 'spareUsed': say(a, a.role === 'repair' ? TALK.spareBit : TALK.spareLeg, 1.6); break;
       case 'turtleArrive': if (!turtleToast) { turtleToast = true; toast('A sea turtle is passing', 'It gives a crab with a long way to go a lift across the dunes.'); } break;
-      case 'turtlePick': say(a, '🐢😆', 2); a.vhop = 1; break;
-      case 'turtleDrop': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.6); say(a, '🐢❤️', 1.6); play(a, ['bow', 'wave', 'hopJoy'], 1.4); break;
+      case 'turtlePick': say(a, TALK.turtlePick, 2); a.vhop = 1; break;
+      case 'turtleDrop': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.6); say(a, TALK.turtleDrop, 1.6); play(a, ['bow', 'wave', 'hopJoy'], 1.4); break;
       case 'decor':
         var ds = decorSlot(S.decor.length - 1);
         spark(ds.x, ds.y - 8 * CS, 12, pal.light); poof(ds.x, ds.y, 6, 0.5);
-        if (a) { say(a, '🐚✨🏠', 2); play(a, ['flex', 'jazz', 'clap'], 1.8); near(S.pos.DEN, 90).forEach(function (n) { if (n !== a) play(n, ['clap', 'sparkleEyes'], 1.4); }); }
+        if (a) { say(a, TALK.decor, 2); play(a, ['flex', 'jazz', 'clap'], 1.8); near(S.pos.DEN, 90).forEach(function (n) { if (n !== a) play(n, ['clap', 'sparkleEyes'], 1.4); }); }
         toast('The crabs made a ' + DECOR_NAMES[e.b] + ' for the den', 'The den has ' + S.decor.length + ' of ' + sim.decorMax() + ' decorations. Every one makes mornings brighter and dances more restful.');
         break;
       case 'orderStart':
         cargo.phase = 'in'; if (cargo.x < 0) cargo.x = W + 160;
         toast('A cargo ship wants ' + a.need + ' ingots', 'Send them up within ' + fmtTime(a.until - S.t) + ' for a ' + Math.round(a.premium * 100) + '% premium on each, and a bonus for the lot.' + (a.rivalRate ? ' The rival crew 🦞 is racing you for it.' : ''));
-        S.crabs.forEach(function (n) { if (n.role === 'smelt') { say(n, '🚢🪙❗', 1.8); play(n, ['salute', 'jazz'], 1.6); } });
+        S.crabs.forEach(function (n) { if (n.role === 'smelt') { say(n, TALK.orderStart, 1.8); play(n, ['salute', 'jazz'], 1.6); } });
         break;
       case 'orderDone':
         cargo.phase = 'out';
         toast('Order filled! +$' + e.b, (a.rivalRate ? 'You beat the rival crew 🦞 to it. ' : '') + 'The ship pays a bonus, and your reputation rises to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Crab profit!');
         floater('Order filled! +$' + e.b, collectorBase().x, collectorBase().y - 90 * CS, true);
-        S.crabs.forEach(function (n, j2) { if (n.state !== 'sleep') { play(n, ['cheer', 'jazz', 'disco', 'clap'], 2); if (j2 % 3 === 0) say(n, '🚢✅🎉', 1.8); } });
+        S.crabs.forEach(function (n, j2) { if (n.state !== 'sleep') { play(n, ['cheer', 'jazz', 'disco', 'clap'], 2); if (j2 % 3 === 0) say(n, TALK.orderDone, 1.8); } });
         break;
       case 'rivalArrive':
         toast('A rival crew 🦞 has set up behind the ridge', 'Lobsters with their own line to the surface. From now on they race you for every ship order. If they fill it first, the ship sails with theirs and your reputation drops a star. Every order you win makes them try harder.');
-        S.crabs.forEach(function (n, j2) { if (j2 % 3 === 0) { say(n, '🦞❗😨', 2); play(n, ['shock', 'stomp'], 1.6); } });
+        S.crabs.forEach(function (n, j2) { if (j2 % 3 === 0) { say(n, TALK.rivalArrive, 2); play(n, ['shock', 'stomp'], 1.6); } });
         break;
       case 'rivalSell': rivalLifts.push({ t: 0 }); break;
       case 'orderLost':
         cargo.phase = 'out';
         toast('The rival crew 🦞 filled the order first', 'You sent ' + a.got + ' of ' + a.need + '. The ship sails with their metal, and your reputation drops to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Overclock and a low reserve help win the next race.');
-        S.crabs.forEach(function (n, j2) { if (n.role === 'smelt' || j2 % 4 === 0) { play(n, ['stomp', 'grumble', 'slump'], 1.8); if (j2 % 4 === 0) say(n, '🦞🚢😤', 1.8); } });
+        S.crabs.forEach(function (n, j2) { if (n.role === 'smelt' || j2 % 4 === 0) { play(n, ['stomp', 'grumble', 'slump'], 1.8); if (j2 % 4 === 0) say(n, TALK.rivalWin, 1.8); } });
         break;
       case 'orderFail':
         cargo.phase = 'out';
@@ -393,26 +435,26 @@
       case 'stormWarn': toast('A storm is coming', 'In twenty seconds the sea gets rough: crabs slow down, the riser slows, and flags can be buried, but the waves stir up free nodules.'); break;
       case 'stormStart':
         toast('Storm!', 'Rough water for forty seconds. Haulers, grab the nodules the waves turn up.');
-        S.crabs.forEach(function (n, j2) { if (n.state === 'sleep') return; if (j2 % 3 === 0) say(n, '🌩️😨', 1.8); play(n, ['shiver', 'shock', 'hug'], 2); });
+        S.crabs.forEach(function (n, j2) { if (n.state === 'sleep') return; if (j2 % 3 === 0) say(n, TALK.storm, 1.8); play(n, ['shiver', 'shock', 'hug'], 2); });
         break;
       case 'stormEnd': toast('The storm has passed', 'Calm water again.'); S.crabs.forEach(function (n) { if (n.state !== 'sleep') play(n, ['cheer', 'sigh', 'jazz'], 1.6); }); break;
       case 'lavaStart':
         toast('Lava surge!', 'For thirty seconds smelting and forging run twice as fast and the Stirling engine makes double charge. A good time to overclock.');
-        S.crabs.forEach(function (n) { if (n.role === 'smelt' || n.role === 'repair' || n.role === 'mech' || n.role === 'energy') { say(n, '🌋🔥🎉', 1.8); play(n, ['jazz', 'disco', 'pump'], 2); } });
+        S.crabs.forEach(function (n) { if (n.role === 'smelt' || n.role === 'repair' || n.role === 'mech' || n.role === 'energy') { say(n, TALK.lava, 1.8); play(n, ['jazz', 'disco', 'pump'], 2); } });
         break;
       case 'lavaEnd': S.crabs.forEach(function (n) { if (n.role === 'smelt') play(n, 'sigh', 1.2); }); break;
       case 'octoArrive':
         toast('An octopus is sneaking in!', 'It is after your ore. Click it or press Shoo (S) to chase it away, or keep a crab by the ore pile.');
         break;
       case 'octoScared':
-        ink(a); say(e.b, '🐙⛔', 1.8); play(e.b, ['stomp', 'grumble', 'flex'], 1.8);
+        ink(a); say(e.b, TALK.octoScared, 1.8); play(e.b, ['stomp', 'grumble', 'flex'], 1.8);
         break;
       case 'octoShoo':
-        ink(a); near(a.x, 160).forEach(function (n) { say(n, '🐙🏃', 1.4); play(n, ['cheer', 'pump', 'jazz'], 1.6); });
+        ink(a); near(a.x, 160).forEach(function (n) { say(n, TALK.octoShoo, 1.4); play(n, ['cheer', 'pump', 'jazz'], 1.6); });
         toast('Shoo!', a && e.b ? 'The octopus dropped the ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + ' it took.' : 'The octopus fled empty-handed.');
         break;
       case 'octoSteal':
-        if (e.b) near(a.x, 120).forEach(function (n) { say(n, '🪨💔🐙', 1.8); play(n, ['shock', 'stomp'], 1.6); });
+        if (e.b) near(a.x, 120).forEach(function (n) { say(n, TALK.octoSteal, 1.8); play(n, ['shock', 'stomp'], 1.6); });
         break;
       case 'octoGone':
         if (e.b) toast('The octopus got away', 'It took ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + '. Next time, shoo it before it reaches the pile.');
@@ -430,7 +472,7 @@
         break;
       case 'veteran':                                    // a crab earns a star at its own job
         p = clawPos(a, 1); spark(p.x, p.y - 6 * CS, 12, pal.ingot); express(a, 'proud', 2); a.vhop = 0.8;
-        say(a, '⭐🦀💪', 2); play(a, ['flex', 'pump', 'sparkleEyes'], 1.8);
+        say(a, TALK.veteran, 2); play(a, ['flex', 'pump', 'sparkleEyes'], 1.8);
         near(a.x, 60).forEach(function (n) { if (n !== a) play(n, ['clap', 'cheer'], 1.4); });
         if (!vetToast || e.b === K.VET_LEVELS.length) {    // the first star of the game, and every third star
           toast(a.name + (e.b === K.VET_LEVELS.length ? ' is a master ' : ' is a veteran ') + ROLE_NOUN[a.role] + ' ' + '★'.repeat(e.b),
@@ -477,7 +519,7 @@
     for (i = 0; i < S.crabs.length; i++) {         // view-only state hung on each crab
       c = S.crabs[i]; px = crabX(c);
       if (c.vpx === undefined) { c.vpx = px; c.vd = c.d; c.vgait = rr(0, TAU); c.vph = rr(0, TAU); c.vhop = 0; if (c.vfall === undefined) c.vfall = 0; }
-      c.vgait += (Math.abs(px - c.vpx) + Math.abs(c.d - c.vd) * F) * 0.32;
+      c.vgait += (Math.abs(px - c.vpx) + Math.abs(c.d - c.vd) * F) * GAIT / (scaleAt(c.d) * (c.role === 'energy' ? 0.86 : 1));
       c.vpx = px; c.vd2 = c.vd; c.vd = c.d;
       if (c.vhop > 0) c.vhop = Math.max(0, c.vhop - dtReal * 2.2);
       if (!c.moving && !c.working && c.state !== 'sleep') c.vidle = (c.vidle || 0) + dtReal * Math.max(speed, 0.25); else c.vidle = 0;
@@ -546,7 +588,7 @@
         c = S.crabs[i];
         if (c.vwhale !== whale.id && Math.abs(crabX(c) - whale.x) < 40 && c.state !== 'sleep' && !(c.alt > 0)) {
           c.vwhale = whale.id; c.vgaze = T + 2.5;
-          if (Math.random() < 0.5) say(c, '🐋👋', 1.8);
+          if (Math.random() < 0.5) say(c, TALK.whale, 1.8);
           play(c, ['wave', 'sparkleEyes', 'jazz'], 1.8);
         }
       }
@@ -1637,15 +1679,35 @@
     }
     return [side * 17 * s, by - 3 * s];
   }
-  function drawBubble(x, y, text, s, a, emoji) {
+  var segmenter = window.Intl && Intl.Segmenter ? new Intl.Segmenter() : null;
+  function glyphs(text) {                // emoji can be several code points; split into what the eye sees as one
+    if (segmenter) return Array.from(segmenter.segment(text), function (g) { return g.segment; });
+    return Array.from(text).reduce(function (out, ch) { if (/[\uFE0F\u200D]/.test(ch) && out.length) out[out.length - 1] += ch; else out.push(ch); return out; }, []);
+  }
+  function drawBubble(x, y, text, s, a, emoji, anim) {
     ctx.save(); ctx.globalAlpha = a;
     ctx.font = (emoji && emojiOK ? '' : '700 ') + Math.round((emoji && emojiOK ? 10 : 9) * s + 2) + 'px ' + (emoji && emojiOK ? EMOJI_FONT : cssFont);
-    var w = Math.max(ctx.measureText(text).width + 7 * s, 12 * s), h = 11 * s;
+    var w = Math.max(ctx.measureText(text).width + 7 * s, 12 * s), h = 11 * s, t = anim ? T - anim.start : 99, k = 1, rot = 0, dx = 0, dy = 0, still = mqReduce.matches, mood = anim && !still ? anim.mood : '';
+    if (anim && !still && t < 0.22) { var u = t / 0.22; k = 1 + 2.2 * Math.pow(u - 1, 3) + 1.2 * Math.pow(u - 1, 2); k = Math.max(0.2, k); }   // pop in, overshooting a little
+    if (mood === 'angry' && t < 0.8) { dx = Math.sin(T * 55) * 1.6 * s * (1 - t / 0.8); rot = Math.sin(T * 40) * 0.05; }
+    else if (mood === 'ask') rot = Math.sin(t * 5) * 0.14;
+    else if (mood === 'love') k *= 1 + 0.1 * Math.max(0, Math.sin(t * 9));
+    else if (mood === 'alarm') dy = -Math.abs(Math.sin(t * 11)) * 4 * s * Math.exp(-t * 2.5);
+    else if (mood === 'sad') { dy = Math.min(t, 0.7) * 4 * s; rot = Math.sin(T * 30) * 0.015; }
+    ctx.translate(x + dx, y + dy); ctx.rotate(rot); ctx.scale(k, k);
     ctx.fillStyle = pal.paper; ctx.strokeStyle = pal.ink; ctx.lineWidth = 0.8;
-    roundRect(x - w / 2, y - h / 2, w, h, 4 * s); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x - 3 * s, y + h / 2 - 0.5); ctx.lineTo(x - 5 * s, y + h / 2 + 3.5 * s); ctx.lineTo(x + 1 * s, y + h / 2 - 0.5); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = text === '♥' ? pal.warn : pal.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(text, x, y + 0.5);
+    roundRect(-w / 2, -h / 2, w, h, 4 * s); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-3 * s, h / 2 - 0.5); ctx.lineTo(-5 * s, h / 2 + 3.5 * s); ctx.lineTo(1 * s, h / 2 - 0.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = text === '♥' ? pal.warn : pal.ink; ctx.textBaseline = 'middle';
+    if (mood === 'joy') {                // each glyph hops in turn, a little wave across the bubble
+      var gs = glyphs(text), gx = -ctx.measureText(text).width / 2, i, gw;
+      ctx.textAlign = 'left';
+      for (i = 0; i < gs.length; i++) {
+        gw = ctx.measureText(gs[i]).width;
+        ctx.fillText(gs[i], gx, 0.5 - Math.max(0, Math.sin(t * 10 - i * 0.9)) * 2.6 * s);
+        gx += gw;
+      }
+    } else { ctx.textAlign = 'center'; ctx.fillText(text, 0, 0.5); }
     ctx.restore();
   }
   function star(x, y, r, fill, edge) {   // a small five-pointed star
@@ -1653,6 +1715,11 @@
     for (var j = 0; j < 10; j++) { var a = -Math.PI / 2 + j * Math.PI / 5, q = j % 2 ? r * 0.45 : r; ctx.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); }
     ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = edge; ctx.lineWidth = 0.6; ctx.stroke();
   }
+  // Walking: in the first half of its cycle a leg lifts and swings forward; in the second it is planted and slides
+  // back at a steady pace while the body passes over it. The foot sweeps STRIDE either side of its rest spot, and
+  // the gait advances GAIT radians a pixel (at scale 1), chosen so a planted foot slides back exactly as fast as the
+  // body moves forward: it stays put on the sand.
+  var STRIDE = 2.8, GAIT = Math.PI / (2 * STRIDE);
   function drawCrab(c) {
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
     var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1);
@@ -1709,8 +1776,13 @@
       ph = c.vgait + i * 2.094 + (side > 0 ? 0 : Math.PI);
       if (f.legs === 'tap' && i === 0 && side === c.dir) { hx = side * 5 * s; fx = side * 11.5 * s; lift = Math.abs(osc(T, 3)) * 3 * s; ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke(); continue; }
       if (f.legs === 'step') { hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s; lift = Math.max(0, Math.sin(T * 8 + i * 2 + (side > 0 ? 0 : Math.PI))) * 2.5 * s; ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke(); continue; }
-      lift = moving ? Math.max(0, Math.sin(ph)) * 3.2 * s : (f.party ? Math.max(0, Math.cos(T * 6.6) * side) * 3 * s : 0);
-      hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s + (moving ? Math.cos(ph) * 2.4 * s * c.dir : 0);
+      lift = f.party ? Math.max(0, Math.cos(T * 6.6) * side) * 3 * s : 0; w = 0;
+      if (moving) {
+        ph = ((ph % TAU) + TAU) % TAU;
+        if (ph < Math.PI) { w = -1 + (1 - Math.cos(ph)); lift = Math.sin(ph) * 3.2 * s; }   // swing: up, and forward from back to front
+        else w = 1 - 2 * (ph - Math.PI) / Math.PI;                                        // stance: planted, the body passes over it
+      }
+      hx = side * (5 + i * 2.2) * s; fx = side * (11.5 + i * 3.4) * s + w * STRIDE * s * c.dir;
       ctx.beginPath(); ctx.moveTo(hx, by + 2 * s); ctx.lineTo((hx + fx) / 2 + side * 2 * s, by - 3.5 * s - lift * 0.5); ctx.lineTo(fx, gy - lift); ctx.stroke();
     }
 
@@ -1874,7 +1946,7 @@
     ctx.restore();
 
     // what the crab is saying, or else thinking
-    if (c.say && T < c.say.until) drawBubble(px + 12 * s, by - 28 * s, c.say.text, s, clamp((c.say.until - T) / 0.3, 0, 1), true);
+    if (c.say && T < c.say.until) drawBubble(px + 12 * s, by - 28 * s, c.say.text, s, clamp((c.say.until - T) / 0.3, 0, 1), true, c.say.start !== undefined ? c.say : null);
     else if (f.glyph) {
       var gl = f.glyph, gy2 = by - 26 * s;
       if (gl === 'z') gl = ['z', 'zz', 'zzz'][Math.floor(T * 1.5 + c.vph) % 3];
@@ -2326,6 +2398,32 @@
   }
 
   // ----- the ledger: where the money comes from and where the line is slow -----
+  // The whole game in bars: the metal's journey from sand to ship, the upkeep, and every kind of crab talk by count.
+  var FUNNEL = [['scans', 'Scans of the sand'], ['finds', 'Deposits flagged'], ['holes', 'Holes drilled'], ['strikes', 'Strikes of metal'],
+    ['stacked', 'Nodules carried to the ore pile'], ['bars', 'Bars crushed'], ['ingots', 'Ingots smelted'], ['sold', 'Ingots delivered up the riser']];
+  var UPKEEP = [['charges', 'Charges given'], ['repairs', 'Drill bits fitted'], ['mends', 'Legs mended'], ['backup', 'Backup trips'],
+    ['rides', 'Rides up the vent'], ['danced', 'Dances'], ['mornings', 'Morning bonuses'], ['nightFlags', 'Flags planted at night']];
+  function barRows(rows, max) {
+    return rows.map(function (r) {
+      return '<tr><th scope="row">' + r[0] + '</th><td><div class="cap" aria-hidden="true"><i style="width:' + (max ? r[1] / max * 100 : 0).toFixed(1) + '%"></i></div></td><td class="n">' + r[1].toLocaleString('en-US') + '</td></tr>';
+    }).join('');
+  }
+  function ledgerTotals() {
+    var f = FUNNEL.map(function (x) { return [x[1], S.stat[x[0]]]; }), u = UPKEEP.map(function (x) { return [x[1], S.stat[x[0]]]; });
+    return '<h3>From sand to ship: the whole game</h3><table class="ltable bars"><tbody>' + barRows(f, Math.max.apply(null, f.map(function (x) { return x[1]; }))) + '</tbody></table>' +
+      '<h3>Keeping the line running: the whole game</h3><table class="ltable bars"><tbody>' + barRows(u, Math.max.apply(null, u.map(function (x) { return x[1]; }))) + '</tbody></table>';
+  }
+  function ledgerTalk() {
+    var keys = Object.keys(TALK).sort(function (a, b) { return (talkCount[b] || 0) - (talkCount[a] || 0) || TALK_LABEL[a].localeCompare(TALK_LABEL[b]); }),
+      total = 0, max = 0, said = 0;
+    keys.forEach(function (k) { var n = talkCount[k] || 0; total += n; max = Math.max(max, n); if (n) said++; });
+    return '<h3>Crab talk: everything said, by count</h3><p class="note">' + total.toLocaleString('en-US') + ' things said, ' + said + ' of ' + keys.length + ' kinds heard so far.</p>' +
+      '<table class="ltable bars talk"><tbody>' + keys.map(function (k) {
+        var n = talkCount[k] || 0;
+        return '<tr' + (n ? '' : ' class="unheard"') + '><th scope="row">' + TALK_LABEL[k] + '<span class="says">' + TALK[k].map(spoken).join(' · ') + '</span></th>' +
+          '<td><div class="cap" aria-hidden="true"><i style="width:' + (max ? n / max * 100 : 0).toFixed(1) + '%"></i></div></td><td class="n">' + n.toLocaleString('en-US') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
   function renderLedger() {
     var r = sim.rates(60), c = sim.capacity(), b = sim.bottleneck(), flows = sim.FLOW, maxc = 0, i, k, html, broken = 0, limping = 0, cr, avgPrice, bat = sim.avgBattery();
     for (i = 0; i < flows.length; i++) maxc = Math.max(maxc, c[flows[i]]);
@@ -2346,6 +2444,7 @@
       '<tr class="total"><td>Metal that reached the surface</td><td></td><td class="n">' + share + '%</td></tr>' +
       '</tbody></table>' +
       '<p class="note">Earned in total: ' + money(S.earned) + ' · spent on crabs and upgrades: ' + money(S.stat.spent) + ' · repairs: ' + S.stat.repairs + ' · crab time ' + fmtTime(S.t) + '</p>';
+    html += ledgerTotals() + ledgerTalk();
     html += '<h3>Metal price, last five minutes</h3><div class="spark-wrap" id="spark-wrap">' + sparkline() + '</div>';
     html += '<h3>The line: what each stage could do, ingots a minute</h3><table class="ltable"><thead><tr><th scope="col">Stage</th><th scope="col">Capacity</th><th scope="col" class="n">Doing now</th></tr></thead><tbody>';
     for (i = 0; i < flows.length; i++) {
@@ -2439,6 +2538,7 @@
   var SAVE_KEY = 'crabminer-save', saveTick = 0;
   function saveGame() {                 // the whole game goes to localStorage, so a reload carries on where it was
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(sim.save())); } catch (e) { /* storage may be unavailable or full */ }
+    try { localStorage.setItem(TALK_SAVE_KEY, JSON.stringify(talkCount)); } catch (e) { /* the talk tally is only a nicety */ }
   }
   function loadGame() {                 // true if a saved game was found and restored
     var data = null;
@@ -2447,12 +2547,14 @@
     try { if (sim.load(data) !== true) return false; } catch (e) { return false; }
     S = sim.state();
     freshView();
+    try { var tc = JSON.parse(localStorage.getItem(TALK_SAVE_KEY)) || {}; for (var k in tc) if (TALK[k] && tc[k] > 0) talkCount[k] = tc[k]; } catch (e) { /* start the tally afresh */ }
     won = S.rank >= K.RANKS.length - 1;   // a game already won does not show the win card again
     if (S.order) cargo = { x: W + 160, phase: 'in' };   // a ship that was waiting sails back in
     return true;
   }
   function newGame() {
     S = sim.reset();
+    talkCount = {};
     freshView();
     sim.drain().forEach(handle);
     renderPanel(); renderHUD();
@@ -2694,7 +2796,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

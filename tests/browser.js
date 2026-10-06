@@ -108,7 +108,11 @@ async function check(b, size) {
   for (const tab of ['build', 'tech', 'ledger', 'view', 'crew']) {
     await js(`document.getElementById('t-${tab}').click(); true`);
     expect(await js(`document.getElementById('t-${tab}').getAttribute('aria-selected') === 'true'`), 'the ' + tab + ' tab did not open');
-    if (tab === 'ledger') await shot('ledger');
+    if (tab === 'ledger') {
+      await shot('ledger');
+      expect(await js('document.querySelectorAll("#ledger .ltable.talk tr").length') === await js('Object.keys(crabminer.talk()).length'), 'the Ledger does not list every kind of crab talk');
+      expect(await js('document.querySelectorAll("#ledger .ltable.bars").length') >= 3, 'the Ledger is missing its whole-game bars');
+    }
   }
   await js('document.getElementById("help").click(); true');
   expect(await js('!document.getElementById("intro").hidden'), 'the ? button did not open the intro');

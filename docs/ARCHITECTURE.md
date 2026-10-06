@@ -449,8 +449,24 @@ returned by `face(c)`. `face` checks, in priority order:
 `ANIMS` holds the 52 animations as functions `(crab, seconds) → pose`. `DUETS` lists the
 dances used by pairs.
 
+**Walking.** Each leg's cycle is half swing (lifted, moving forward from behind its rest spot
+to in front of it) and half stance (planted, sliding back at a steady pace). The gait phase
+`vgait` advances `GAIT` radians per pixel walked at scale 1, and the stance slide covers
+`STRIDE` either side of the rest spot, with `GAIT = π / (2 · STRIDE)`, so a planted foot slides
+back exactly as fast as the body moves forward: it stays put on the sand. The three legs on a
+side are a third of a cycle apart, and the two sides half a cycle.
+
 **Crab talk.**
-- `TALK` holds the phrases, and `say(c, text)` sets `c.say`.
+- `TALK` holds 58 kinds of talk, each a list of phrasings (117 in all). `say(c, talk)`
+  picks one at random, sets `c.say` with its start time and mood, and counts the kind in
+  `talkCount` (`TALK_KEY` maps a list back to its name).
+- `moodOf()` reads the mood from the emoji, and `drawBubble()` animates it: every bubble
+  pops in; happy ones hop glyph by glyph (`glyphs()` splits multi-code-point emoji), cross
+  ones shake, questions tilt, love pulses, alarms jump, and sad ones droop. Reduced motion
+  turns the animations off.
+- `talkCount` is saved in `localStorage` as `crabminer-talk` beside the game and cleared by
+  New game. The Ledger lists every kind by count (`ledgerTalk()`, labels in `TALK_LABEL`),
+  after the whole-game bars from sand to ship and for upkeep (`ledgerTotals()`).
 - `needs(c)` asks for help when a crab is stuck. Helpers reply when they first pick a
   target.
 - `emojiOK` tests whether the device draws emoji. If not, `spoken()` maps each emoji to a
@@ -504,7 +520,7 @@ dances used by pairs.
   (close the intro or leave arrange mode). The intro lists them.
 - **Storage:** `localStorage` keeps `crabminer-save` (the game, from `sim.save()`),
   `crabminer-best` (best Tycoon time), `crabminer-big` (layout), and
-  `reader-rate`/`reader-voice` (read aloud). Every access is wrapped in `try`/`catch`.
+  `crabminer-talk` (the crab-talk tally), and `reader-rate`/`reader-voice` (read aloud). Every access is wrapped in `try`/`catch`.
 - **Save and load:** `saveGame()` runs every 10 s of real time, when the page is hidden, on
   `pagehide`, and right after `newGame()`. At start-up `loadGame()` restores the save if
   `sim.load` accepts it; otherwise `newGame()` runs. Both call `freshView()`, which clears
@@ -644,7 +660,8 @@ player's choices (separate from the sim's own), and `act()`, one random player a
   3. If its claims need releasing, extend `release()`.
 - **A new animation:** add a function to `ANIMS` returning a pose, then call
   `play(crab, 'name')` from an event, or add it to the idle ladder in `moodFor()`.
-- **A new phrase:** add it to `TALK`, and add any new emoji to `WORDS` for the fallback.
+- **A new phrase:** add a list of phrasings to `TALK` and a label to `TALK_LABEL`, and any new
+  emoji to `WORDS` for the fallback (and to a `MOODS` pattern if it carries a feeling).
 
 ## 10. Conventions and gotchas
 

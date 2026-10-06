@@ -442,6 +442,10 @@ Examples:
 - 🦵💔😭 a lost leg; 🧱➡️🔥 a maintenance bot taking a bar to the forge.
 - 🪨⛔ a full ore pile; 🔌🌊👍 an energy bot going to fetch a drifted post.
 
+Each situation has two or three ways of saying it, picked at random: 58 kinds of talk and 117
+phrasings in all. A bubble moves with its mood: happy ones bounce, cross ones shake, questions
+tilt, thanks pulse, alarms jump and sad ones droop. The Ledger counts everything said, by kind.
+
 On devices without emoji, crabs spell the words instead.
 
 The crabs have 52 animations across about 60 triggers: celebrations, dances with
@@ -462,7 +466,7 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Crew tab | Panel | Hire (+), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
 | Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods |
 | Tech tab | Panel | Research and worker upgrades |
-| Ledger tab | Panel | Money, prices, stage capacities, overheads, coverage, the sea, bonuses |
+| Ledger tab | Panel | Money, whole-game bars from sand to ship and for upkeep, crab talk by count, prices, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away and scroll the field |
 | [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |

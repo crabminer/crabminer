@@ -8,7 +8,8 @@ to; move an item into the game, the rules and the paper together when it is buil
 
 These came from earlier rounds of ideas and are already in the game: tides and storms,
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
-the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, and the rival crew.
+the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
+the split into `sim.js`, `game.js` and `reader.js`, and the checked-in tests.
 
 ## Visitors and the sea
 
@@ -84,9 +85,7 @@ the hermit-crab trader, the sea turtle, save and load, named crabs with veteran 
 
 ## Engineering
 
-- **Split the file.** Move the three scripts to `sim.js`, `game.js` and `reader.js` (still
-  no build step) so tests can load `sim.js` directly.
-- **Checked-in tests.** Commit the fuzzer, the balance runs and the browser checks under
-  `tests/`, runnable with plain Node.
+- **Tests in CI.** Run the fuzzer, the save check and the browser checks in a GitHub Action
+  on every push, so a change cannot reach the live site with a failing test.
 - **Performance.** Cache the paper-dune layers to an offscreen canvas and redraw only when
   the size or palette changes; the full-size canvas is heavy on slow devices.

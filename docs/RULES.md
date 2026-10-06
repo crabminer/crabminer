@@ -2,7 +2,7 @@
 
 This is the complete rulebook for Crabminer, the crab mining game at
 [crabminer.com](https://crabminer.com). Every number here comes from the constants object
-`K` in the simulation script (`<script id="sim">` in `index.html`). If you change a constant,
+`K` in the simulation script, `sim.js`. If you change a constant,
 change it here too. [ARCHITECTURE.md](ARCHITECTURE.md) explains how the code is organised.
 
 - [1. The goal](#1-the-goal)

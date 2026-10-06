@@ -7,7 +7,7 @@ Paste this into a new session to pick up the work.
 **Resume: Crabminer (`/home/user/code/crabminer`, remote `git@github.com:crabminer/crabminer.git`, live at crabminer.com via GitHub Pages)**
 
 **What the game is.** Crabminer is a crab mining game: a small city builder on a layered
-paper-dune sea floor, in one static `index.html` with no build step or dependencies. You run a
+paper-dune sea floor: a static page (`index.html` plus `sim.js`, `game.js` and `reader.js`) with no build step or dependencies. You run a
 crew of robot crabs that turns buried metal into money:
 - Scouts flag deposits.
 - Drills dig them up; holes can come up dry.
@@ -52,16 +52,18 @@ the line, which the advisor and the Ledger tab point out.
 **Docs:** `docs/RULES.md` (full rules), `docs/ARCHITECTURE.md` (code organisation and data flow),
 `docs/BACKLOG.md` (ideas not yet built), `docs/DNS.md`.
 
-**How the code works:** Script 1, `CrabSim()` in `<script id="sim">`, is a deterministic, seeded
-simulation that runs headless in Node. The view (Script 2) reads its state and receives its
-events, and changes the game only through its API. Before committing a change:
-1. Fuzz the simulation with random player actions.
-2. Run headless Chromium over the DevTools protocol to check for console errors and take
-   screenshots.
-3. Update the game, `RULES.md`, `ARCHITECTURE.md` and the paper together.
+**How the code works:** `sim.js` (`CrabSim()`) is a deterministic, seeded simulation that
+runs headless in Node. The view, `game.js`, reads its state and receives its events, and changes
+the game only through its API. `reader.js` reads the intro and the paper aloud. Before
+committing a change:
+1. `node tests/fuzz.js` and `node tests/save.js` (random play with invariants; save round trips).
+2. `node tests/browser.js` (headless Chromium: console errors, controls, reload, screenshots).
+3. `node tests/balance.js` before and after any change to the economy, and compare.
+4. Update the game, `RULES.md`, `ARCHITECTURE.md` and the paper together.
 
 The working style so far: commit locally, and push only when asked.
 
-**What next** (from `docs/BACKLOG.md`, in recommended order):
-1. **Engineering:** split the scripts into `sim.js`, `game.js` and `reader.js`, and check the
-   fuzz, balance and browser tests into `tests/`.
+**What next** (from `docs/BACKLOG.md`; none is committed to):
+1. **Engineering:** run the tests in a GitHub Action on every push, and cache the paper-dune
+   layers to an offscreen canvas for slow devices.
+2. **Game:** pick from the backlog's visitors, crew, economy, buildings and interface ideas.

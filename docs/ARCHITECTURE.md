@@ -19,21 +19,28 @@ rules themselves.
 
 ## 1. Overview
 
-Crabminer is one static HTML file with no build step and no dependencies. GitHub Pages
-serves it from the `main` branch of `crabminer/crabminer` at crabminer.com.
+Crabminer is a static page with no build step and no dependencies: one HTML file and its three
+scripts. GitHub Pages serves them from the `main` branch of `crabminer/crabminer` at crabminer.com.
 
 ```
 crabminer/
-├── index.html        the whole game: CSS, markup, and three scripts
+├── index.html        the page: CSS, markup, and the paper
+├── sim.js            Script 1: the simulation, CrabSim()
+├── game.js           Script 2: drawing, animation, crab talk, and the controls
+├── reader.js         Script 3: read aloud
 ├── CNAME             crabminer.com, for GitHub Pages
 ├── LICENSE
+├── tests/            fuzzer, save check, balance runs, browser checks (section 8)
 └── docs/
     ├── RULES.md          the rules
     ├── ARCHITECTURE.md   this file
+    ├── BACKLOG.md        ideas not yet built
+    ├── RESUME.md         a prompt for picking up the work in a new session
     └── DNS.md            registrar records for the custom domain
 ```
 
-`index.html` has these parts, top to bottom:
+`index.html` has these parts, top to bottom. The scripts are plain `<script src>` tags at the
+end of the body, so they run in order, and Script 2 finds `CrabSim` as a global.
 
 | Part | What it holds |
 | --- | --- |
@@ -41,9 +48,9 @@ crabminer/
 | Overlays | `#intro` (how to play, Start, Listen all) and `#win` (Crab Tycoon card) |
 | `<section class="game">` | Top bar `.hud`, the stage `#stage` with the canvas `#scene`, toasts, the panel `.panel` with five tabs |
 | `<div class="below">` | The paper `<main class="paper">`: the rules and economy review as an IEEE-style article |
-| `<script id="sim">` | **Script 1**: the simulation, `CrabSim()` |
-| `<script>` | **Script 2**: drawing, animation, crab talk, and the controls |
-| `<script>` | **Script 3**: read aloud (speech synthesis over the intro and the paper) |
+| `sim.js` | **Script 1**: the simulation, `CrabSim()` |
+| `game.js` | **Script 2**: drawing, animation, crab talk, and the controls |
+| `reader.js` | **Script 3**: read aloud (speech synthesis over the intro and the paper) |
 
 The guiding rule: **the simulation owns the game, the view only watches.** Script 1 knows
 nothing about the DOM or canvas. Script 2 reads the simulation's state and events, draws
@@ -107,7 +114,7 @@ The body class `big` switches big-field mode, which is the default. A width at o
 ## 4. Script 1: the simulation (`CrabSim`)
 
 `CrabSim()` is a factory. It returns an object with the constants `K`, the state accessor
-`state()`, `reset`, `step`, `drain` and the API. At the end of the script,
+`state()`, `reset`, `step`, `drain` and the API. At the end of `sim.js`,
 `if (typeof module !== 'undefined') module.exports = CrabSim;` makes the same code load in
 Node for testing (section 8).
 
@@ -529,27 +536,34 @@ and scrolling as it goes.
 
 ## 8. Determinism, testing, and balance work
 
-**Running the sim headless.** Extract the script and load it in Node:
+**Running the sim headless.** `sim.js` loads in Node as it is:
 
 ```sh
 node -e '
-const fs = require("fs");
-const html = fs.readFileSync("index.html", "utf8");
-const src = html.split("<script id=\"sim\">\n")[1].split("\n</script>")[0];
-fs.writeFileSync("/tmp/sim.js", src);
-const CrabSim = require("/tmp/sim.js");
+const CrabSim = require("./sim.js");
 const sim = CrabSim(); sim.reset({ seed: 7919, shift: "ab" });
 for (let i = 0; i < 20 * 3600; i++) { sim.step(); sim.drain(); }
 console.log(sim.state().stat.sold / 20, "ingots a minute");
 '
 ```
 
-**How the game has been tested and tuned.** The scripts lived outside the repository; their
-results are reported in the paper.
+**The tests.** They live in `tests/` and run with plain Node (version 22 or later, for the
+built-in `WebSocket`), with nothing to install. Each exits non-zero on failure.
 
-- **Fuzzing.** Twelve 20-minute runs with random hires, retirements, upgrades, research,
-  building and post moves, workday and custom changes, reserve and overclock. The run
-  checks these invariants every 10 s:
+| Command | Time | What it does |
+| --- | --- | --- |
+| `node tests/fuzz.js [runs] [minutes]` | ~10 s | Twelve 20-minute games of random play, invariants checked every second |
+| `node tests/save.js [runs] [minutes]` | ~5 s | Save and load round trips, bad saves, and older saves |
+| `node tests/browser.js [shot dir]` | ~35 s | The page in headless Chromium at three sizes, with screenshots |
+| `node tests/balance.js [seeds]` | ~80 s | A report, not a pass or fail: fixed crews and rank times |
+
+`tests/lib.js` holds what they share: loading the sim, stepping it, a seeded generator for the
+player's choices (separate from the sim's own), and `act()`, one random player action.
+
+- **Fuzzing.** Random hires, retirements, upgrades, research, building and post moves,
+  workday and custom changes, scouts at night, reserve, overclock, shooing and trades, about
+  five a minute. Odd runs start with 4,000 credits to reach big crews and upgrades. The
+  invariants:
   - no negative stocks
   - no stale claims: `fixBy`, `mendBy`, `claimedBy`, flag `by`, nodule `by`
   - no ghost or overfull docks
@@ -557,13 +571,28 @@ results are reported in the paper.
   - no two buildings on one plot
   - dance pairs symmetric
   - no sleeping in the air, no claims held while asleep
-  - finite position, wear and `bload`
-- **Balance runs.** Fixed crews across workday patterns and seeds, ablations that switch a
-  feature off through `K`, hill-climbing over crews, and an automatic player that follows
-  `bottleneck()` and `gaps()`, to check the pace to each rank.
-- **Browser checks.** Headless Chromium driven over the DevTools protocol, which reports
-  console errors, clicks controls and takes screenshots at desktop, iPhone SE, and dark
-  sizes. Tests reach state through `window.crabminer`.
+  - finite position, wear, battery and `bload`
+
+  Checking every second matters: a stale claim often clears itself within a few seconds, and
+  a check every 10 s missed a release bug planted on purpose. The fuzzer first corrupts a game
+  in six ways and stops if the checker misses one.
+- **Save.** Plays, saves through JSON into a second instance, and compares the two states
+  field by field (a save that silently drops a field would otherwise round-trip cleanly). Then
+  it plays both on with the same actions and compares their saves. It also feeds `load()`
+  broken saves, which must be refused with the game untouched, and a save with fields
+  missing, which must load with them at their defaults.
+- **Balance runs.** Fixed crews from the paper across workday patterns, beside the paper's
+  figures, and an automatic player that follows `bottleneck()` and `gaps()`, timed to each
+  rank. Run it before and after a change to the economy. The automatic player is a rebuild,
+  so its rank times are close to the paper's but not the same. Hill-climbing over crews and
+  ablations that switch a feature off through `K` were one-off studies and are not checked in.
+- **Browser checks.** Headless Chromium driven over the DevTools protocol at desktop, iPhone
+  SE, and dark sizes. Each starts a new game from the ? menu, checks that the sim runs, that
+  the page does not scroll sideways, that the hire buttons and tabs work, and that a reload
+  resumes the game, and fails on any console error. Tests reach state through
+  `window.crabminer`. It runs Chromium with `--disable-gpu --no-sandbox`, since in a VM the GPU
+  process and the seccomp sandbox both crash it; it only opens the local page. Set `CHROME`
+  to use another browser binary.
 
 ## 9. How to extend the game
 

@@ -464,7 +464,7 @@ tr[data-say].saying{box-shadow:none}
           <li>It's a tiny city builder on the sea floor. You watch a whole production line come together from nothing.</li>
           <li>No crab takes orders. Each one follows a simple rule, and you balance the crew. Fix the slowest stage and money starts flowing.</li>
           <li>Mining is a gamble. Some holes come up dry, bits snap, legs fall off, and metal prices rise and fall, so no two runs are the same.</li>
-          <li>The sea has a mind of its own. High tide washes free nodules up, low tide buries flags, an octopus sneaks in to steal your ore (click it to shoo it away), and now and then a drill strikes a pearl worth a jackpot.</li>
+          <li>The sea has a mind of its own. High tide washes free nodules up, low tide buries flags, storms blow through, the lava surges, an octopus sneaks in to steal your ore (click it to shoo it away), and now and then a drill strikes a pearl worth a jackpot.</li>
           <li>Crabs ride a thermal vent up the lava column with the bubbles, then swim down and sideways across the dunes. It's quicker than walking, and it's a ride.</li>
           <li>Crabs pull faces. They stick their tongues out while drilling, sweat at the lava, say "ouch!" when a leg comes off, snore through the night shift, and dance when you rank up.</li>
           <li>Climb six ranks from Sand Scraper to Crab Tycoon, then try to get there faster.</li>
@@ -571,7 +571,7 @@ tr[data-say].saying{box-shadow:none}
         <summary>How crabs talk</summary>
         <p class="note">Crabs speak in emoji sentences: a thing, then a verb, then sometimes who, or how they feel.</p>
         <table class="ltable"><tbody>
-          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🐙 octopus · 🦪 pearl · 🦀 you, me</td></tr>
+          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🦀 you, me</td></tr>
           <tr><th scope="row">Verbs</th><td>❓ I need · 👍 on my way · ➡️ bringing it · ✅ got it, done · 💔 broke · ⛔ full · ❗ found one · ❤️ thanks</td></tr>
           <tr><th scope="row">Examples</th><td>🔋❓ "I need charge". An energy bot answers 🔋➡️🦀, "bringing you charge". Then 🔋✅❤️, "got it, thanks". 🦵💔😭 is a lost leg, and 🧱➡️🔥 is a maintenance bot taking a bar to the forge.</td></tr>
         </tbody></table>
@@ -608,7 +608,7 @@ tr[data-say].saying{box-shadow:none}
   </div>
 
   <div class="cols">
-    <p class="abstract" id="abstract"><i>Abstract</i>—Crabminer is a city builder played on the sea floor. The player runs a crew of robot crabs that turns buried metal into money. Scouts flag deposits, drills dig them up (and sometimes come up dry), and haulers, crushers, and smelters carry the ore through a pile, a press, and a lava cave until it is refined metal on a stockpile. A riser sells that metal at the surface. Things break. Drill bits snap, energy bots wear out, and any crab can lose a leg. Repair bots and maintenance bots forge replacement parts in the lava from the line's own ingots and bars. Crabs that work without rest tire and break down more, so the player chooses between all hands, A and B shifts, and three-shift relief, and must keep every job covered in every part of the day. Steady deliveries earn a flow bonus and bank overclock, a burst of speed the player can spend. Research unlocks sixteen worker upgrades. The line's buildings stand on movable plots, and energy bots refuel at a post on an extension cord that they drag to where the work is. A thermal vent lifts crabs up the lava column, and they swim down and sideways to their work. The sea joins in: tides wash nodules up and bury flags, an octopus raids the ore pile, and rich deposits hide pearls. The crabs talk in emoji sentences, pull more than fifty animations, and dance with idle neighbours, which recharges them and earns a fresh start the next morning. This paper sets out the rules and reviews the economy using the deterministic simulation the page itself runs.</p>
+    <p class="abstract" id="abstract"><i>Abstract</i>—Crabminer is a city builder played on the sea floor. The player runs a crew of robot crabs that turns buried metal into money. Scouts flag deposits, drills dig them up (and sometimes come up dry), and haulers, crushers, and smelters carry the ore through a pile, a press, and a lava cave until it is refined metal on a stockpile. A riser sells that metal at the surface. Things break. Drill bits snap, energy bots wear out, and any crab can lose a leg. Repair bots and maintenance bots forge replacement parts in the lava from the line's own ingots and bars. Crabs that work without rest tire and break down more, so the player chooses between all hands, A and B shifts, and three-shift relief, and must keep every job covered in every part of the day. Steady deliveries earn a flow bonus and bank overclock, a burst of speed the player can spend. Research unlocks sixteen worker upgrades. The line's buildings stand on movable plots, and energy bots refuel at a post on an extension cord that they drag to where the work is. A thermal vent lifts crabs up the lava column, and they swim down and sideways to their work. The sea joins in: tides wash nodules up and bury flags, storms stir the dunes, the lava surges, an octopus raids the ore pile, and rich deposits hide pearls. The crabs talk in emoji sentences, pull more than fifty animations, and dance with idle neighbours, which recharges them and earns a fresh start the next morning. This paper sets out the rules and reviews the economy using the deterministic simulation the page itself runs.</p>
     <p class="terms"><i>Index Terms</i>—Bottleneck, city builder, game economy, maintenance, serious games, shift work, stigmergy, swarm robotics.</p>
 
     <h2>I. The Game</h2>
@@ -727,6 +727,8 @@ tr[data-say].saying{box-shadow:none}
   <h2>VI. The Sea</h2>
   <div class="cols">
     <p><span class="runin">Tides.</span> The sea rises and falls on a four-minute cycle, and the surface moves with it. Through the highest quarter of the cycle, every 12 seconds the current washes one or two nodules up somewhere on the claimed dunes, free for the haulers. Through the lowest quarter, every 20 seconds there is an even chance that the shifting sand buries one flag nobody is working. A tide marker in the top bar says which way it is running.</p>
+    <p><span class="runin">Storms.</span> Five minutes in, and every six to nine minutes after each one ends, a storm blows through for 40 seconds, with a warning 20 seconds ahead. The water darkens, the surface heaves, rain streaks the top of the sea, lightning flashes, and the ship at the top of the riser rocks. Crabs walk at 85% speed against the current, and the riser sends ingots at half speed. Every 8 seconds the storm has a 60% chance to bury a flag nobody is working. But every 4 seconds the waves stir two or three nodules up out of the sand, so a storm is a windfall for a crew with haulers to spare.</p>
+    <p><span class="runin">Lava surges.</span> Just over three minutes in, and every five to eight minutes after each one ends, the lava swells for 30 seconds and throws out burning blobs. Smelting and forging take half the time, the Stirling engine makes double charge, and the vent lifts crabs faster. The advisor suggests spending banked overclock then, because the slowest stage of many lines, the lava, is briefly twice as fast.</p>
     <p><span class="runin">The octopus.</span> About a minute and a half in, and every two to three minutes after that, an octopus creeps in from the left. It makes for the ore pile, or, if the pile is empty, for the nodule on the sand nearest the line. It says 🐙🪨❓ as it comes. If a crab is standing within 28 units of its target when it gets there, it flees in a cloud of ink. Otherwise it spends a second and a half grabbing up to two nodules and escapes the way it came. The player can click it at any time to shoo it off. If it is already carrying loot, it drops the loot on the sand. Unguarded, it takes about 15 nodules in half an hour, roughly seven ingots. That is less a drain than a reason to watch the field.</p>
     <p><span class="runin">Pearls.</span> A strike on a flag of richness 0.75 or more turns up a pearl one time in 25. A pearl is a jackpot paid in credits straight away: 60 on the front dune, 90 on the middle, and 130 on the back. It counts toward rank, and the pearl floats up the riser to fanfare. Over half an hour with all three dunes claimed, a mid-sized crew found four or five pearls worth 390 to 540 credits. That is a fair reward for scouting deep and drilling rich.</p>
   </div>
@@ -797,7 +799,7 @@ tr[data-say].saying{box-shadow:none}
 
   <h2>XI. What Is Real and What Is Not</h2>
   <div class="cols">
-    <p>The nodules are real. Polymetallic nodules lie on abyssal plains and consist mainly of manganese and iron oxides, with nickel, copper, and cobalt in smaller amounts <a class="c" href="#ref-6">[6]</a>. Lava erupts on the sea floor too, and basaltic lava is roughly 1,100 to 1,200 °C. Octopuses are real, clever, and known to raid traps and tanks for food, though not, so far, for manganese. Pearls grow in molluscs, not in nodule fields. Tides reach the deep floor only as slow currents. Hot water rising from the sea floor is real as well: hydrothermal vents send up plumes of warm, buoyant water. A Stirling engine runs on a temperature difference rather than on fuel, so one placed between lava and cold seawater is at least sound in principle.</p>
+    <p>The nodules are real. Polymetallic nodules lie on abyssal plains and consist mainly of manganese and iron oxides, with nickel, copper, and cobalt in smaller amounts <a class="c" href="#ref-6">[6]</a>. Lava erupts on the sea floor too, and basaltic lava is roughly 1,100 to 1,200 °C. Octopuses are real, clever, and known to raid traps and tanks for food, though not, so far, for manganese. Pearls grow in molluscs, not in nodule fields. Tides reach the deep floor only as slow currents, and storms do not reach it at all, though deep currents can be strong. Submarine eruptions do pulse. Hot water rising from the sea floor is real as well: hydrothermal vents send up plumes of warm, buoyant water. A Stirling engine runs on a temperature difference rather than on fuel, so one placed between lava and cold seawater is at least sound in principle.</p>
     <p>The smelting and the forging are game rules. Copper melts at 1,085 °C, which basaltic lava can reach. Manganese melts at 1,246 °C and nickel at 1,455 °C, which it cannot, and turning an oxide ore into metal needs a reducing agent as well as heat. Vent plumes rise slowly, so a crab could not ride one to near the surface in two seconds. Sunlight does not reach a floor this deep, and the night shift is lit only by the crabs' lamps. The model is faithful about the economics: breakdowns tax output, repairs consume product, tired workers break more, and the slowest stage sets the pace.</p>
   </div>
 
@@ -858,6 +860,10 @@ function CrabSim() {
     TIDE_PERIOD: 240, TIDE_HIGH: 0.75, SURGE_EVERY: 12, BURY_EVERY: 20, BURY_CHANCE: 0.5,
     OCTO_FIRST: 90, OCTO_EVERY: [100, 200], OCTO_SPEED: 45, OCTO_SCARE: 28, OCTO_GRAB: 1.5,
     PEARL_Q: 0.75, PEARL_CHANCE: 0.04, PEARL_VALUE: [60, 90, 130],
+    // storms: forty seconds of rough water that stir up nodules, bury flags, slow walkers, and rock the ship
+    STORM_FIRST: 300, STORM_EVERY: [360, 540], STORM_TIME: 40, STORM_WARN: 20, STORM_WASH: 4, STORM_BURY: 8, STORM_WALK: 0.85, STORM_RISER: 2,
+    // lava surges: thirty seconds of swelling lava; smelting and forging go twice as fast and the engine makes double charge
+    SURGE_FIRST: 200, SURGE_EVERY: [300, 480], SURGE_TIME: 30, SURGE_SPEED: 2,
     VENT_IN: 880, VENT_X: 918,   // where crabs step into the thermal vent, and the column it rises in
     DEPTH: 300,          // crossing the dunes from the back crest to the front costs as much as 300 units of track
     // movement, in track units per second
@@ -927,7 +933,7 @@ function CrabSim() {
   };
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
-    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits'];
+    'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
 
   var seed = K.SEED, S = null, events = [], dt = K.STEP;
@@ -969,6 +975,8 @@ function CrabSim() {
       nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, docks: [],
       post: { x: K.STIRLING - 60, d: 0.86, auto: true, carrier: null, moved: -99 }, day: 1,
       tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST,
+      storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
+      lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
       shift: opts.shift || 'all', si: null, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -1094,7 +1102,7 @@ function CrabSim() {
   // walk along the track (x) and up or down the dunes (d); true once there
   function moveTo(c, tx, td, speed) {
     var crest = Math.abs(c.d - 1 / 3) < K.CREST || Math.abs(c.d - 2 / 3) < K.CREST;
-    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
+    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1) * (S.storm ? K.STORM_WALK : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
     if (Math.abs(dx) > 0.5) {
       c.dir = dx > 0 ? 1 : -1;
       c.x += Math.abs(dx) <= mv ? dx : c.dir * mv;
@@ -1126,7 +1134,7 @@ function CrabSim() {
     }
     c.moving = false; c.floating = true;                    // floating is free: no power, no wear
     if (a.phase === 'rise') {
-      c.alt = Math.min(1, c.alt + dt / K.T_RISE);
+      c.alt = Math.min(1, c.alt + dt / K.T_RISE * (S.lavaSurge ? 1.7 : 1));   // a surging vent lifts faster
       c.x = a.x0 + (K.VENT_X - a.x0) * Math.min(1, c.alt * 2);
       c.dir = -1;
       if (c.alt >= 1) { a.phase = 'glide'; a.gx = c.x; a.gd = c.d; }
@@ -1298,7 +1306,7 @@ function CrabSim() {
       c.timer -= work(c);
       if (c.timer <= 0) c.state = 'toLava';
     } else if (c.state === 'toLava') {
-      if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = c.smeltT = K.T_SMELT * (has('heatTongs') ? 0.6 : 1); c.heat = 0; }
+      if (moveTo(c, K.RIM, 0.8 + 0.06 * (c.k % 3), K.SPEED)) { c.state = 'smelt'; c.timer = c.smeltT = K.T_SMELT * (has('heatTongs') ? 0.6 : 1) / (S.lavaSurge ? K.SURGE_SPEED : 1); c.heat = 0; }
     } else if (c.state === 'smelt') {
       c.timer -= work(c);
       c.heat = clamp(1 - c.timer / c.smeltT, 0, 1);
@@ -1430,7 +1438,7 @@ function CrabSim() {
         else c.state = 'toForge';
       }
     } else if (c.state === 'toForge') {                     // the lava is the forge
-      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), K.RSPEED)) { c.state = 'forge'; c.timer = c.forgeT = K.T_FORGE; c.heat = 0; }
+      if (moveTo(c, K.RIM - 6, 0.93 - 0.05 * (c.k % 2), K.RSPEED)) { c.state = 'forge'; c.timer = c.forgeT = K.T_FORGE / (S.lavaSurge ? K.SURGE_SPEED : 1); c.heat = 0; }
     } else if (c.state === 'forge') {
       c.timer -= work(c);
       c.heat = clamp(1 - c.timer / c.forgeT, 0, 1);
@@ -1474,7 +1482,7 @@ function CrabSim() {
       S.stat.flowBonus += v - Math.round(S.price);
       S.stock--; S.credits += v; S.earned += v; S.stat.sold++; S.stat.revenue += v;
       S.ocBank = Math.min(K.OC_MAX, S.ocBank + K.OC_PER_SALE * (1 + S.streak / 10));
-      S.liftT = up('riser');
+      S.liftT = up('riser') * (S.storm ? K.STORM_RISER : 1);   // in a storm the ship rocks and the riser slows
       emit('sell', v, S.streak);
       ranks();
     } else S.liftT = 0;
@@ -1536,7 +1544,8 @@ function CrabSim() {
     sea();
     octopus();
     if (S.si.day !== S.day) morning();
-    S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * dt / 60);   // lava heat drives the Stirling engine
+    S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * dt / 60);   // lava heat drives the Stirling engine
+    weather();
     sell();
     if (S.t >= S.tick + 1 - 1e-9) { S.tick += 1; market(); snapshot(); }
   }
@@ -1639,6 +1648,27 @@ function CrabSim() {
       if (o.x < Math.max(K.FIELD0 - 40, o.fx - 300)) {               // back up and away into the sea
         emit('octoGone', o, o.carry); S.octo = null; S.nextOcto = S.t + srr(K.OCTO_EVERY[0], K.OCTO_EVERY[1]); }
     }
+  }
+  // Storms and lava surges come and go on their own clocks.
+  function weather() {
+    var i, p, f, free = [], n;
+    if (!S.storm && !S.stormWarned && S.t >= S.stormAt - K.STORM_WARN) { S.stormWarned = true; emit('stormWarn'); }
+    if (!S.storm && S.t >= S.stormAt) { S.storm = true; S.stormEnd = S.t + K.STORM_TIME; S.stat.storms++; S.nextStormWash = S.t + 2; S.nextStormBury = S.t + K.STORM_BURY; emit('stormStart'); }
+    if (S.storm) {
+      if (S.t >= S.nextStormWash) {                         // the rough water stirs nodules up out of the sand
+        S.nextStormWash = S.t + K.STORM_WASH; n = 2 + Math.floor(sr() * 2);
+        for (i = 0; i < n && S.nodules.length < K.FIELD_CAP + 8; i++) { p = spot(); S.nodules.push({ x: p.x, d: p.d, alive: true, eddy: -1, by: null, washed: true }); S.stat.washed++; }
+        emit('surge', n);
+      }
+      if (S.t >= S.nextStormBury) {                         // and buries flags nobody is working
+        S.nextStormBury = S.t + K.STORM_BURY;
+        for (i = 0; i < S.flags.length; i++) if (!S.flags[i].by) free.push(S.flags[i]);
+        if (free.length && sr() < 0.6) { f = free[Math.floor(sr() * free.length)]; removeFlag(f); S.stat.buried++; emit('bury', f); }
+      }
+      if (S.t >= S.stormEnd) { S.storm = false; S.stormWarned = false; S.stormAt = S.t + srr(K.STORM_EVERY[0], K.STORM_EVERY[1]); emit('stormEnd'); }
+    }
+    if (!S.lavaSurge && S.t >= S.lavaAt) { S.lavaSurge = true; S.lavaEnd = S.t + K.SURGE_TIME; S.stat.surges++; emit('lavaStart'); }
+    if (S.lavaSurge && S.t >= S.lavaEnd) { S.lavaSurge = false; S.lavaAt = S.t + srr(K.SURGE_EVERY[0], K.SURGE_EVERY[1]); emit('lavaEnd'); }
   }
   function shoo() {                        // the player chases the octopus off; it drops whatever it took
     var o = S.octo, i;
@@ -1818,6 +1848,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var pal = {};
   var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
+  var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -1972,7 +2003,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
   var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
     '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
-    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run' };
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -2130,6 +2161,17 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         near(a.x, 150).forEach(function (n) { if (n.role === 'scout' || n.role === 'drill') { say(n, '🚩💔🌊', 1.8); play(n, ['slump', 'shrug'], 1.6); } });
         if (!buryToast) { buryToast = true; toast('Low tide', 'The sand is shifting. Flags nobody is working can get buried.'); }
         break;
+      case 'stormWarn': toast('A storm is coming', 'In twenty seconds the sea gets rough: crabs slow down, the riser slows, and flags can be buried, but the waves stir up free nodules.'); break;
+      case 'stormStart':
+        toast('Storm!', 'Rough water for forty seconds. Haulers, grab the nodules the waves turn up.');
+        S.crabs.forEach(function (n, j2) { if (n.state === 'sleep') return; if (j2 % 3 === 0) say(n, '🌩️😨', 1.8); play(n, ['shiver', 'shock', 'hug'], 2); });
+        break;
+      case 'stormEnd': toast('The storm has passed', 'Calm water again.'); S.crabs.forEach(function (n) { if (n.state !== 'sleep') play(n, ['cheer', 'sigh', 'jazz'], 1.6); }); break;
+      case 'lavaStart':
+        toast('Lava surge!', 'For thirty seconds smelting and forging run twice as fast and the Stirling engine makes double charge. A good time to overclock.');
+        S.crabs.forEach(function (n) { if (n.role === 'smelt' || n.role === 'repair' || n.role === 'mech' || n.role === 'energy') { say(n, '🌋🔥🎉', 1.8); play(n, ['jazz', 'disco', 'pump'], 2); } });
+        break;
+      case 'lavaEnd': S.crabs.forEach(function (n) { if (n.role === 'smelt') play(n, 'sigh', 1.2); }); break;
       case 'octoArrive':
         toast('An octopus is sneaking in!', 'It is after your ore. Click it to shoo it away, or keep a crab by the ore pile.');
         break;
@@ -2238,6 +2280,16 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       c = S.crabs[i];
       if (c.alt > 0 && Math.random() < dtReal * 10) { var ap = airPos(c); bubbles.push({ x: ap.x + rr(-8, 8), y: ap.y + rr(-4, 6), r: rr(1, 3), vy: rr(30, 60), ph: rr(0, TAU) }); }
     }
+    stormA += ((S.storm ? 1 : 0) - stormA) * Math.min(1, dtReal * 0.8);
+    lavaA += ((S.lavaSurge ? 1 : 0) - lavaA) * Math.min(1, dtReal * 0.8);
+    if (stormA > 0.05 && !reduce) {
+      for (i = 0; i < Math.round(stormA * 6); i++) rain.push({ x: rr(-40, W), y: rr(-20, surfH), v: rr(380, 520), life: 0 });
+      if (Math.random() < dtReal * 0.35 * stormA) flash = 1;
+    }
+    flash = Math.max(0, flash - dtReal * 3);
+    for (i = rain.length - 1; i >= 0; i--) { n = rain[i]; n.y += n.v * dtReal; n.x += n.v * 0.35 * dtReal; if (n.y > base[0]) rain.splice(i, 1); }
+    if (lavaA > 0.05 && !reduce && Math.random() < dtReal * 4 * lavaA) bombs.push({ x: rr(lavaL + 10, W - 10), y: H - F * 0.5, vx: rr(-60, 20), vy: rr(-260, -140), life: 0 });
+    for (i = bombs.length - 1; i >= 0; i--) { n = bombs[i]; n.life += dtReal; n.vy += 300 * dtReal; n.x += n.vx * dtReal; n.y += n.vy * dtReal; if (n.y > H - F * 0.3 && n.vy > 0) { embers.push({ x: n.x, y: n.y, vx: rr(-20, 20), vy: rr(-40, -10), life: 0, max: 0.6 }); bombs.splice(i, 1); } }
     var si = sim.shiftInfo();
     nightA += ((si.night && si.mode !== 'all' ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);   // no night shift, no night
     if (started && si.mode !== 'all' && lastShift && lastShift !== si.name) {
@@ -2282,7 +2334,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   // ----- drawing: water -----
   var LAYERS = [[0.42, 7, 0.0120, 0.90, 0.0, 0.22], [0.66, 9, 0.0080, -0.62, 1.7, 0.15], [0.92, 11, 0.0055, 0.44, 3.1, 0.11]];
   function waveY(L, x) {
-    return surfH * L[0] - (S ? S.tide : 0) * 12 * CS + L[1] * Math.sin(x * L[2] + T * L[3] + L[4]) + L[1] * 0.45 * Math.sin(x * L[2] * 2.7 - T * L[3] * 1.6 + L[4] * 2);
+    return surfH * L[0] - (S ? S.tide : 0) * 12 * CS + stormA * L[1] * 1.6 * Math.sin(x * L[2] * 1.7 + T * L[3] * 3 + L[4]) + L[1] * Math.sin(x * L[2] + T * L[3] + L[4]) + L[1] * 0.45 * Math.sin(x * L[2] * 2.7 - T * L[3] * 1.6 + L[4] * 2);
   }
   function drawSurface() {
     var i, x, L;
@@ -2385,7 +2437,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var lockHit = {}, cssFont = 'Helvetica, Arial, sans-serif';
 
   // ----- drawing: the lava cavern and the Stirling engine -----
-  function lavaY(x) { return H - F * 0.42 + 1.6 * Math.sin(x * 0.09 + T * 1.7) + 1.1 * Math.sin(x * 0.21 - T * 2.3); }
+  function lavaY(x) { return H - F * (0.42 + 0.08 * lavaA) + (1.6 + 3 * lavaA) * Math.sin(x * 0.09 + T * 1.7 * (1 + lavaA)) + 1.1 * Math.sin(x * 0.21 - T * 2.3); }
   function drawRidge() {               // the basalt outcrop rising behind the cave
     var x0 = lavaL - 40 * CS, i, x;
     ctx.fillStyle = pal.rock;
@@ -2464,7 +2516,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.translate((lavaL + W) / 2, H - F * 0.4);
     ctx.scale(1, ry / rx);
     g = ctx.createRadialGradient(0, 0, 4, 0, 0, rx);
-    g.addColorStop(0, 'rgba(255,150,50,' + (0.3 + 0.06 * Math.sin(T * 2.1)).toFixed(3) + ')');
+    g.addColorStop(0, 'rgba(255,150,50,' + (0.3 + 0.25 * lavaA + 0.06 * Math.sin(T * 2.1)).toFixed(3) + ')');
     g.addColorStop(1, 'rgba(255,120,30,0)');
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = g;
@@ -2730,7 +2782,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.restore();
     // the ship at the surface that takes the metal
     var top = riserPoint(1), sx = top.x, sy = waveY(LAYERS[2], sx) - 4;
-    ctx.save(); ctx.translate(sx, sy); ctx.rotate(Math.sin(T * 0.8) * 0.03);
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(Math.sin(T * (0.8 + stormA * 1.6)) * (0.03 + stormA * 0.14));
     ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.85;
     ctx.beginPath(); ctx.moveTo(-46, -6); ctx.lineTo(46, -6); ctx.lineTo(36, 8); ctx.lineTo(-36, 8); ctx.closePath(); ctx.fill();
     ctx.fillRect(-20, -18, 22, 12); ctx.fillRect(14, -26, 3, 20);
@@ -2771,8 +2823,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.restore();
     if (o.state !== 'flee' && T % 2 < 1.4) drawBubble(px + 12 * s, by - 26 * s, emojiOK ? '🐙🪨❓' : spoken('🐙🪨❓'), s, 1, true);
   }
-  function drawTideCurrents() {          // at high or low water, the current runs over the dunes
-    var a = Math.abs(S.tide), i, x, y, dir = S.tide > 0 ? 1 : -1;
+  function drawTideCurrents() {          // at high or low water, or in a storm, the current runs over the dunes
+    var a = Math.max(Math.abs(S.tide), stormA * 1.3), i, x, y, dir = S.tide > 0 ? 1 : -1;
     if (a < 0.4) return;
     ctx.save(); ctx.strokeStyle = pal.foam; ctx.lineWidth = 1.4; ctx.globalAlpha = (a - 0.4) * 0.5;
     ctx.setLineDash([26, 40]); ctx.lineDashOffset = -T * 60 * dir;
@@ -2787,6 +2839,22 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   function drawInk() {
     ctx.save();
     for (var i = 0; i < inks.length; i++) { var n = inks[i]; ctx.globalAlpha = 0.55 * (1 - n.life / n.max); ctx.fillStyle = '#1a1030'; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
+  function drawStorm() {                 // dark water, slanting rain at the surface, and the odd flash of lightning
+    if (stormA < 0.02 && flash < 0.02) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(20,28,48,' + (0.3 * stormA).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = pal.foam; ctx.globalAlpha = 0.45 * stormA; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (var i = 0; i < rain.length; i++) { var n = rain[i]; ctx.moveTo(n.x, n.y); ctx.lineTo(n.x - 5, n.y - 14); }
+    ctx.stroke();
+    if (flash > 0) { ctx.globalAlpha = flash * 0.35; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H * 0.5); }
+    ctx.restore();
+  }
+  function drawBombs() {                 // blobs of lava thrown up by a surge
+    ctx.save(); ctx.fillStyle = pal.lavaHot;
+    for (var i = 0; i < bombs.length; i++) { var b = bombs[i]; ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.arc(b.x, b.y, 2.6 * CS, 0, TAU); ctx.fill(); ctx.globalAlpha = 0.3; ctx.beginPath(); ctx.arc(b.x, b.y, 6 * CS, 0, TAU); ctx.fill(); }
     ctx.restore();
   }
   function drawNight() {               // night falls over the sea; the lava and the lamps keep glowing
@@ -3428,7 +3496,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     drawTideCurrents(); drawInk();
     drawRings(); drawFlights();
     for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent are above everything
-    drawNight(); drawGlow(); drawBubbles(); drawParticles(); drawFloaters();
+    drawNight(); drawStorm(); drawGlow(); drawBombs(); drawBubbles(); drawParticles(); drawFloaters();
   }
 
   // ===== the controls =====
@@ -3584,6 +3652,8 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       if (cr.role === 'repair' && cr.state === 'fetch' && cr.carry !== 'ingot') waitMetal = true;
     }
     if (S.octo && S.octo.state !== 'flee') return 'Advisor: <b>An octopus is after your ' + (S.ore > 0 ? 'ore pile' : 'nodules') + '!</b> Click it to shoo it away.';
+    if (S.storm) return 'Advisor: <b>Storm!</b> Everyone walks slower and the riser sells at half speed, but the waves are turning up free nodules. Let the haulers gather them.';
+    if (S.lavaSurge) return 'Advisor: <b>Lava surge!</b> Smelting and forging run twice as fast and the engine makes double charge.' + (S.ocBank >= 5 && !S.oc ? ' Overclock now to make the most of it.' : '');
     if (waitMetal && S.stock === 0) return 'Advisor: <b>Repairs are stuck.</b> A repair bot is waiting at an empty stockpile. Keep more ingots back with the + beside the stockpile.';
     var gp = sim.gaps();
     if (gp.length) return 'Advisor: <b>Nobody covers ' + NAMES[gp[0].role].toLowerCase() + ' work in ' + gp[0].shift + '.</b> The line stops then. Hire a second one, or go back to all hands.';
@@ -3622,7 +3692,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ui.advice.innerHTML = advice();
     var si = sim.shiftInfo();
     ui.shift.textContent = 'Day ' + si.day + ' · ' + si.name;
-    ui.shiftLeft.textContent = (si.periods > 1 ? fmtTime(si.left) + ' left · ' + SHIFT_INFO[S.shift].short : SHIFT_INFO[S.shift].name) + ' · ' + (S.tide > 0.75 ? 'high tide' : S.tide < -0.75 ? 'low tide' : S.tide > 0 ? 'tide rising' : 'tide falling');
+    ui.shiftLeft.textContent = (si.periods > 1 ? fmtTime(si.left) + ' left · ' + SHIFT_INFO[S.shift].short : SHIFT_INFO[S.shift].name) + ' · ' + (S.storm ? 'storm!' : S.lavaSurge ? 'lava surge!' : S.tide > 0.75 ? 'high tide' : S.tide < -0.75 ? 'low tide' : S.tide > 0 ? 'tide rising' : 'tide falling');
     ui.flow.textContent = '×' + sim.flowMult().toFixed(2);
     ui.flowNote.textContent = S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily';
     ui.oc.setAttribute('aria-pressed', String(S.oc));
@@ -3686,6 +3756,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       '<tr><th scope="row">Tide</th><td class="n">' + (S.tide > 0.75 ? 'high: washing nodules up' : S.tide < -0.75 ? 'low: burying idle flags' : S.tide > 0 ? 'rising' : 'falling') + '</td></tr>' +
       '<tr><th scope="row">Washed up / buried</th><td class="n">' + S.stat.washed + ' nodules / ' + S.stat.buried + ' flags</td></tr>' +
       '<tr><th scope="row">Octopus</th><td class="n">' + S.stat.octopi + ' visits, ' + S.stat.stolen + ' nodules stolen, ' + S.stat.shooed + ' shooed' + (S.octo ? ' (one is here now)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Weather</th><td class="n">' + S.stat.storms + ' storms, ' + S.stat.surges + ' lava surges' + (S.storm ? ' (storm now)' : S.lavaSurge ? ' (surge now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
       '</tbody></table>';
     html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
@@ -3906,7 +3977,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T }; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

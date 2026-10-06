@@ -2623,7 +2623,7 @@
       '<tr class="total"><td>Metal that reached the surface</td><td></td><td class="n">' + share + '%</td></tr>' +
       '</tbody></table>' +
       '<p class="note">Earned in total: ' + money(S.earned) + ' · spent on crabs and upgrades: ' + money(S.stat.spent) + ' · repairs: ' + S.stat.repairs + ' · crab time ' + fmtTime(S.t) + '</p>';
-    html += ledgerTotals() + ledgerTalk();
+    html += '<p class="share-row"><button type="button" class="mini wide" data-share>Copy a summary of this run</button></p>' + ledgerCharts() + ledgerTotals() + ledgerTalk();
     html += '<h3>Metal price, last five minutes</h3><div class="spark-wrap" id="spark-wrap">' + sparkline() + '</div>';
     html += '<h3>The line: what each stage could do, ingots a minute</h3><table class="ltable"><thead><tr><th scope="col">Stage</th><th scope="col">Capacity</th><th scope="col" class="n">Doing now</th></tr></thead><tbody>';
     for (i = 0; i < flows.length; i++) {
@@ -2682,7 +2682,7 @@
       '</tbody></table><p class="note">A delivery within ' + K.FLOW_GAP + ' s of the last keeps the flow going: each one adds 2% to the price, up to 40%, and banks more overclock. Overclock makes the whole crew 50% faster, but they use more power and wear twice as fast.</p>';
     html += '<p class="note">Capacity is what each stage could deliver if nothing else held it back, measured from the simulation. The line can only go as fast as its slowest stage.</p>';
     ui.ledger.innerHTML = html;
-    wireSpark();
+    wireSpark(); wireCharts();
   }
   function sparkline() {
     var h = S.hist, n = h.length, i, lo = 1e9, hi = -1e9, pts = [], x, y, Wd = 300, Hd = 46;
@@ -2695,6 +2695,100 @@
       '<polyline fill="none" stroke="var(--link)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" points="' + pts.join(' ') + '"/>' +
       '<line id="spark-x" x1="0" x2="0" y1="0" y2="' + Hd + '" stroke="currentColor" stroke-opacity=".5" vector-effect="non-scaling-stroke" visibility="hidden"/></svg>' +
       '<p class="note">Dashed line: the 12-credit average. Now ' + money(S.price) + '.</p>';
+  }
+  // ----- whole-game line charts in the Ledger: one series each, its own axis, a crosshair and readout on hover -----
+  var chartHover = {};
+  function lineChart(id, pts, title, fmt, refs) {   // pts: [{t, v}]; refs: [{v, label}] dashed reference lines
+    var Wd = 300, Hd = 90, n = pts.length, i, hi = 0, xs, ys, line = [], t0, t1, html;
+    if (n < 2) return '<h3>' + title + '</h3><p class="note">The chart fills in as the game goes on.</p>';
+    t0 = pts[0].t; t1 = pts[n - 1].t;
+    for (i = 0; i < n; i++) hi = Math.max(hi, pts[i].v);
+    if (hi <= 0) return '<h3>' + title + '</h3><p class="note">Nothing yet: the line starts with the first ingot sold.</p>';
+    (refs || []).forEach(function (r) { if (r.v <= hi * 1.6) hi = Math.max(hi, r.v); });
+    hi = hi > 0 ? hi * 1.08 : 1;
+    xs = function (t) { return (t - t0) / Math.max(1, t1 - t0) * Wd; }; ys = function (v) { return Hd - 2 - v / hi * (Hd - 6); };
+    for (i = 0; i < n; i++) line.push(xs(pts[i].t).toFixed(1) + ',' + ys(pts[i].v).toFixed(1));
+    html = '<h3>' + title + '</h3><div class="spark-wrap chart" id="' + id + '"><svg class="spark big" viewBox="0 0 ' + Wd + ' ' + Hd + '" preserveAspectRatio="none" role="img" aria-label="' +
+      title + ': from ' + fmt(pts[0].v) + ' at the start to ' + fmt(pts[n - 1].v) + ' now, highest ' + fmt(Math.max.apply(null, pts.map(function (p) { return p.v; }))) + '.">';
+    (refs || []).forEach(function (r) {
+      if (r.v > hi) return;
+      html += '<line x1="0" x2="' + Wd + '" y1="' + ys(r.v).toFixed(1) + '" y2="' + ys(r.v).toFixed(1) + '" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>';
+    });
+    html += '<line x1="0" x2="' + Wd + '" y1="' + (Hd - 2) + '" y2="' + (Hd - 2) + '" stroke="currentColor" stroke-opacity=".35" vector-effect="non-scaling-stroke"/>' +
+      '<polyline fill="none" stroke="var(--link)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" points="' + line.join(' ') + '"/>' +
+      '<line class="chart-x" x1="0" x2="0" y1="0" y2="' + Hd + '" stroke="currentColor" stroke-opacity=".5" vector-effect="non-scaling-stroke" visibility="hidden"/></svg>';
+    var lastY = 1e9;                     // label a reference line only if it clears the one above it
+    (refs || []).slice().reverse().forEach(function (r) {
+      var y = ys(r.v) / Hd * 100;
+      if (r.v > hi || Math.abs(lastY - y) < 11) return;
+      lastY = y; html += '<span class="chart-ref" style="top:' + y.toFixed(1) + '%">' + r.label + '</span>';
+    });
+    html += '</div><p class="note chart-axis"><span>start</span><span>' + fmt(0) + ' to ' + fmt(hi / 1.08) + '</span><span>now, ' + fmtTime(t1) + ' in</span></p>';
+    return html;
+  }
+  function wireChart(id, pts, tipText) {
+    var wrap = $(id), svg = wrap && wrap.querySelector('svg');
+    if (!svg || pts.length < 2) return;
+    var tip = document.createElement('span'); tip.className = 'spark-tip'; tip.hidden = true; wrap.appendChild(tip);
+    var t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+    function show(clientX) {
+      var rect = svg.getBoundingClientRect(), f = clamp((clientX - rect.left) / rect.width, 0, 1), t = t0 + f * (t1 - t0), i, best = 0, ln = svg.querySelector('.chart-x');
+      for (i = 1; i < pts.length; i++) if (Math.abs(pts[i].t - t) < Math.abs(pts[best].t - t)) best = i;
+      f = (pts[best].t - t0) / Math.max(1, t1 - t0);
+      tip.hidden = false; tip.style.left = (f * rect.width) + 'px'; tip.textContent = tipText(pts[best]);
+      if (ln) { ln.setAttribute('x1', f * 300); ln.setAttribute('x2', f * 300); ln.setAttribute('visibility', 'visible'); }
+      chartHover[id] = clientX;
+    }
+    svg.addEventListener('pointermove', function (e) { show(e.clientX); });
+    svg.addEventListener('pointerleave', function () { tip.hidden = true; chartHover[id] = null; svg.querySelector('.chart-x').setAttribute('visibility', 'hidden'); });
+    if (chartHover[id] != null) show(chartHover[id]);
+  }
+  function wholeGame() {                 // the series behind the two whole-game charts
+    var L = S.long.concat([{ t: S.t, earned: S.earned, sold: S.stat.sold, crabs: S.crabs.length }]), earned = [], rate = [], i, j, dt;
+    for (i = 0; i < L.length; i++) {
+      earned.push({ t: L[i].t, v: L[i].earned, crabs: L[i].crabs });
+      // sales come in bursts, so the rate is taken over the last two minutes or so, not between neighbours
+      for (j = i - 1; j > 0 && L[i].t - L[j].t < 120; j--);
+      if (i) { dt = L[i].t - L[j].t; if (dt > 0.5) rate.push({ t: L[i].t, v: (L[i].sold - L[j].sold) / dt * 60, crabs: L[i].crabs }); }
+    }
+    return { earned: earned, rate: rate };
+  }
+  // ----- share a run: a plain-text summary of this game, for the clipboard -----
+  function runSummary() {
+    var g = wholeGame(), n = sim.counts(), crew = [], ranks = [], i, r, at, bestRate = 0;
+    for (r = 1; r <= S.rank; r++) {                  // when each rank came, from the whole-game history
+      at = null; for (i = 0; i < g.earned.length && at === null; i++) if (g.earned[i].v >= K.RANKS[r][0]) at = g.earned[i].t;
+      ranks.push(K.RANKS[r][1] + ' ' + (at === null ? '?' : fmtTime(at)));
+    }
+    K.ROLES.forEach(function (k) { if (n[k]) crew.push(n[k] + ' ' + (n[k] === 1 ? NAMES[k] : NAMES[k] + 's').toLowerCase()); });
+    g.rate.forEach(function (p) { bestRate = Math.max(bestRate, p.v); });
+    return ['🦀 Crabminer, day ' + S.day + ': ' + K.RANKS[S.rank][1],
+      money(S.earned) + ' earned in ' + fmtTime(S.t) + ' of crab time',
+      ranks.length ? 'Ranks: ' + ranks.join(' · ') : 'No rank-ups yet',
+      'Crew of ' + S.crabs.length + ': ' + crew.join(', '),
+      S.stat.sold.toLocaleString('en-US') + ' ingots delivered, best pace ' + bestRate.toFixed(1) + ' a minute, ' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' ship orders, ' + S.stat.pearls + ' pearls',
+      'https://crabminer.com'].join('\n');
+  }
+  function copySummary() {
+    var text = runSummary(), done = function () { toast('Copied a summary of this run', 'Paste it anywhere to share it.'); };
+    function fallback() {                 // older browsers, or a page without clipboard permission
+      var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      if (ok) done(); else toast('Could not copy', 'Your browser blocked the clipboard. The summary is in the Ledger tab.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+  function ledgerCharts() {
+    var g = wholeGame(), refs = K.RANKS.slice(1).map(function (r) { return { v: r[0], label: r[1] }; });
+    return lineChart('chart-earned', g.earned, 'Earned over the whole game', money, refs) +
+      lineChart('chart-rate', g.rate, 'Ingots delivered a minute, over the whole game', function (v) { return v.toFixed(1); });
+  }
+  function wireCharts() {
+    var g = wholeGame();
+    wireChart('chart-earned', g.earned, function (p) { return fmtTime(p.t) + ': ' + money(p.v) + ' earned, ' + p.crabs + ' crabs'; });
+    wireChart('chart-rate', g.rate, function (p) { return fmtTime(p.t) + ': ' + p.v.toFixed(1) + ' a minute, ' + p.crabs + ' crabs'; });
   }
   var sparkHover = null;
   function wireSpark() {
@@ -2856,6 +2950,8 @@
     ui.newgame.addEventListener('click', function () { newGame(); closeIntro(); });
     $('readmore').addEventListener('click', function () { ui.intro.hidden = true; if (!started) { started = true; newGame(); setSpeed(0); } });
     $('win-keep').addEventListener('click', function () { ui.win.hidden = true; });
+    $('win-share').addEventListener('click', copySummary);
+    ui.ledger.addEventListener('click', function (e) { if (e.target.closest('[data-share]')) copySummary(); });
     $('win-new').addEventListener('click', function () { ui.win.hidden = true; newGame(); });
     document.addEventListener('keydown', function (e) {
       if (e.target.closest && e.target.closest('input, select, textarea')) return;
@@ -2975,7 +3071,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

@@ -468,7 +468,7 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Crew tab | Panel | Hire (+), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
 | Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods |
 | Tech tab | Panel | Research and worker upgrades |
-| Ledger tab | Panel | Money, whole-game bars from sand to ship and for upkeep, crab talk by count, prices, stage capacities, overheads, coverage, the sea, bonuses |
+| Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, prices, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away and scroll the field |
 | [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |

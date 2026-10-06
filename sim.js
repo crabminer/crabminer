@@ -138,6 +138,7 @@ function CrabSim() {
       pocketForge: { role: 'repair', cost: 180 }, quickHands: { role: 'repair', cost: 120 },
       mechForge: { role: 'mech', cost: 180 }, toughJoints: { role: 'mech', cost: 220 }
     },
+    LONG_EVERY: 15, LONG_MAX: 240,   // whole-game history for the Ledger: a sample every 15 s, thinned as it fills
     RANKS: [[0, 'Sand Scraper'], [150, 'Pebble Boss'], [400, 'Nodule Baron'], [1000, 'Ingot Magnate'], [2500, 'Lava Lord'], [6000, 'Crab Tycoon']]
   };
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
@@ -198,7 +199,7 @@ function CrabSim() {
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
-      crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], tech: {}, wu: {}, layout: {}, pos: null
+      crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
     };
     for (k in K.LAYOUT) S.layout[k] = (opts.layout && opts.layout[k] !== undefined) ? opts.layout[k] : K.LAYOUT[k];
     for (k in (opts.wu || {})) S.wu[k] = true;
@@ -882,6 +883,13 @@ function CrabSim() {
     for (i = 0; i < STATS.length; i++) h[STATS[i]] = S.stat[STATS[i]];
     S.hist.push(h);
     if (S.hist.length > 302) S.hist.shift();
+    // the whole game, for the Ledger's charts: a sample every so often, thinned to half when the list fills up,
+    // so it always spans the game from the start at no more than LONG_MAX points
+    var L = S.long, last = L[L.length - 1];
+    if (!last || S.t - last.t >= S.longEvery - 1e-9) {
+      L.push({ t: S.t, earned: S.earned, sold: S.stat.sold, crabs: S.crabs.length });
+      if (L.length > K.LONG_MAX) { S.long = L.filter(function (x, j) { return j % 2 === 0 || j === L.length - 1; }); S.longEvery *= 2; }
+    }
   }
   function avgBattery() {
     var b = 0, n = 0, i;

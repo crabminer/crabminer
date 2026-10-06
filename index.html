@@ -346,6 +346,9 @@ body.big .toasts{top:.6rem}
 .flag-slow{font-size:.7rem;color:var(--mark);font-weight:700;white-space:nowrap}
 .spark{display:block;width:100%;height:46px;overflow:visible}
 .spark-wrap{position:relative}
+.spark.big{height:90px}
+.chart-ref{position:absolute;right:0;transform:translateY(-100%);font-size:.62rem;line-height:1.1;color:var(--ink-soft);pointer-events:none}
+.chart-axis{display:flex;justify-content:space-between;gap:.5rem;margin-top:.15rem}
 .spark-tip{
   position:absolute;top:-1.6rem;transform:translateX(-50%);padding:.1rem .35rem;border-radius:3px;
   background:var(--ink);color:var(--paper);font-size:.72rem;white-space:nowrap;pointer-events:none;
@@ -636,6 +639,7 @@ tr[data-say].saying{box-shadow:none}
     <p class="lede" id="win-text"></p>
     <div class="go">
       <button type="button" class="start" id="win-keep">Keep playing</button>
+      <button type="button" class="ghost" id="win-share">Copy a summary</button>
       <button type="button" class="ghost" id="win-new">New game</button>
     </div>
   </div>

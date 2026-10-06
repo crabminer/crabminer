@@ -147,7 +147,7 @@ off.
 | Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
 | Den | `decor[]`, `decorWork`, `decorTheme` |
 | Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle` |
-| Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes) |
+| Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes), `long[]` and `longEvery` (the whole game: a sample every 15 s, halved in resolution each time it passes `K.LONG_MAX` = 240 points) |
 
 **A crab** is a plain object:
 
@@ -194,7 +194,7 @@ Every 1/60 s of crab time, in this order:
 6. The engine's store gains heat; `weather()` (storms, lava surges, ship orders).
 7. `sell()`: the riser timer, flow streak, order premium and bonus, overclock banking,
    `ranks()`.
-8. Once a second: `market()` (price) and `snapshot()` (into `hist`).
+8. Once a second: `market()` (price) and `snapshot()` (into `hist`, and into `long` when a sample is due).
 
 ### 4.5 The role state machines
 
@@ -400,6 +400,15 @@ The canvas is drawn in painter's order:
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
 4. The sea turtle, then crabs in the air, riding the vent or the turtle.
+
+**Ledger charts and sharing.** `ledgerCharts()` draws two whole-game line charts from
+`S.long` (`wholeGame()`): money earned, with the ranks as dashed reference lines (a label is
+dropped if it would crowd the one above), and ingots delivered a minute, averaged over about
+two minutes because sales come in bursts. Each is one series on its own axis, in `--link`,
+with a crosshair and a readout on hover (`lineChart()`, `wireChart()`; hover survives the
+once-a-second re-render). `runSummary()` writes a plain-text summary (rank and when each rank
+came, crew, deliveries, orders, pearls) that `copySummary()` puts on the clipboard, from the
+Ledger or the win card.
 
 **Plankton.** `updatePlankton()` moves 160 plankton through a daily cycle: deep by day,
 near the surface at night (following `nightA`), carried by the tide and storms. They flare

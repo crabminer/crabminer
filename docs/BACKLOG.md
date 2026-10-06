@@ -10,7 +10,7 @@ These came from earlier rounds of ideas and are already in the game: tides and s
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
 the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
 the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
-and cached paper-dune sheets.
+cached paper-dune sheets, whole-game charts in the Ledger, and sharing a run.
 
 ## Visitors and the sea
 
@@ -76,16 +76,13 @@ and cached paper-dune sheets.
   try overclock.
 - **Sound.** Soft clicks, bubbles, a crab-rave tune, the whale's song; muted by default,
   with a toggle.
-- **Statistics charts.** Output and money over the whole game in the Ledger, not just the
-  last minute.
 - **Colour-blind check.** Run the role colours through a contrast and CVD validator and add
   a shape or letter to each crab's gear so roles are never told apart by colour alone.
 - **Touch gestures.** Pinch to zoom the field on phones, drag to pan, long-press a crab for
   its card.
-- **Share a run.** Copy a short summary (time to Tycoon, crew, best day) to the clipboard.
 
 ## Engineering
 
-- **Skip drawing off screen.** The loop already stops when the tab is hidden; it could also
-  skip `draw()` (but keep stepping the sim) while the field is scrolled out of view and the
-  player is reading the paper, to save phone batteries.
+- **Skip offscreen sprites.** Drawing already stops while the game is scrolled out of view
+  and the loop stops in a hidden tab. On the wide big field, crabs and particles outside the
+  visible part of the canvas could be skipped too.

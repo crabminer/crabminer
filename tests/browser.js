@@ -112,6 +112,8 @@ async function check(b, size) {
       await shot('ledger');
       expect(await js('document.querySelectorAll("#ledger .ltable.talk tr").length') === await js('Object.keys(crabminer.talk()).length'), 'the Ledger does not list every kind of crab talk');
       expect(await js('document.querySelectorAll("#ledger .ltable.bars").length') >= 3, 'the Ledger is missing its whole-game bars');
+      expect(await js('!!document.querySelector("#ledger [data-share]") && /Crabminer, day \\d+/.test(crabminer.summary())'), 'no run summary to share');
+      expect(await js('/Earned over the whole game/.test(document.getElementById("ledger").textContent)'), 'the Ledger is missing its whole-game charts');
     }
   }
   await js('document.getElementById("help").click(); true');

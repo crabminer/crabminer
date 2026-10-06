@@ -111,6 +111,29 @@ you can have (section 14).
 
 Walk speeds are in track units per second. Haulers walk at 88 with Spring legs.
 
+### Names, records and veterans
+
+Every crab has a name and keeps a record: the jobs it has done at its own work, nodules it
+carried on the backup job, pearls, vent rides, dances, and legs lost. Click a crab to see its
+name, what it is doing, and its record. The Ledger lists the crew with the most stars first.
+
+A crab that has done enough of its own job earns a star, up to three. Each star makes it 5%
+faster at its own job, both working and walking; the backup job gets no bonus. A crab earns
+its stars at these job counts, which come to roughly 6, 18 and 36 minutes of steady work:
+
+| Kind | Counts as a job | ★ | ★★ | ★★★ |
+| --- | --- | --- | --- | --- |
+| Scout | a flag planted | 15 | 45 | 90 |
+| Drill | a hole drilled, rich or dry | 40 | 120 | 240 |
+| Hauler | a nodule stacked | 20 | 60 | 120 |
+| Crusher | a bar pressed | 25 | 75 | 150 |
+| Smelter | an ingot smelted | 20 | 60 | 120 |
+| Energy bot | a crab recharged | 35 | 105 | 210 |
+| Repair bot | a bit or cell fitted | 7 | 21 | 42 |
+| Maintenance bot | a leg fitted | 2 | 6 | 12 |
+
+Retiring always takes the newest crab of a kind, so your veterans stay.
+
 ## 5. The production chain
 
 ```

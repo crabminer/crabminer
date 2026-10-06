@@ -144,7 +144,8 @@ off.
 
 | Group | Fields |
 | --- | --- |
-| Identity | `id`, `role`, `k` (number within its role; used for lanes and groups) |
+| Identity | `id`, `role`, `k` (number within its role; used for lanes and groups), `name` |
+| Record | `rec{jobs, helped, rides, legs, dances, pearls}`, `stars` (0–3, veteran level) |
 | Position | `x`, `d`, `dir`, `air` (vent ride: `{phase, x0, gx, gd, tx, td, used}`), `alt` (0–1 height on the ride) |
 | Behaviour | `state` (state-machine node), `timer`, `target`, `tx`/`td`, `flag`, `nod` (hole being drilled), `load` (hauler), `bload` (backup job), `carry` (item in claws), `n` (bars carried) |
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
@@ -235,6 +236,18 @@ pocket-forge and quick-hands upgrade keys, and what fixing does.
 - `needs(w, kind)` says what a crab needs fixed.
 - `isHeld(w)` freezes a crab while it is being fixed.
 
+**Names, records and veterans.**
+- `newcomer(c)` gives a crab its name, an empty `rec` and no `stars`. `addCrab` calls it, and
+  so does `load()` for crabs from saves made before names existed. The name is the first one
+  in `K.CRAB_NAMES` not worn by a living crab, starting from a place set by the crab's `id`,
+  so names use no randomness.
+- `emit()` passes every event to `tally(type, a, b)`, which keeps the records. `JOB` maps
+  each role to the events that count as its own job; the hauler's `stack` is its job, anyone
+  else's `stack` is backup help. When `rec.jobs` reaches `K.VET_AT[role] × K.VET_LEVELS[stars]`,
+  the crab gains a star and `veteran` is emitted.
+- `pace(c)` adds `K.VET_BONUS` per star, except in the backup states. `capacity()` scales
+  each role by `veterans(role)`, its average star bonus.
+
 **Backup job.** `primaryReady(c)` says whether the crab's own job has work. `tryBackup(c)`
 starts carrying nodules when it does not; `backupHaul(c)` runs the job, and `endBackup(c)`
 resumes the role.
@@ -274,7 +287,8 @@ and leaves the game untouched.
   becomes `{$id: n, $arr: [...]}`. `load()` reads the same order back, so every claim, dance
   partner, dock and rider points at the same crab again.
 - **View fields.** Keys that start with `v`, plus `anim` and `say`, are left out (section 10).
-  A new sim field must therefore not start with `v`.
+  A new sim field must therefore not start with `v`: the veteran level was first called
+  `vet`, and the round-trip test caught saves silently dropping it.
 - **Determinism.** The seed is saved, so a loaded game plays on exactly as the original
   would have. The round-trip test checks this: it saves, loads into a second instance, plays
   both with the same actions, and compares their saves.
@@ -292,7 +306,7 @@ notifications only: the sim never depends on anyone reading them.
 
 | Area | Events |
 | --- | --- |
-| Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `morning`, `dawn`, `shiftMode` |
+| Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `morning`, `dawn`, `shiftMode`, `veteran` |
 | Mining | `flag`, `miss`, `flagDone`, `strike`, `uncover`, `dry`, `pearl` |
 | Line | `take`, `stack`, `feed`, `bar`, `grab`, `ingot`, `stock`, `sell`, `rank` |
 | Power | `charge`, `plug`, `refill`, `postGrab`, `postMoved`, `postDrift` |
@@ -428,7 +442,12 @@ dances used by pairs.
   - Build: upgrade cards, arrange note, post toggle, den decorations
   - Tech: research and worker-upgrade cards
 - **Ledger:** `renderLedger()` builds tables from `rates()`, `capacity()`, `bottleneck()`,
-  `coverage()` and `S.stat`, plus an SVG sparkline of the price.
+  `coverage()` and `S.stat`, plus an SVG sparkline of the price. The crew table lists the
+  twelve crabs with the most stars (then nearest their next star), using `recText(c)`.
+- **Crab card:** clicking a crab shows `drawInfo()`: its name, kind and stars, `statusText(c)`,
+  and `recText(c)`. `drawCrab` draws one small gold star per veteran level on the shell.
+  The `veteran` event cheers the crab and its neighbours; a toast explains the first star of
+  the game and announces every third star.
 - **Advisor:** `advice()` picks one message, in priority order:
   1. octopus
   2. trader open
@@ -459,6 +478,7 @@ dances used by pairs.
 - **Debug:** `window.crabminer` exposes:
   - `sim` and `state()`
   - `view()`, read-only view values
+  - `select(crab)`, which opens a crab's card as a click would
   - `summonWhale()`
 
   It is for the console and for automated browser tests.

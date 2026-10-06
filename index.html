@@ -309,6 +309,7 @@ body.big .toasts{top:.6rem}
 .cap{position:relative;height:.6rem;min-width:4rem;background:transparent}
 .cap i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0;background:var(--link);opacity:.85}
 .cap b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.vet{color:var(--mark);letter-spacing:-.05em}
 .flag-slow{font-size:.7rem;color:var(--mark);font-weight:700;white-space:nowrap}
 .spark{display:block;width:100%;height:46px;overflow:visible}
 .spark-wrap{position:relative}
@@ -645,7 +646,7 @@ tr[data-say].saying{box-shadow:none}
         <summary>How crabs talk</summary>
         <p class="note">Crabs speak in emoji sentences: a thing, then a verb, then sometimes who, or how they feel.</p>
         <table class="ltable"><tbody>
-          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🚢 ship · 🐋 whale · 🏠 den · 🐚 shell · 🛒 shop · 🐢 turtle · 🦀 you, me</td></tr>
+          <tr><th scope="row">Things</th><td>🔋 charge · 🦵 leg · ⛏️ drill bit · 🪨 nodule · 🧱 bar · 🪙 ingot · 🚩 flag · 🔥 forge · ⭐ a veteran's star · 🌋 vent · 🌊 tide · 🌩️ storm · 🐙 octopus · 🦪 pearl · 🚢 ship · 🐋 whale · 🏠 den · 🐚 shell · 🛒 shop · 🐢 turtle · 🦀 you, me</td></tr>
           <tr><th scope="row">Verbs</th><td>❓ I need · 👍 on my way · ➡️ bringing it · ✅ got it, done · 💔 broke · ⛔ full · ❗ found one · ❤️ thanks</td></tr>
           <tr><th scope="row">Examples</th><td>🔋❓ "I need charge". An energy bot answers 🔋➡️🦀, "bringing you charge". Then 🔋✅❤️, "got it, thanks". 🦵💔😭 is a lost leg, and 🧱➡️🔥 is a maintenance bot taking a bar to the forge.</td></tr>
         </tbody></table>
@@ -692,6 +693,7 @@ tr[data-say].saying{box-shadow:none}
     <p class="dropcap"><span class="lead">The</span> game opens on three layers of dunes, cut from paper and stacked one behind another. The front dune holds the processing line: an ore pile, a crushing yard, a bar stack, a stockpile of refined metal, and the collector at the foot of the riser. A basalt outcrop on the right holds a pool of lava. Beside it stand a Stirling engine and the energy bots' base station, and above it a thermal vent sends warm water and bubbles up to near the surface. The middle and back dunes start out roped off. They hold richer deposits, and the player can buy the claims to them.</p>
     <p>The player starts with nine crabs, room in the den for ten, and 120 credits. The aim is to earn money by selling metal upward. Lifetime earnings set the player's rank, and each new rank pays a bonus of a tenth of its threshold. The ranks are Pebble Boss at 150 credits, Nodule Baron at 400, Ingot Magnate at 1,000, Lava Lord at 2,500, and Crab Tycoon at 6,000. Reaching Crab Tycoon wins the game, and the time taken is the player's score. Play can continue afterwards. The game saves itself in the browser every ten seconds and whenever the page is hidden or closed, so a reload carries on where it stopped; New game in the introduction starts over.</p>
     <p>The <span class="runin">Crew</span> tab hires and retires crabs and sets the shift pattern. Each further crab of a role costs 15% of the base price more than the one before, and a retired crab refunds half of what it cost. The <span class="runin">Build</span> tab buys upgrades. The top bar shows the day and shift, the flow bonus, and the overclock button, and it sets how many ingots to hold back from sale. The <span class="runin">Ledger</span> tab holds the analysis. An advisor names the slowest stage, or the job nobody covers on some shift, in plain words.</p>
+    <p><span class="runin">Named crabs and veterans.</span> Every crab has a name and a record of its jobs, backup trips, pearls, vent rides, dances, and lost legs, shown when it is clicked and in a crew table in the Ledger. A crab that does enough of its own job earns a star, up to three, at roughly 6, 18, and 36 minutes of steady work. Each star makes it 5% faster at its own job, working and walking, but not at the backup job. Retiring always takes the newest crab of a kind, so a stable crew keeps its veterans.</p>
     <p><span class="runin">Big field.</span> The game opens straight into play, on the big field. The front dune fills the lower half of the screen, and the world is wider than the window, so it scrolls sideways. The panel floats on the field as a sheet of paper with five tabs: Crew, Build, Tech, Ledger, and View. View tucks the rest away and leaves a slider for scrolling the field. The Big field button (or the B key) switches to a side panel instead, and the ? button brings up the introduction.</p>
   </div>
 
@@ -883,7 +885,8 @@ tr[data-say].saying{box-shadow:none}
   </div>
   <div class="cols" id="review">
     <p><span class="runin">Working configurations.</span> Hill-climbing, moving one crab between roles at a time and averaging two seeds, found these crews. With ten crabs on all hands over eight minutes, the best was one scout, one drill, one hauler, one crusher, three smelters, one energy bot, and two repair bots, at 6.2 ingots a minute. That is only a little ahead of the starting crew plus a smelter. Over twenty minutes, the best ten-crab crew had no haulers at all: 2 scouts, 2 drills, 1 crusher, 2 smelters, 1 energy bot, 1 repair bot, and 1 maintenance bot, at 4.9. The backup job does the hauling, because every crab carries nodules whenever its own work is stuck. Dedicated haulers come back into their own as the line grows. With 18 crabs on A and B shifts the best was 3 scouts, 3 drills, 3 haulers, 2 crushers, 3 smelters, 2 energy bots, 1 repair bot, and 1 maintenance bot, at 12.7. With 30 crabs and every upgrade it was 3, 7, 5, 3, 6, 3, 2, and 1, at 28.1.</p>
-    <p><span class="runin">Pace.</span> An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 1.8 minutes, Nodule Baron at 4.0, Ingot Magnate at 8.1, Lava Lord at 17.2, and Crab Tycoon at 34.7, and earned 7,700 credits in 40 minutes. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 14.4 and Crab Tycoon at 24.4, and earned 17,500. That is about six minutes of real time at 4× speed. Three-shift relief from 18 crabs reached Crab Tycoon at 26.8. Adding research to the A and B strategy delays Crab Tycoon to 28.1 minutes, because the money goes into labs first. It pays back by the end: 53 ingots a minute and 20,400 credits by minute 40, against 42 and 17,500 without it.</p>
+    <p><span class="runin">Pace.</span> These runs were made before crabs earned veteran stars; the next paragraph measures what veterans change. An automatic player that fixes the advisor's bottleneck, fills shift gaps, and spends spare money on upgrades was run three times for each strategy. Staying on all hands without overclock, it reached Pebble Boss at 1.8 minutes, Nodule Baron at 4.0, Ingot Magnate at 8.1, Lava Lord at 17.2, and Crab Tycoon at 34.7, and earned 7,700 credits in 40 minutes. Switching to A and B shifts at 14 crabs, with overclock, reached Lava Lord at 14.4 and Crab Tycoon at 24.4, and earned 17,500. That is about six minutes of real time at 4× speed. Three-shift relief from 18 crabs reached Crab Tycoon at 26.8. Adding research to the A and B strategy delays Crab Tycoon to 28.1 minutes, because the money goes into labs first. It pays back by the end: 53 ingots a minute and 20,400 credits by minute 40, against 42 and 17,500 without it.</p>
+    <p><span class="runin">Veterans.</span> A rebuilt automatic player of the same kind was run over six seeds with veteran stars on and off. Stars come early: by minute 40 almost every crab has at least one. They change little in the first ranks and help most later. With A and B shifts and overclock, Crab Tycoon came at 28.1 minutes instead of 30.9, and earnings by minute 40 rose by a quarter. With research it came at 24.3 instead of 26.0. Under three-shift relief Tycoon came about a minute later, at 31.2, but output at minute 40 was 56 ingots a minute against 44. On all hands, earnings by minute 40 rose by 6%. With fixed crews, output over 40 minutes rose by 13%.</p>
     <p><span class="runin">The vent.</span> For an 18-crab crew the vent carries a few rides a minute, mostly energy bots and repair crews heading back to the field, and raises output by about 4%. It earns its place more as spectacle than as economics, and the crabs only take it when it saves time.</p>
     <p><span class="runin">Changes made in review.</span> The first version of wear grew without limit, and a crew on all hands spiralled into breakdowns. Wear now does nothing for four minutes and at most doubles breakdowns and slows a crab by a fifth. A and B shifts at first left half of each crew working day and night, so the resting half now alternates night by night. All hands also showed night shading and sleepy faces, though nobody sleeps in that mode. The shading now only falls when there are shifts, and a crab with a flat battery looks exhausted and asks for charge rather than dozing.</p>
   </div>
@@ -1017,6 +1020,15 @@ function CrabSim() {
     ROLES: ['scout', 'drill', 'haul', 'crush', 'smelt', 'energy', 'repair', 'mech'],
     HIRE: { scout: 30, drill: 35, haul: 25, crush: 40, smelt: 40, energy: 35, repair: 35, mech: 35 },
     START: { scout: 1, drill: 2, haul: 2, crush: 1, smelt: 1, energy: 1, repair: 1, mech: 0 },
+    // every crab has a name; a crab that has done enough of its own job becomes a veteran, up to three stars,
+    // and works and walks a little faster at that job (not at the backup job)
+    CRAB_NAMES: ['Pinch', 'Clawdia', 'Shelly', 'Barnacle', 'Snips', 'Coral', 'Bubbles', 'Nipper', 'Pebble', 'Kelp',
+      'Scuttle', 'Marina', 'Sandy', 'Rusty', 'Pearl', 'Clicky', 'Dune', 'Tidy', 'Brine', 'Mussel', 'Limpet', 'Sprocket',
+      'Ripple', 'Gravel', 'Nugget', 'Krill', 'Wrench', 'Sideways', 'Zinc', 'Cobalt', 'Ingrid', 'Tango', 'Bolt', 'Flint',
+      'Murex', 'Whelk', 'Cockle', 'Dredge', 'Pumice', 'Basalt', 'Lagoon', 'Spindle', 'Gizmo', 'Ember', 'Tinker', 'Abalone',
+      'Puddle', 'Sprat', 'Quartz', 'Nautilus', 'Scampi', 'Copper', 'Glimmer', 'Tumble', 'Riff', 'Sonar', 'Clamshell', 'Ozzy'],
+    VET_AT: { scout: 15, drill: 40, haul: 20, crush: 25, smelt: 20, energy: 35, repair: 7, mech: 2 },   // jobs for the first star: about 6 minutes' work
+    VET_LEVELS: [1, 3, 6], VET_BONUS: 0.05,                                   // stars at 1x, 3x and 6x those jobs; +5% a star
     // the three dunes, front to back; deeper dunes hold richer, larger deposits
     ZONES: [
       { name: 'Front dune', d0: 0.70, d1: 0.97, q: 0, size: 0 },
@@ -1065,7 +1077,7 @@ function CrabSim() {
   function sr() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
   function srr(a, b) { return a + sr() * (b - a); }
   function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
-  function emit(type, a, b) { events.push({ type: type, a: a, b: b }); }
+  function emit(type, a, b) { events.push({ type: type, a: a, b: b }); tally(type, a, b); }
   function up(id) { return K.UP[id].vals[S.lv[id]]; }
   function oreCap() { return K.ORE_CAP[up('yard')]; }
   function barCap() { return K.BAR_CAP[up('yard')]; }
@@ -1083,7 +1095,7 @@ function CrabSim() {
     return S.t - c.lastRest <= K.REST_WINDOW * K.DAY / 24 ? 1 : K.NIGHT_SLOW;
   }
   function pace(c) {
-    return (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
+    return (BACK[c.state] ? 1 : 1 + K.VET_BONUS * c.stars) * (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
       (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) * nightSlow(c) *
       (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1);   // the night crew
   }
@@ -1151,6 +1163,7 @@ function CrabSim() {
       target: null, claimedBy: null, fixBy: null, mendBy: null, flag: null, charges: charges(), bitOk: true, broken: false, limp: false,
       wear: 0, air: null, alt: 0, dance: null, rested: 0, fresh: 0, lastRest: S.t, bload: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
     };
+    newcomer(c);
     if (role === 'scout' || role === 'drill' || role === 'haul') { p = spot(); c.x = p.x; c.d = p.d; }
     else if (role === 'crush') { c.x = S.pos.CRUSH; c.d = 0.8; }
     else if (role === 'smelt') { c.x = S.pos.GRAB; c.d = 0.78; }
@@ -1160,6 +1173,34 @@ function CrabSim() {
     rank();
     emit('join', c);
     return c;
+  }
+  function newcomer(c) {                   // a name, an empty record and no stars; also fills in crabs from older saves
+    var used = {}, L = K.CRAB_NAMES, i, j;
+    if (!c.name) {                         // the first free name from a spot set by its number, so no randomness is used
+      for (i = 0; i < S.crabs.length; i++) used[S.crabs[i].name] = true;
+      for (i = 0; i < L.length; i++) { j = L[(c.id * 7 + i) % L.length]; if (!used[j]) { c.name = j; break; } }
+      if (!c.name) c.name = L[c.id % L.length] + ' ' + (Math.floor(c.id / L.length) + 1);
+    }
+    c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0 };
+    c.stars = c.stars || 0;
+  }
+  var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
+  function tally(type, a, b) {             // each crab's personal record, kept from the events it takes part in
+    if (!a || !a.rec) return;
+    var r = a.rec;
+    if (JOB[a.role][type]) {
+      r.jobs++;
+      if (a.stars < K.VET_LEVELS.length && r.jobs >= K.VET_AT[a.role] * K.VET_LEVELS[a.stars]) { a.stars++; emit('veteran', a, a.stars); }
+    } else if (type === 'stack') r.helped++;
+    else if (type === 'ride') r.rides++;
+    else if (type === 'legOff') r.legs++;
+    else if (type === 'pearl') r.pearls++;
+    else if (type === 'dance') { r.dances++; if (b && b.rec) b.rec.dances++; }
+  }
+  function veterans(role) {                // stars across a role, for the capacity estimate
+    var n = 0, v = 0, i, c;
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role === role) { n++; v += c.stars; } }
+    return n ? 1 + K.VET_BONUS * v / n : 1;
   }
   function release(c) {                    // let go of every claim: used when a crab leaves or goes off shift
     if (BACK[c.state] && c.target) { c.target.by = null; c.target = null; }
@@ -2099,7 +2140,7 @@ function CrabSim() {
   function capacity() {
     var n = counts(), z = up('field'), workers = S.crabs.length - n.energy, wm = 1 + Math.min(K.WEAR_MAX, Math.max(0, avgWear() - K.WEAR_FREE) / K.WEAR_SCALE);
     var breaks = (n.drill * PER.holes * up('bits') + n.energy * 10 * K.EBOT_WEAR) * wm, legs = S.crabs.length * K.LEG_RATE * 60 * wm;
-    var d = function (r) { return n[r] * dutyShare(r); };
+    var d = function (r) { return n[r] * dutyShare(r) * veterans(r); };
     return {
       scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]) * (has('wideSonar') ? 1.35 : 1) * (has('deepSonar') ? 1.2 : 1),
       drill: d('drill') * (n.scout ? PER.drill : PER.wildcat) * (has('diamondTips') ? 1.2 : 1) * (has('twinAugers') ? 1.2 : 1),
@@ -2280,6 +2321,7 @@ function CrabSim() {
     for (k = 0; k < STATS.length; k++) if (s.stat[STATS[k]] === undefined) s.stat[STATS[k]] = 0;
     S = s; seed = data.seed >>> 0; events = [];
     layoutPos();
+    S.crabs.forEach(newcomer);
     return true;
   }
 
@@ -2315,7 +2357,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var puffs = [], flights = [], lifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var traderBubble = 0, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
+  var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -2470,7 +2512,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
   var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
   var WORDS = { '🔋': 'charge', '🦵': 'leg', '⛏': 'bit', '🪨': 'ore', '🧱': 'bar', '🪙': 'ingot', '🚩': 'flag', '🔥': 'forge', '🌋': 'vent',
     '🦀': 'crab', '❓': '?', '➡': '>', '👍': 'ok', '✅': 'done', '💔': 'broke', '⛔': 'full', '❗': '!', '❤': '♥', '❌': 'no',
-    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop' };
+    '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -2709,6 +2751,17 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
         say(e.b, a.role === 'mech' ? TALK.mended : TALK.fixedBit, 2);
         play(e.b, ['relief', 'hug', 'bow', 'spin'], 1.8); play(a, ['flex', 'salute', 'bow'], 1.4);
         if (a.role === 'mech') debris = debris.filter(function (dd) { return dd.crab !== e.b; });   // the leg goes back on
+        break;
+      case 'veteran':                                    // a crab earns a star at its own job
+        p = clawPos(a, 1); spark(p.x, p.y - 6 * CS, 12, pal.ingot); express(a, 'proud', 2); a.vhop = 0.8;
+        say(a, '⭐🦀💪', 2); play(a, ['flex', 'pump', 'sparkleEyes'], 1.8);
+        near(a.x, 60).forEach(function (n) { if (n !== a) play(n, ['clap', 'cheer'], 1.4); });
+        if (!vetToast || e.b === K.VET_LEVELS.length) {    // the first star of the game, and every third star
+          toast(a.name + (e.b === K.VET_LEVELS.length ? ' is a master ' : ' is a veteran ') + ROLE_NOUN[a.role] + ' ' + '★'.repeat(e.b),
+            vetToast ? recText(a) + '. Three stars: ' + Math.round(K.VET_BONUS * e.b * 100) + '% faster at its own job.' :
+              'Crabs that do enough of their own job earn stars, up to three. Each star makes it ' + Math.round(K.VET_BONUS * 100) + '% faster at that job. Retiring takes the newest crab of a kind, so veterans stay.');
+          vetToast = true;
+        }
         break;
       case 'rank':
         if (!started) break;                             // the crew behind the intro does not rank up out loud
@@ -3885,6 +3938,11 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     ctx.fillText(text, x, y + 0.5);
     ctx.restore();
   }
+  function star(x, y, r, fill, edge) {   // a small five-pointed star
+    ctx.beginPath();
+    for (var j = 0; j < 10; j++) { var a = -Math.PI / 2 + j * Math.PI / 5, q = j % 2 ? r * 0.45 : r; ctx.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); }
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = edge; ctx.lineWidth = 0.6; ctx.stroke();
+  }
   function drawCrab(c) {
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
     var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1);
@@ -4062,6 +4120,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       ctx.beginPath(); ctx.ellipse(-6 * s, by + 0.8 * s, 1.8 * s, 1 * s, 0, 0, TAU); ctx.ellipse(6 * s, by + 0.8 * s, 1.8 * s, 1 * s, 0, 0, TAU); ctx.fill();
       ctx.globalAlpha = 1;
     }
+    for (i = 0; i < c.stars; i++) star((i - (c.stars - 1) / 2) * 4.6 * s, by + 3 * s, 1.9 * s, pal.ingot, dark);   // veteran stars
     if (role === 'repair') {                                 // hard hat
       ctx.fillStyle = pal.hat; ctx.beginPath(); ctx.ellipse(0, by - 5.2 * s, 7.5 * s, 4.8 * s, 0, Math.PI, TAU); ctx.fill();
       ctx.fillRect(-9 * s, by - 5.6 * s, 18 * s, 1.6 * s);
@@ -4123,6 +4182,18 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     }
     if (selected === c && T < selectedUntil) drawInfo(c, px, by - 32 * s, s);
   }
+  var ROLE_NOUN = { scout: 'scout', drill: 'driller', haul: 'hauler', crush: 'crusher', smelt: 'smelter', energy: 'energy bot', repair: 'repair bot', mech: 'maintenance bot' };
+  var JOB_NOUN = { scout: 'flags', drill: 'holes', haul: 'nodules stacked', crush: 'bars', smelt: 'ingots', energy: 'charges', repair: 'repairs', mech: 'legs mended' };
+  function starText(c) { return c.stars ? ' ' + '★'.repeat(c.stars) : ''; }
+  function recText(c) {                // a crab's personal record, in a line
+    var r = c.rec, out = [r.jobs + ' ' + JOB_NOUN[c.role]];
+    if (r.helped) out.push(r.helped + ' nodule' + (r.helped === 1 ? '' : 's') + ' helped');
+    if (r.pearls) out.push(r.pearls + ' pearl' + (r.pearls === 1 ? '' : 's'));
+    if (r.rides) out.push(r.rides + ' vent ride' + (r.rides === 1 ? '' : 's'));
+    if (r.dances) out.push(r.dances + ' dance' + (r.dances === 1 ? '' : 's'));
+    if (r.legs) out.push(r.legs + ' leg' + (r.legs === 1 ? '' : 's') + ' lost');
+    return out.join(' · ');
+  }
   function statusText(c) {
     var t = {
       scout: { go: 'heading out to scan', scan: 'scanning for metal', rest: 'resting: plenty of flags already' },
@@ -4146,17 +4217,18 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     return t;
   }
   function drawInfo(c, x, y, s) {
-    var line1 = NAMES[c.role] + ' ' + (c.k + 1), line2 = statusText(c), w;
+    var line1 = c.name + ', ' + NAMES[c.role].toLowerCase() + starText(c), line2 = statusText(c), line3 = recText(c), w;
     ctx.save();
     ctx.font = '700 12px ' + cssFont; w = ctx.measureText(line1).width;
-    ctx.font = '11px ' + cssFont; w = Math.max(w, ctx.measureText(line2).width) + 16;
-    x = clamp(x, w / 2 + 4, W - w / 2 - 4); y = Math.max(y, 40);
+    ctx.font = '11px ' + cssFont; w = Math.max(w, ctx.measureText(line2).width, ctx.measureText(line3).width) + 16;
+    x = clamp(x, w / 2 + 4, W - w / 2 - 4); y = Math.max(y, 54);
     ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-    ctx.fillStyle = pal.paper; roundRect(x - w / 2, y - 34, w, 32, 4); ctx.fill();
+    ctx.fillStyle = pal.paper; roundRect(x - w / 2, y - 47, w, 45, 4); ctx.fill();
     ctx.shadowColor = 'transparent';
     ctx.fillStyle = pal.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.font = '700 12px ' + cssFont; ctx.fillText(line1, x, y - 20);
-    ctx.font = '11px ' + cssFont; ctx.fillText(line2, x, y - 7);
+    ctx.font = '700 12px ' + cssFont; ctx.fillText(line1, x, y - 33);
+    ctx.font = '11px ' + cssFont; ctx.fillText(line2, x, y - 20);
+    ctx.globalAlpha = 0.75; ctx.fillText(line3, x, y - 7); ctx.globalAlpha = 1;
     ctx.restore();
   }
 
@@ -4532,6 +4604,14 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
       html += '</tr>';
     }
     html += '</tbody></table><p class="note">' + SHIFT_INFO[S.shift].note + ' Every role needs someone on duty in every part of the day, or the line stops then.</p>';
+    var crew = S.crabs.slice().sort(function (a2, b2) { return b2.stars - a2.stars || b2.rec.jobs / K.VET_AT[b2.role] - a2.rec.jobs / K.VET_AT[a2.role]; }), shown = crew.slice(0, 12);
+    html += '<h3>The crew: names, stars and records</h3><table class="ltable"><thead><tr><th scope="col">Crab</th><th scope="col">Job</th><th scope="col">Record</th></tr></thead><tbody>';
+    shown.forEach(function (cr2) {
+      var nextAt = cr2.stars < K.VET_LEVELS.length ? K.VET_AT[cr2.role] * K.VET_LEVELS[cr2.stars] : 0;
+      html += '<tr><th scope="row">' + cr2.name + (cr2.stars ? ' <span class="vet" aria-label="' + cr2.stars + ' star' + (cr2.stars === 1 ? '' : 's') + '">' + '★'.repeat(cr2.stars) + '</span>' : '') + '</th><td>' + ROLE_NOUN[cr2.role] + '</td><td class="note">' + recText(cr2) +
+        (nextAt ? ' (next star at ' + nextAt + ')' : '') + '</td></tr>';
+    });
+    html += '</tbody></table><p class="note">' + (crew.length > shown.length ? 'And ' + (crew.length - shown.length) + ' more. ' : '') + 'Each star makes a crab ' + Math.round(K.VET_BONUS * 100) + '% faster at its own job. Retiring takes the newest crab of a kind, so veterans stay.</p>';
     html += '<h3>The sea</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Tide</th><td class="n">' + (S.tide > 0.75 ? 'high: washing nodules up' : S.tide < -0.75 ? 'low: burying idle flags' : S.tide > 0 ? 'rising' : 'falling') + '</td></tr>' +
       '<tr><th scope="row">Washed up / buried</th><td class="n">' + S.stat.washed + ' nodules / ' + S.stat.buried + ' flags</td></tr>' +
@@ -4803,7 +4883,7 @@ if (typeof module !== 'undefined') module.exports = CrabSim;
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase }; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase }; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

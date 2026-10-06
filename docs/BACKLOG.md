@@ -8,7 +8,7 @@ to; move an item into the game, the rules and the paper together when it is buil
 
 These came from earlier rounds of ideas and are already in the game: tides and storms,
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
-the hermit-crab trader, and the sea turtle.
+the hermit-crab trader, the sea turtle, save and load, and named crabs with veteran stars.
 
 ## Visitors and the sea
 
@@ -31,10 +31,6 @@ the hermit-crab trader, and the sea turtle.
 
 ## Crew and characters
 
-- **Named crabs.** Each crab gets a name and a tiny record (ingots made, rides taken, legs
-  lost); click to see it. Names in `addCrab`, records in per-crab counters.
-- **Veteran levels.** Crabs that have done enough of their job become veterans (a small
-  badge, +5% at their own task). Rewards keeping a stable crew over hiring and retiring.
 - **Crab festival day.** Every tenth day: a long rave at dawn, double flow bonus, and the
   den gets a festival decoration. Hook on `morning()` when `S.day % 10 === 0`.
 - **Apprentices.** Cheap trainee crabs that work at half speed and become full crabs of

@@ -154,7 +154,7 @@ off.
 | Group | Fields |
 | --- | --- |
 | Identity | `id`, `role`, `k` (number within its role; used for lanes and groups), `name` |
-| Record | `rec{jobs, helped, rides, legs, dances, pearls}`, `stars` (0–3, veteran level) |
+| Record | `rec{jobs, helped, rides, legs, dances, pearls, chests}`, `stars` (0–3, veteran level) |
 | Position | `x`, `d`, `dir`, `air` (vent ride: `{phase, x0, gx, gd, tx, td, used}`), `alt` (0–1 height on the ride) |
 | Behaviour | `state` (state-machine node), `timer`, `target`, `tx`/`td`, `flag`, `nod` (hole being drilled), `load` (hauler), `bload` (backup job), `carry` (item in claws), `n` (bars carried) |
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
@@ -212,6 +212,10 @@ batteries, and moves between states. No crab knows the plan.
 | repair, mech (`fixer`) | `idle → toMat → fetch → (toForge → forge) → toJob → fix → idle` | `idle` |
 | any (backup) | `bseek ⇄ bpick → bhaul → bstack → bseek → (end) resume` | the end returns to `RESUME[role]` |
 | any | `sleep` | wakes to `RESUME[role]` |
+
+A scan on the back dune may make a chest flag (`chest: true`, richness 1, size 1). The drill
+that finishes a hole in it calls `openChest(c)` instead of rolling for a strike: credits, a
+random good through `give(id)`, and a `chest` event.
 
 The two repair roles share one machine, `fixer()`. It is driven by a descriptor in `FIX`
 that gives the claim field, raw material, part, where to fetch, how to take, the
@@ -279,7 +283,7 @@ resumes the role.
   lost, the drive eased by `K.RIVAL_EASE`). `sell()` raises the drive by `K.RIVAL_PUSH` when
   the player fills a raced order.
 - `turtle()` runs the turtle: it chooses its side, looks ahead for the crab that would gain most from a lift, steers toward it, may turn back once, carries the crab to its goal, and leaves.
-- `trader()` runs the trader: `come → stay → leave`, with three offers drawn from `K.TRADES`. `trade(id)` takes payment and delivers the good. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
+- `trader()` runs the trader: `come → stay → leave`, with three offers drawn from `K.TRADES`. `trade(id)` takes payment and delivers the good with `give(id)`. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
 
 **Market and money.**
 - `market()` sets the price.
@@ -325,7 +329,7 @@ notifications only: the sim never depends on anyone reading them.
 | Area | Events |
 | --- | --- |
 | Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `glow`, `morning`, `dawn`, `shiftMode`, `veteran` |
-| Mining | `flag`, `miss`, `flagDone`, `strike`, `uncover`, `dry`, `pearl` |
+| Mining | `flag`, `miss`, `flagDone`, `strike`, `uncover`, `dry`, `pearl`, `chest` |
 | Line | `take`, `stack`, `feed`, `bar`, `grab`, `ingot`, `stock`, `sell`, `rank` |
 | Power | `charge`, `plug`, `refill`, `postGrab`, `postMoved`, `postDrift` |
 | Breakdowns | `bitBreak`, `ebotBreak`, `legOff`, `takeMat`, `forged`, `fixed` |

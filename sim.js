@@ -33,6 +33,8 @@ function CrabSim() {
     TIDE_PERIOD: 240, TIDE_HIGH: 0.75, SURGE_EVERY: 12, BURY_EVERY: 20, BURY_CHANCE: 0.5,
     OCTO_FIRST: 90, OCTO_EVERY: [100, 200], OCTO_SPEED: 45, OCTO_SCARE: 28, OCTO_GRAB: 1.5,
     PEARL_Q: 0.75, PEARL_CHANCE: 0.04, PEARL_VALUE: [60, 90, 130],
+    // now and then a deposit flagged on the back dune is a sunken chest instead: one hole opens it, for credits and a trader's good
+    CHEST_CHANCE: 0.06, CHEST_VALUE: [150, 250],
     // storms: forty seconds of rough water that stir up nodules, bury flags, slow walkers, and rock the ship
     STORM_FIRST: 300, STORM_EVERY: [360, 540], STORM_TIME: 40, STORM_WARN: 20, STORM_WASH: 4, STORM_BURY: 8, STORM_WALK: 0.85, STORM_RISER: 2,
     // lava surges: thirty seconds of swelling lava; smelting and forging go twice as fast and the engine makes double charge
@@ -148,7 +150,7 @@ function CrabSim() {
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
-    'backup', 'nightFlags', 'trades', 'turtleRides', 'glowLit'];
+    'backup', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
 
@@ -271,10 +273,10 @@ function CrabSim() {
       for (i = 0; i < L.length; i++) { j = L[(c.id * 7 + i) % L.length]; if (!used[j]) { c.name = j; break; } }
       if (!c.name) c.name = L[c.id % L.length] + ' ' + (Math.floor(c.id / L.length) + 1);
     }
-    c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0 };
+    c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0, chests: 0 };
     c.stars = c.stars || 0;
   }
-  var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
+  var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1, chest: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
   function tally(type, a, b) {             // each crab's personal record, kept from the events it takes part in
     if (!a || !a.rec) return;
     var r = a.rec;
@@ -285,6 +287,7 @@ function CrabSim() {
     else if (type === 'ride') r.rides++;
     else if (type === 'legOff') r.legs++;
     else if (type === 'pearl') r.pearls++;
+    if (type === 'chest') r.chests = (r.chests || 0) + 1;   // older saves have no count yet
     else if (type === 'dance') { r.dances++; if (b && b.rec) b.rec.dances++; }
   }
   function veterans(role) {                // stars across a role, for the capacity estimate
@@ -481,6 +484,7 @@ function CrabSim() {
           z = zoneOf(c.d); if (S.si.night) S.stat.nightFlags++;
           f = { id: S.nextId++, x: c.x, d: c.d, q: clamp(srr(0.45, 0.85) + K.ZONES[z].q + sc[1] + (has('deepSonar') ? 0.08 : 0), 0.3, 0.97),
             size: 2 + Math.floor(sr() * 3) + K.ZONES[z].size + (has('deepSonar') ? 1 : 0), by: null, zone: z, born: S.t };
+          if (z === 2 && sr() < K.CHEST_CHANCE) { f.chest = true; f.q = 1; f.size = 1; }   // a sunken chest: drills go for it first
           S.flags.push(f); S.stat.finds++; emit('flag', c, f);
         } else emit('miss', c);
         c.state = 'pick';
@@ -512,7 +516,8 @@ function CrabSim() {
       if (c.timer <= 0) {
         S.stat.holes++;
         q = (c.flag && !c.flag.gone ? c.flag.q : K.WILDCAT) * (c.bitOk ? 1 : K.BROKEN_LUCK);
-        if (sr() < q) {
+        if (c.flag && !c.flag.gone && c.flag.chest) openChest(c);
+        else if (sr() < q) {
           S.stat.strikes++;
           c.nod.alive = true; c.nod.eddy = -1; emit('strike', c, c.nod);
           if (c.flag && !c.flag.gone && c.flag.q >= K.PEARL_Q && (S.luckyPearls > 0 || sr() < K.PEARL_CHANCE)) {
@@ -535,6 +540,14 @@ function CrabSim() {
         c.state = 'pick';
       }
     }
+  }
+  function openChest(c) {                 // the drill breaks the chest open: credits, and one of the trader's goods for free
+    var i = S.nodules.indexOf(c.nod), v = Math.round(srr(K.CHEST_VALUE[0], K.CHEST_VALUE[1])), ids = Object.keys(K.TRADES), good = ids[Math.floor(sr() * ids.length)];
+    if (i >= 0) S.nodules.splice(i, 1);
+    S.credits += v; S.earned += v; S.stat.chests++; S.stat.chestCredits += v;
+    give(good);
+    removeFlag(c.flag); emit('chest', c, { value: v, good: good, flag: c.flag }); c.flag = null;
+    inspire('pearlLamp'); ranks();
   }
   function haul(c) {
     if (c.state === 'init') c.state = 'seek';
@@ -1188,10 +1201,17 @@ function CrabSim() {
     }
   }
   function trade(id) {                     // swap bars or ingots for one of the trader's goods
-    var tr = S.trader, T = K.TRADES[id], i, p, z;
+    var tr = S.trader, T = K.TRADES[id];
     if (!tr || tr.state !== 'stay' || !T || tr.offers.indexOf(id) < 0 || tr.sold[id]) return 'closed';
     if ((T.pay.bars || 0) > S.bars || (T.pay.ingots || 0) > S.stock) return 'short';
     S.bars -= T.pay.bars || 0; S.stock -= T.pay.ingots || 0;
+    give(id);
+    tr.sold[id] = true; S.stat.trades++;
+    emit('trade', id, tr);
+    return true;
+  }
+  function give(id) {                      // what one of the trader's goods does
+    var i, p, z;
     if (id === 'bits') S.spares.bit += 2;
     else if (id === 'legs') S.spares.leg += 2;
     else if (id === 'map') {
@@ -1205,9 +1225,6 @@ function CrabSim() {
     } else if (id === 'gear') {
       for (i = 0; i < S.crabs.length; i++) S.crabs[i].fresh = K.MORNING_TIME;
     } else if (id === 'lucky') S.luckyPearls++;
-    tr.sold[id] = true; S.stat.trades++;
-    emit('trade', id, tr);
-    return true;
   }
   function shoo() {                        // the player chases the octopus off; it drops whatever it took
     var o = S.octo, i;

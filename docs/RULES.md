@@ -115,7 +115,7 @@ Walk speeds are in track units per second. Haulers walk at 88 with Spring legs.
 ### Names, records and veterans
 
 Every crab has a name and keeps a record: the jobs it has done at its own work, nodules it
-carried on the backup job, pearls, vent rides, dances, and legs lost. Click a crab to see its
+carried on the backup job, pearls, sunken chests, vent rides, dances, and legs lost. Click a crab to see its
 name, what it is doing, and its record. The Ledger lists the crew with the most stars first.
 
 A crab that has done enough of its own job earns a star, up to three. Each star makes it 5%
@@ -315,6 +315,7 @@ Haulers do this job all the time. Slow kinds are slow haulers.
   - Every sale banks 0.6 s of overclock, multiplied by (1 + streak / 10), up to 30 s.
   - Press ⚡ (or O) to spend it. While it runs, the whole crew moves and works 50% faster, drains 60% more power, and wears twice as fast.
 - **Pearl jackpots.** A strike on a flag of richness 0.75 or more turns up a pearl 4% of the time. It pays 60, 90 or 130 credits on the front, middle or back dune, straight away, and counts toward rank.
+- **Sunken chests.** A deposit flagged on the back dune is a sunken chest 6% of the time. It shows as a chest in the sand, not a pennant, and drill crabs go for it first. The first hole into it always opens it, broken bit or not: 150 to 250 credits straight away, counting toward rank, and one of the trader's six goods at random, for free (section 17).
 - **Ship orders.**
   - At 150 s, and 180 to 300 s after each order closes, a cargo ship asks for 5 to 40 ingots within 100 s. The number is about 15% above the last minute's sales rate.
   - While the order is open, each ingot sold earns a 30% premium, plus 5 points per reputation star.
@@ -439,7 +440,7 @@ Crabs speak in emoji sentences: a **thing**, then a **verb**, then sometimes **w
 
 | Things | Verbs |
 | --- | --- |
-| 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, 🌊 tide, 🌩️ storm, 🐙 octopus, 🦪 pearl, 🚢 ship, 🐋 whale, 🏠 den, 🐚 shell, 🛒 shop, 🐢 turtle, 🔌 plug, 🦀 you/me | ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it/done, 💔 broke, ⛔ full, ❗ found one, ❤️ thanks |
+| 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, 🌊 tide, 🌩️ storm, 🐙 octopus, 🦪 pearl, 🧰 chest, 💰 loot, 🚢 ship, 🐋 whale, 🏠 den, 🐚 shell, 🛒 shop, 🐢 turtle, 🔌 plug, 🦀 you/me | ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it/done, 💔 broke, ⛔ full, ❗ found one, ❤️ thanks |
 
 Examples:
 - 🔋❓ "I need charge". The energy bot that picks it replies 🔋➡️🦀, and the crab says 🔋✅❤️ once charged.

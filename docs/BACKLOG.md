@@ -10,14 +10,11 @@ These came from earlier rounds of ideas and are already in the game: tides and s
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
 the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
 the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
-cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, and plankton
-light that lets tired crabs work at full speed at night.
+cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, plankton
+light that lets tired crabs work at full speed at night, and sunken chests on the back dune.
 
 ## Visitors and the sea
 
-- **Sunken treasure chest.** Rarely a scan on the back dune finds a chest instead of a
-  deposit; a drill opens it for a jackpot of credits plus a random trader good. Another
-  branch in `scout()`, a chest flag kind in `drill()`.
 - **Moray eel.** Lives in a crack in the basalt ridge; snaps at crabs that cross its patch,
   making them drop what they carry. Shooed like the octopus; a reason to route around it.
 - **Manta-ray glide.** Like the vent, but a moving ride: a manta sweeps along the back dune

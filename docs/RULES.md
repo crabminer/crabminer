@@ -412,6 +412,10 @@ Everything costs 4,450 in total.
   2. If a crab is within 28 units of its target when it arrives, it flees in a cloud of ink.
   3. Otherwise it spends 1.5 s grabbing up to 2 nodules and escapes.
   4. Click it, or press **Shoo the octopus** over the field (the S key), at any time to shoo it away. If it is carrying anything, it drops it on the sand.
+- **The moray eel.** It lives in a crack between two stones on the front dune, at 400 along the track, in the haulers' way from the field to the ore pile. The first time it comes out is at 330 s, then 180 to 300 s after it goes back in. It stays out 60 s.
+  1. A crab carrying nodules (a hauler, or any crab on the backup job) that comes within 34 units of the crack gets snapped at and drops everything it carries on the sand around it. The eel snaps at most once every 4 s.
+  2. While the eel is out, haulers leave nodules within its reach alone, and pick them up once it has gone back in. Nothing is lost, only time.
+  3. Click it, or press **Shoo the eel** over the field (the S key, once the octopus is dealt with), to send it back into its crack early.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
 - **The deep and the plankton.** Far behind the dunes, mantas, a shark, a school of fish, an anglerfish and now and then a squid move in the shadows. Plankton sink deep by day and rise at night, when they glow blue-green wherever they are stirred: in a ship's wake, around the whale, through a storm, and under the feet of crabs walking the sand. Storms and passing ships leave a bloom that glows brighter for a few minutes. Apart from the patches below, all of this is decoration only.
 - **Plankton light.** Three patches of glowing plankton lie on the sand, on the front, middle and back dunes. They wander slowly to the right (2 units a second) and the tide sweeps them back and forth (up to 5 units a second, three times that in a storm), all the way along the track and round again. At night a tired crab inside a patch sees its way and works at full speed. A patch reaches 40 units across the track (or across the dunes, at 300 units a dune's depth) times 0.5 plus the bloom, so 30 units at the quietest and 60 at full bloom. The bloom runs from 0.25 to 1: a storm adds 0.08 a second, every ship that comes or goes adds 0.2, and it ebbs back over a few minutes. The Ledger counts the seconds of night work the plankton have lit.
@@ -440,7 +444,7 @@ Crabs speak in emoji sentences: a **thing**, then a **verb**, then sometimes **w
 
 | Things | Verbs |
 | --- | --- |
-| 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, 🌊 tide, 🌩️ storm, 🐙 octopus, 🦪 pearl, 🧰 chest, 💰 loot, 🚢 ship, 🐋 whale, 🏠 den, 🐚 shell, 🛒 shop, 🐢 turtle, 🔌 plug, 🦀 you/me | ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it/done, 💔 broke, ⛔ full, ❗ found one, ❤️ thanks |
+| 🔋 charge, 🦵 leg, ⛏️ drill bit, 🪨 nodule, 🧱 bar, 🪙 ingot, 🚩 flag, 🔥 forge, 🌋 vent, 🌊 tide, 🌩️ storm, 🐙 octopus, 🐍 eel, 🦪 pearl, 🧰 chest, 💰 loot, 🚢 ship, 🐋 whale, 🏠 den, 🐚 shell, 🛒 shop, 🐢 turtle, 🔌 plug, 🦀 you/me | ❓ I need, 👍 on my way, ➡️ bringing it, ✅ got it/done, 💔 broke, ⛔ full, ❗ found one, ❤️ thanks |
 
 Examples:
 - 🔋❓ "I need charge". The energy bot that picks it replies 🔋➡️🦀, and the crab says 🔋✅❤️ once charged.
@@ -467,6 +471,7 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Big field | Top bar | Big field (default) or side panel (B); hidden on small screens |
 | ? | Top bar | The introduction, with the keys, Listen all (read aloud) and New game (? key) |
 | Shoo the octopus | Over the field, top right | Shown while the octopus is in; shoos it (S) |
+| Shoo the eel | Over the field, top right | Shown while the eel is out; sends it back in (S, after the octopus) |
 | Trader | Over the field, top right | Shown while the trader comes and keeps shop; opens its goods (T) |
 | Crew tab | Panel | Hire (+), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
 | Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods |
@@ -476,5 +481,6 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |
 | Click the octopus | Field | Shoo it |
+| Click the eel | Field | Send it back into its crack |
 | Click the trader | Field | Jump to its goods |
 | Click a locked dune | Field | Jump to the Dune claims upgrade |

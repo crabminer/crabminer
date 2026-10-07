@@ -31,6 +31,10 @@ function CrabSim() {
     // the sea: a four-minute tide that washes nodules up at high water and buries flags at low water,
     // an octopus that comes for the ore, and pearls in the richest deposits
     TIDE_PERIOD: 240, TIDE_HIGH: 0.75, SURGE_EVERY: 12, BURY_EVERY: 20, BURY_CHANCE: 0.5,
+    // the moray eel: lives in a crack in the front dune, in the haulers' way to the ore pile. Every few minutes it comes
+    // out for a minute and snaps at crabs carrying nodules past it, which drop them on the sand. While it is out,
+    // haulers leave nodules within its reach alone. The player can shoo it back into its crack.
+    EEL_X: 400, EEL_D: 0.84, EEL_REACH: 34, EEL_FIRST: 330, EEL_EVERY: [180, 300], EEL_STAY: 60, EEL_BITE: 4,
     OCTO_FIRST: 90, OCTO_EVERY: [100, 200], OCTO_SPEED: 45, OCTO_SCARE: 28, OCTO_GRAB: 1.5,
     PEARL_Q: 0.75, PEARL_CHANCE: 0.04, PEARL_VALUE: [60, 90, 130],
     // now and then a deposit flagged on the back dune is a sunken chest instead: one hole opens it, for credits and a trader's good
@@ -150,7 +154,7 @@ function CrabSim() {
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
-    'backup', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits'];
+    'backup', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
 
@@ -209,7 +213,7 @@ function CrabSim() {
       t: 0, credits: K.START_CREDITS, earned: 0, heat: 6, price: K.PRICE, walk: 0, tick: 0, liftT: 0,
       nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, docks: [],
       post: { x: K.STIRLING - 60, d: 0.86, auto: true, carrier: null, moved: -99, home: { x: K.STIRLING - 60, d: 0.86 }, drift: 0 }, day: 1,
-      tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST,
+      tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST, eel: { out: false, until: 0, next: K.EEL_FIRST, bite: 0 },
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
       lavaSurge: false, lavaAt: K.SURGE_FIRST, lavaEnd: 0,
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
@@ -445,7 +449,7 @@ function CrabSim() {
     var best = null, bd = 1e9, i, n, d;
     for (i = 0; i < S.nodules.length; i++) {
       n = S.nodules[i];
-      if (!n.alive || (n.by && n.by !== c)) continue;
+      if (!n.alive || (n.by && n.by !== c) || eelGuards(n)) continue;
       d = far(c, n.x, n.d);
       if (d < bd) { bd = d; best = n; }
     }
@@ -967,6 +971,7 @@ function CrabSim() {
     sea();
     driftPost();
     octopus();
+    eel();
     turtle();
     trader();
     if (S.si.day !== S.day) morning();
@@ -1025,6 +1030,39 @@ function CrabSim() {
   }
   // Every few minutes an octopus swims down out of the sea for the ore pile, or for a nodule on the sand.
   // A crab standing near its target scares it off; so does the player, with a click.
+  // The moray eel comes out of its crack every few minutes. A crab carrying nodules within its reach gets snapped at
+  // and drops them all; it bites at most once every few seconds. It goes back in after a minute, or when shooed.
+  function eelGuards(n) { return S.eel.out && far(n, K.EEL_X, K.EEL_D) < K.EEL_REACH; }
+  function eel() {
+    var e = S.eel, i, c, n, k;
+    if (!e.out) {
+      if (S.t >= e.next) { e.out = true; e.until = S.t + K.EEL_STAY; e.bite = S.t + 1; S.stat.eels++; emit('eelOut', e); }
+      return;
+    }
+    if (S.t >= e.until) { eelHide(false); return; }
+    if (S.t < e.bite) return;
+    for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i];
+      n = c.state === 'haul' || c.state === 'seek' ? c.load : (c.state === 'bhaul' || c.state === 'bseek' ? c.bload : 0);
+      if (!n || c.air || c.turtle || far(c, K.EEL_X, K.EEL_D) >= K.EEL_REACH) continue;
+      for (k = 0; k < n; k++) S.nodules.push({ x: clamp(c.x + srr(-12, 12), K.FIELD0, K.FIELD1), d: clamp(c.d + srr(-0.04, 0.04), 0.7, 0.97), alive: true, eddy: -1, by: null });
+      if (c.target) { c.target.by = null; c.target = null; }
+      if (BACK[c.state]) { c.bload = 0; c.state = 'bseek'; } else { c.load = 0; c.state = 'seek'; }
+      S.stat.eelSnaps++; S.stat.eelDropped += n; e.bite = S.t + K.EEL_BITE;
+      emit('eelSnap', c, n);
+      return;
+    }
+  }
+  function eelHide(shooed) {
+    var e = S.eel;
+    e.out = false; e.next = S.t + srr(K.EEL_EVERY[0], K.EEL_EVERY[1]);
+    emit(shooed ? 'eelShoo' : 'eelIn', e);
+  }
+  function shooEel() {                     // the player sends the eel back into its crack
+    if (!S.eel.out) return false;
+    S.stat.eelShooed++; eelHide(true);
+    return true;
+  }
   function octoTarget() {
     if (S.ore > 0) return { x: S.pos.ORE, d: 0.8, ore: true };
     var best = null, i, n;
@@ -1477,7 +1515,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, trade: trade, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

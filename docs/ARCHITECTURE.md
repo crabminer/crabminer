@@ -103,7 +103,7 @@ The body class `big` switches big-field mode, which is the default. A width at o
 
 - **Into the sim**, data goes only through API calls: `hire`, `retire`, `buy`, `research`,
   `upgradeWorker`, `place`, `placePost`, `setPostAuto`, `setReserve`, `setShift`,
-  `setWork`, `setScoutsNight`, `overclock` and `shoo`.
+  `setWork`, `setScoutsNight`, `overclock`, `shoo` and `shooEel`.
 - **Out of the sim**, data goes two ways:
   1. **State**: the view reads `sim.state()` (the object `S`) every frame. Helpers such as
      `rates()`, `capacity()`, `bottleneck()`, `coverage()`, `gaps()` and `shiftInfo()`
@@ -143,7 +143,7 @@ off.
 | Progress | `lv{}` (upgrade levels), `tech{}`, `wu{}` (worker upgrades), `layout{}` (building → plot), `pos{}` (derived positions) |
 | Workday | `shift` (pattern key), `work{start,len,count,rest,groups}`, `scoutsNight` |
 | Power | `docks[]` (bots plugged in), `post{x,d,auto,carrier,moved,home,drift,warned}` |
-| Sea | `tide`, `glow[{x, d}]` (the plankton patches), `bloom`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
+| Sea | `tide`, `glow[{x, d}]` (the plankton patches), `bloom`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `eel{out, until, next, bite}`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
 | Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
 | Den | `decor[]`, `decorWork`, `decorTheme` |
 | Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle` |
@@ -276,6 +276,10 @@ resumes the role.
   counts `stat.glowLit` and emits `glow` when a tired crab steps into a patch (`c.glow`).
 - `octopus()` runs the octopus: `come → grab → flee`, with `octoTarget()` and `crabNear()`.
 - `shoo()` is the player chasing it off.
+- `eel()` runs the moray eel in its crack at `K.EEL_X`, `K.EEL_D`: out for `K.EEL_STAY` every
+  `K.EEL_EVERY`, it makes a carrying crab within `K.EEL_REACH` drop its load as nodules, at most
+  once every `K.EEL_BITE`. `eelGuards(n)` keeps `nearestNodule()` off nodules in its reach while it
+  is out. `shooEel()` and the end of its stay call `eelHide()`.
 - `weather()` runs storms, lava surges and ship orders. It also brings in the rival crew at
   `K.RIVAL_RANK`, gives each new order a `rivalRate` (ingots a second, from `K.RIVAL_PACE` and
   `S.rival.drive`), and calls `rival(o)`. That advances `o.rival`, emits `rivalSell` for each
@@ -337,7 +341,7 @@ notifications only: the sim never depends on anyone reading them.
 | Bonuses | `ocStart`, `ocEnd`, `flowLost` |
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
 | Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone` |
-| Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
+| Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `eelOut`, `eelSnap`, `eelShoo`, `eelIn`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
 
 ### 4.9 Public API
 
@@ -348,7 +352,7 @@ notifications only: the sim never depends on anyone reading them.
 | Build | `buy(id)`, `upgradeCost(id)`, `up(id)`, `place(building, plot)`, `placePost(x, d)`, `setPostAuto(on)`, `postTarget()` |
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
-| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `trade(id)` |
+| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)` |
 | Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `glowR()` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
@@ -543,17 +547,17 @@ side are a third of a cycle apart, and the two sides half a cycle.
 - **Input:** buttons call the sim API, then `sim.drain().forEach(handle)`, then re-render.
   Canvas clicks are handled in this order:
   1. the trader (opens its goods in the Build tab)
-  2. shoo the octopus
+  2. shoo the octopus, then the eel
   3. arrange mode: pick up and set down buildings or the post
   4. pick a crab to show its status
   5. a locked dune, which jumps to its upgrade
   Every one of these has a way in that does not need the field, for keyboards, screen readers
-  and a field scrolled the wrong way: `#h-alerts` floats over the field with Shoo the octopus
-  and the trader (`renderAlerts()`), the Crew tab lists the crew by name with Show
+  and a field scrolled the wrong way: `#h-alerts` floats over the field with Shoo the octopus,
+  Shoo the eel and the trader (`renderAlerts()`), the Crew tab lists the crew by name with Show
   (`renderRoster()`, `showCrab()`), and the Build tab lists the plots with ◀ ▶
   (`renderLayout()`). The roster and plot list rebuild their rows only when the crew or the
   layout changes, and otherwise update text in place, so focus survives the 0.25 s refresh.
-- **Keys:** Space (pause), 1/2/3 (1×, 2×, 4×), O (overclock), S (shoo), T (the trader's shop),
+- **Keys:** Space (pause), 1/2/3 (1×, 2×, 4×), O (overclock), S (shoo the octopus, or else the eel), T (the trader's shop),
   M (move buildings), [ and ] (previous and next tab), B (big field), ? (the intro), Escape
   (close the intro or leave arrange mode). The intro lists them.
 - **Storage:** `localStorage` keeps `crabminer-save` (the game, from `sim.save()`),

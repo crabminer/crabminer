@@ -17,7 +17,7 @@
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false;
+  var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -183,7 +183,7 @@
     spareBit: ['🛒⛏️👍', '🛒⛏️😊'], spareLeg: ['🛒🦵👍', '🛒🦵😊'], turtlePick: ['🐢😆', '🐢⬆️🤩'], turtleDrop: ['🐢❤️', '🐢👋😊'], glow: ['✨👀😊', '✨🦀👍'],
     decor: ['🐚✨🏠', '🏠🎀😍'], orderStart: ['🚢🪙❗', '🚢👀🪙'], orderDone: ['🚢✅🎉', '🚢🪙🥳'],
     rivalArrive: ['🦞❗😨', '🦞👀😬'], rivalWin: ['🦞🚢😤', '🦞🏆😒'], storm: ['🌩️😨', '🌊🌩️😱'], lava: ['🌋🔥🎉', '🌋🔥😎'],
-    octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨']
+    octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], eelSnap: ['🐍🪨😱', '🪨💔🐍'], eelShoo: ['🐍🏃', '🐍👋😆'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -198,7 +198,7 @@
     pearl: 'Finding a pearl', chestFound: 'Finding a sunken chest', chest: 'Opening a sunken chest', flagsWashed: 'The tide burying flags', stack: 'Stacking nodules', stackBroken: 'Hauling with a broken bit',
     spareBit: "Fitting the trader's spare bit", spareLeg: "Fitting the trader's spare leg", turtlePick: 'Climbing on the turtle', turtleDrop: 'Thanking the turtle', glow: 'Seeing by the glowing plankton',
     decor: 'Decorating the den', orderStart: 'A ship order', orderDone: 'An order filled', rivalArrive: 'The rival crew turning up', rivalWin: 'The rival filling an order',
-    storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore',
+    storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore', eelSnap: 'The eel snapping', eelShoo: 'The eel shooed',
     veteran: 'Earning a star', whale: 'Waving at the whale'
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
@@ -209,7 +209,7 @@
     '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star', '🦞': 'rival',
     '😩': 'ugh', '😊': ':)', '🔧': 'fix', '💥': 'bang', '😫': 'ugh', '🙈': 'oops', '😱': 'eek!', '🕳': 'hole', '😒': 'meh', '👀': 'look',
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
-    '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot' };
+    '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -469,6 +469,19 @@
         ink(a); near(a.x, 160).forEach(function (n) { say(n, TALK.octoShoo, 1.4); play(n, ['cheer', 'pump', 'jazz'], 1.6); });
         toast('Shoo!', a && e.b ? 'The octopus dropped the ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + ' it took.' : 'The octopus fled empty-handed.');
         break;
+      case 'eelOut':
+        if (!eelToast) { eelToast = true; toast('A moray eel is out of its crack', 'It snaps at crabs carrying nodules past it on the front dune, and they drop them. Click it or press Shoo (S) to send it back in.'); }
+        break;
+      case 'eelSnap':
+        eelSnapT = T; eelAim = Math.sign(a.x - K.EEL_X) || 1;
+        p = X(a.x); poof(p, groundY(p, a.d) - 6, 10, 0.7); express(a, 'shock', 1.6); a.vhop = 0.8;
+        say(a, TALK.eelSnap, 1.8); play(a, ['shock', 'ouch', 'stomp'], 1.6);
+        break;
+      case 'eelShoo':
+        p = X(K.EEL_X); poof(p, groundY(p, K.EEL_D) - 8, 14, 0.8);
+        near(K.EEL_X, 160).forEach(function (n) { say(n, TALK.eelShoo, 1.4); play(n, ['cheer', 'pump', 'jazz'], 1.6); });
+        toast('Shoo!', 'The eel slid back into its crack. It will be out again in a few minutes.');
+        break;
       case 'octoSteal':
         if (e.b) near(a.x, 120).forEach(function (n) { say(n, TALK.octoSteal, 1.8); play(n, ['shock', 'stomp'], 1.6); });
         break;
@@ -583,6 +596,7 @@
       if (c.alt > 0 && Math.random() < dtReal * 10) { var ap = airPos(c); bubbles.push({ x: ap.x + rr(-8, 8), y: ap.y + rr(-4, 6), r: rr(1, 3), vy: rr(30, 60), ph: rr(0, TAU) }); }
     }
     stormA += ((S.storm ? 1 : 0) - stormA) * Math.min(1, dtReal * 0.8);
+    eelA += ((S.eel.out ? 1 : 0) - eelA) * Math.min(1, dtReal * 3);   // the eel slides out of its crack, and back
     lavaA += ((S.lavaSurge ? 1 : 0) - lavaA) * Math.min(1, dtReal * 0.8);
     if (stormA > 0.05 && !reduce) {
       for (i = 0; i < Math.round(stormA * 6); i++) rain.push({ x: rr(-40, W), y: rr(-20, surfH), v: rr(380, 520), life: 0 });
@@ -1427,6 +1441,41 @@
     ctx.restore();
     if (o.state !== 'flee' && T % 2 < 1.4) drawBubble(px + 12 * s, by - 26 * s, emojiOK ? '🐙🪨❓' : spoken('🐙🪨❓'), s, 1, true);
   }
+  function eelHead() {                   // where the eel's head is: up out of the crack, swaying, lunging when it snaps
+    var px = X(K.EEL_X), gy = groundY(px, K.EEL_D), s = scaleAt(K.EEL_D), lunge = clamp(1 - (T - eelSnapT) / 0.5, 0, 1), sway = mqReduce.matches ? 0 : Math.sin(T * 1.7) * 6;
+    return { x: px + (sway + eelAim * lunge * 22) * s * eelA, y: gy - (6 + 30 * eelA - lunge * 10) * s, s: s, gy: gy, px: px, lunge: lunge };
+  }
+  function drawEel() {                   // the crack in the sand, and the eel when it is out
+    var h = eelHead(), s = h.s, px = h.px, gy = h.gy, i, t, x, y, dir = h.x >= px ? 1 : -1;
+    ctx.save();
+    ctx.fillStyle = pal.rock; ctx.strokeStyle = pal.rockLine; ctx.lineWidth = 1;   // two stones either side of the crack
+    ctx.beginPath(); ctx.ellipse(px - 13 * s, gy - 2 * s, 8 * s, 5 * s, -0.2, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(px + 12 * s, gy - 1.5 * s, 7 * s, 4 * s, 0.25, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = pal.rockDark; ctx.beginPath(); ctx.ellipse(px, gy, 8 * s, 2.6 * s, 0, 0, TAU); ctx.fill();   // the crack
+    if (eelA > 0.02) {
+      ctx.lineCap = 'round'; ctx.strokeStyle = '#4f6b2c'; ctx.lineWidth = 7 * s;   // the body, rising in an S from the crack
+      ctx.beginPath(); ctx.moveTo(px, gy);
+      ctx.bezierCurveTo(px - 8 * s * eelA, gy - 14 * s * eelA, h.x + 8 * s * dir * eelA, h.y + 14 * s * eelA, h.x, h.y);
+      ctx.stroke();
+      ctx.strokeStyle = '#c9c46a'; ctx.lineWidth = 1.4 * s; ctx.globalAlpha = 0.6;   // spots along it
+      for (i = 1; i < 6; i++) {
+        t = i / 6; x = (1 - t) * (1 - t) * (1 - t) * px + 3 * (1 - t) * (1 - t) * t * (px - 8 * s * eelA) + 3 * (1 - t) * t * t * (h.x + 8 * s * dir * eelA) + t * t * t * h.x;
+        y = (1 - t) * (1 - t) * (1 - t) * gy + 3 * (1 - t) * (1 - t) * t * (gy - 14 * s * eelA) + 3 * (1 - t) * t * t * (h.y + 14 * s * eelA) + t * t * t * h.y;
+        ctx.beginPath(); ctx.arc(x, y, 1.2 * s, 0, TAU); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.translate(h.x, h.y); ctx.scale(dir, 1);                                    // the head: a long jaw that opens to snap
+      var gape = 0.15 + 0.5 * h.lunge;
+      ctx.fillStyle = '#5c7a33';
+      ctx.beginPath(); ctx.moveTo(-4 * s, -4 * s); ctx.quadraticCurveTo(6 * s, -7 * s, 13 * s, -2 * s - gape * 4 * s); ctx.lineTo(2 * s, 0); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-4 * s, 3 * s); ctx.quadraticCurveTo(6 * s, 4 * s, 12 * s, 1 * s + gape * 4 * s); ctx.lineTo(2 * s, 0); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-2 * s, 0, 5 * s, 4 * s, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(1.5 * s, -3 * s, 1.8 * s, 0, TAU); ctx.fill();
+      ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(2 * s, -3 * s, 0.9 * s, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+    if (S.eel.out && eelA > 0.8 && T % 3 < 1.2) drawBubble(h.x + 10 * s, h.y - 16 * s, emojiOK ? '🐍🪨❓' : spoken('🐍🪨❓'), s, 1, true);
+  }
   function drawTideCurrents() {          // at high or low water, or in a storm, the current runs over the dunes
     var a = Math.max(Math.abs(S.tide), stormA * 1.3), i, x, y, dir = S.tide > 0 ? 1 : -1;
     if (a < 0.4) return;
@@ -2270,6 +2319,7 @@
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
     layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
     layers[2].push({ y: groundY(X(S.pos.DEN), 0.82), kind: 3, f: drawDen });
+    layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
       sheet(k, dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); }, k < 2 ? function (x) { return crestY(k + 1, x); } : null, 1);
       drawRipples(k);
@@ -2324,7 +2374,7 @@
   };
   var STAGE_NAME = { scout: 'Scouting', drill: 'Drilling', haul: 'Hauling', crush: 'Crushing', smelt: 'Smelting', sell: 'Selling' };
   var ui = {
-    aOcto: $('a-octo'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
+    aOcto: $('a-octo'), aEel: $('a-eel'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
@@ -2376,7 +2426,7 @@
   function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
   // ----- every action within reach of the panel and the keyboard, not only of a click on the field -----
   function flashCard(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); el.scrollIntoView({ block: 'nearest' }); }
-  function shoo() { if (sim.shoo()) { sim.drain().forEach(handle); renderHUD(); } }
+  function shoo() { if (sim.shoo() || sim.shooEel()) { sim.drain().forEach(handle); renderHUD(); } }   // the octopus first, then the eel
   function openShop() { if (!S.trader) return; selectTab('t-build'); flashCard(ui.traderCard); }
   function showCrab(c) {                 // scroll the field to a crab and open its card
     selected = c; selectedUntil = T + 8;
@@ -2385,6 +2435,7 @@
   function renderAlerts() {
     var tr = S.trader;
     ui.aOcto.hidden = !S.octo || S.octo.state === 'flee';
+    ui.aEel.hidden = !S.eel.out;
     ui.aTrader.hidden = !tr || tr.state === 'leave';
     if (tr) ui.aTraderLabel.textContent = tr.state === 'stay' ? 'Trader open ' + fmtTime(tr.until - S.t) : 'Trader coming';
   }
@@ -2720,6 +2771,7 @@
     html += '<h3>The sea</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Tide</th><td class="n">' + (S.tide > 0.75 ? 'high: washing nodules up' : S.tide < -0.75 ? 'low: burying idle flags' : S.tide > 0 ? 'rising' : 'falling') + '</td></tr>' +
       '<tr><th scope="row">Washed up / buried</th><td class="n">' + S.stat.washed + ' nodules / ' + S.stat.buried + ' flags</td></tr>' +
+      '<tr><th scope="row">Moray eel</th><td class="n">' + S.stat.eels + ' times out, ' + S.stat.eelSnaps + ' snaps, ' + S.stat.eelDropped + ' nodules dropped, ' + S.stat.eelShooed + ' shooed' + (S.eel.out ? ' (it is out now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Octopus</th><td class="n">' + S.stat.octopi + ' visits, ' + S.stat.stolen + ' nodules stolen, ' + S.stat.shooed + ' shooed' + (S.octo ? ' (one is here now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Weather</th><td class="n">' + S.stat.storms + ' storms, ' + S.stat.surges + ' lava surges' + (S.storm ? ' (storm now)' : S.lavaSurge ? ' (surge now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Trader</th><td class="n">' + S.stat.trades + ' swaps; spares: ' + S.spares.bit + ' bits, ' + S.spares.leg + ' legs' + (S.trader ? ' (in town now)' : '') + '</td></tr>' +
@@ -2927,6 +2979,7 @@
     }
     ui.roles.addEventListener('click', onRoleClick);
     ui.aOcto.addEventListener('click', shoo);
+    ui.aEel.addEventListener('click', function () { if (sim.shooEel()) { sim.drain().forEach(handle); renderHUD(); } });
     ui.aTrader.addEventListener('click', openShop);
     ui.rosterBox.addEventListener('toggle', renderRoster);
     ui.roster.addEventListener('click', function (e) {
@@ -3039,6 +3092,10 @@
       if (S.octo) {                       // shoo the octopus
         var opp = octoPos(), op = opp.x, oy = opp.y - 14 * scaleAt(S.octo.d) * 1.15;
         if (Math.hypot(op - x, oy - y) < 32 * CS) { sim.shoo(); sim.drain().forEach(handle); return; }
+      }
+      if (S.eel.out) {                    // shoo the eel
+        var eh = eelHead();
+        if (Math.hypot(eh.x - x, eh.y - y) < 30 * CS || Math.hypot(eh.px - x, eh.gy - y) < 20 * CS) { sim.shooEel(); sim.drain().forEach(handle); return; }
       }
       if (arrange) {                     // pick a building up, then put it down on another plot
         var hit = -1, pr, k2, here = null, pp = postPos();

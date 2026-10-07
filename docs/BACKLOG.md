@@ -11,12 +11,11 @@ octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava
 the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
 the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
 cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, plankton
-light that lets tired crabs work at full speed at night, and sunken chests on the back dune.
+light that lets tired crabs work at full speed at night, sunken chests on the back dune,
+and the moray eel.
 
 ## Visitors and the sea
 
-- **Moray eel.** Lives in a crack in the basalt ridge; snaps at crabs that cross its patch,
-  making them drop what they carry. Shooed like the octopus; a reason to route around it.
 - **Manta-ray glide.** Like the vent, but a moving ride: a manta sweeps along the back dune
   and carries any crab under it a short way.
 - **Kelp forest claim.** A fourth claimable area on the left that slows walking but grows

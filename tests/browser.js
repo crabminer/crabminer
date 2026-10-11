@@ -168,6 +168,14 @@ async function check(b, size) {
   await shot('roster');
   await key('1');
 
+  // festival day, the four pets and the manta, all at once: the hooks must work and draw without an error
+  await js('crabminer.festival(); ["slug", "babyOcto", "starfish", "snail"].forEach(k => crabminer.adopt(k)); crabminer.summonManta(); true');
+  await wait(300);
+  await js('const m = crabminer.state().manta; if (m) m.x = m.dir > 0 ? 250 : 750; true');
+  await wait(1200);
+  expect(await js('crabminer.state().pets.length === 4 && crabminer.state().decor.some(d => d.kind === "lanterns") && crabminer.state().festival'), 'the festival hooks did not add the lanterns and the pets');
+  await shot('festival');
+
   // the save: a reload picks up where the game was
   const saved = await js('(dispatchEvent(new Event("pagehide")), { t: crabminer.state().t, n: crabminer.state().crabs.length })');
   await load();

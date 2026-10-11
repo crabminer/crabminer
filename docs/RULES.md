@@ -341,6 +341,13 @@ are slow haulers.
   they meet; the helped crab does a little dance, and the two part with a patty-cake, a high
   ten or a bow. This is cosmetic; the help itself is in section 13.
 - **The morning bonus.** At each dawn, every crab that slept or danced at least 20 s in the previous day starts fresh: 25% faster for 90 s. Each den decoration adds 1 point and 3 s to the bonus.
+- **Festival day.** Every tenth day (day 10, 20, 30, ...) is a crab festival. At its dawn:
+  - every crab starts fresh, rested or not
+  - the crabs rave for 20 s, and bunting hangs from the den's flagpole all day
+  - the den gets a string of festival lanterns, a decoration like any other (it counts toward the den's room, and lights up at night)
+  - the flow bonus is doubled all day: each delivery in a row adds 4% to the price instead of 2%, up to 80%
+- **Pets.** A pet moves in by the den at Nodule Baron (Doodle the sea slug) and at Lava Lord (Inky the baby octopus), and the
+  trader sells one (Twinkle the starfish, then Escargo the sea snail; a kind the den has already is skipped for the next it lacks, and once the den has all four, a second of that kind, numbered). Pets are pure charm: they wander by the den, the baby octopus tags along after passing crabs, they sleep by the porch at night, and an idle crab beside one stops to pet it. Nothing in the economy changes.
 - **The den.** A big round crab house on the first plot, drawn at twice the crabs' scale
   (four times the house it was): two floors of lit windows, a porch, a chimney and a flag.
   - Every 300 crab-seconds of idle time, counted across the crew, the idle crab nearest the den makes a decoration for it.
@@ -356,6 +363,7 @@ are slow haulers.
     | Storm passes | Driftwood sculpture |
     | Ship order filled | Ship in a bottle |
     | Lava surge ends | Lava lamp |
+    | Festival day | String of festival lanterns (not inspired: given outright, even to a full den) |
 
 ## 13. Money
 
@@ -478,7 +486,7 @@ Everything costs 4,450 in total.
 - **Plankton light.** Three patches of glowing plankton lie on the sand, on the front, middle and back dunes. They wander slowly to the right (2 units a second) and the tide sweeps them back and forth (up to 5 units a second, three times that in a storm), all the way along the track and round again. At night a tired crab inside a patch sees its way and works at full speed. A patch reaches 40 units across the track (or across the dunes, at 300 units a dune's depth) times 0.5 plus the bloom, so 30 units at the quietest and 60 at full bloom. The bloom runs from 0.25 to 1: a storm adds 0.08 a second, every ship that comes or goes adds 0.2, and it ebbs back over a few minutes. The Ledger counts the seconds of night work the plankton have lit.
 - **The hermit-crab trader.** The first comes at 240 s, then 240 to 360 s after each one leaves.
   - It walks in from the left, keeps shop by the den (x = 500) for 60 s, then walks off.
-  - It offers 3 of the 6 goods below, one of each. Swap for them in the Build tab, or click the trader to jump there.
+  - It offers 3 of the 7 goods below, one of each (the pet only while the den lacks a kind). Swap for them in the Build tab, or click the trader to jump there.
 
     | Good | Price | Effect |
     | --- | --- | --- |
@@ -488,11 +496,16 @@ Everything costs 4,450 in total.
     | Crate of cells | 1 ingot | Fills the engine's store and every energy bot's cells |
     | Gold gear | 3 bars | Every crab gets the morning bonus at once |
     | Lucky shell | 4 bars | The next strike on a rich flag (0.75 or more) finds a pearl for sure |
+    | A pet for the den | 2 ingots | A starfish, then a sea snail, moves in by the den (section 12) |
 
 - **The sea turtle.** The first comes at 180 s, then 150 to 270 s after each one leaves.
   - It swims across low over a claimed dune at 85 units a second. It comes in from the side most travelling crabs are heading away from, and it can turn back once for a passenger it has passed.
   - It gives one crab a lift: one within 50 units of it (and 160 in depth) heading at least 160 units its way. Crabs with a flat battery or a missing leg are picked first.
   - It drops the crab where it was going. A ride costs no power and no wear.
+- **The manta ray.** The first comes at 400 s, then 240 to 420 s after each one leaves.
+  - It glides straight along the deepest claimed dune, the back of the claim, at 70 units a second, in a random direction, and never turns or steers.
+  - Every walking crab it passes within 40 units of (and 120 in depth) that is heading its way with at least 40 units to go is swept along: several at once, riding on its back.
+  - Each rider is carried up to 140 units, or to where it was going if that is nearer, and set down there, on the straight line toward its goal. A ride costs no power and no wear. Crabs asleep, in the air, on the turtle or held by a fixer are not taken.
 
 ## 18. Crab talk
 

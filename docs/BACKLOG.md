@@ -13,13 +13,12 @@ the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and the
 cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, plankton
 light that lets tired crabs work at full speed at night, sunken chests on the back dune,
 the moray eel, lending a claw, the closed food web with the fisherman and the gulls (`eco.js`)
-and its lab report, the crushing line of press stations, the two-storey den, and a repertoire
-of 119 animations with dances that cheer up the crabs around them.
+and its lab report, the crushing line of press stations, the two-storey den, a repertoire
+of 119 animations with dances that cheer up the crabs around them, the manta-ray glide, the crab
+festival every tenth day, and the den's pets.
 
 ## Visitors and the sea
 
-- **Manta-ray glide.** Like the vent, but a moving ride: a manta sweeps along the back dune
-  and carries any crab under it a short way.
 - **Kelp forest claim.** A fourth claimable area on the left that slows walking but grows
   kelp, a new material for den decorations or a "kelp rope" upgrade.
 - **Earthquake / sand slide.** Rare event: one dune shifts, burying nodules and flags in a
@@ -29,14 +28,10 @@ of 119 animations with dances that cheer up the crabs around them.
 
 ## Crew and characters
 
-- **Crab festival day.** Every tenth day: a long rave at dawn, double flow bonus, and the
-  den gets a festival decoration. Hook on `morning()` when `S.day % 10 === 0`.
 - **Apprentices.** Cheap trainee crabs that work at half speed and become full crabs of
   their kind after a day. An early-game option when money is tight.
 - **Moods.** A slow happiness value per crab from dancing, rest, decorations and
   breakdowns; happy crabs dance more, grumpy ones grumble and drop a little speed.
-- **Crab pets.** A sea slug or a baby octopus that adopts the den; pure charm, earned from a
-  rank or a trader good.
 - **A hungrier web.** Let the food web touch the game: a shark that scares the octopus off, a
   gull that steals a nodule from a hauler on the crest, or the fisherman's catch sold at the
   surface. All decoration now (`eco.js` never reads `S`).

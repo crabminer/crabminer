@@ -148,8 +148,8 @@ off.
 | Power | `docks[]` (bots plugged in), `post{x,d,auto,carrier,moved,home,drift,warned}` |
 | Sea | `tide`, `glow[{x, d}]` (the plankton patches), `bloom`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `eel{out, until, next, bite}`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
 | Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
-| Den | `decor[]`, `decorWork`, `decorTheme` |
-| Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle` |
+| Den | `decor[]`, `decorWork`, `decorTheme`, `festival` (true through a festival day), `pets[{kind, name, at, how}]` |
+| Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle`, `manta{x,d,dir,riders[]}`, `nextManta` |
 | Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes), `long[]` and `longEvery` (the whole game: a sample every 15 s, halved in resolution each time it passes `K.LONG_MAX` = 240 points) |
 
 **A crab** is a plain object:
@@ -163,7 +163,7 @@ off.
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
 | Claims | `claimedBy` (energy bot coming), `fixBy`, `mendBy` (repair and maintenance bots coming) |
 | Rest | `lastRest`, `rested`, `fresh` (morning bonus seconds left), `dance` (partner) |
-| Travel | `goal{x,d,t}` (where `moveTo` last headed; the turtle reads it), `turtle`, `ride` (lift in progress) |
+| Travel | `goal{x,d,t}` (where `moveTo` last headed; the turtle and the manta read it), `turtle`, `manta`, `ride` (lift in progress) |
 | Per-step flags | `moving`, `working`, `floating` |
 
 The view adds its own fields to crabs. Their names start with `v` (for example `vx`,
@@ -191,8 +191,8 @@ Every 1/60 s of crab time, in this order:
       night battery), and roll for a lost leg. If it was idle, shed idle wear.
 3. `dance()`: pair idle neighbours, apply recharge and rest, and `craft()` den decorations
    from idle time.
-4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `turtle()`; `trader()`.
-   Crabs riding the turtle skip their own rules for the step.
+4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `eel()`; `turtle()`; `manta()`; `trader()`.
+   Crabs riding the turtle or the manta skip their own rules for the step.
 5. `morning()` when the day number changes (fresh starts, `dawn`).
 6. The engine's store gains heat; `weather()` (storms, lava surges, ship orders).
 7. `sell()`: the riser timer, flow streak, order premium and bonus, overclock banking,
@@ -290,7 +290,10 @@ carried nodules back on the sand when the ore pile is full and the crab's own jo
 because a crusher waiting at a full pile is the only crab that could empty it.
 
 **Friends and the den.** `dance()` pairs idle neighbours. `craft(idle)` turns idle time into
-`decor`, and `inspire(kind)` themes the next piece. `morning()` grants fresh starts.
+`decor`, and `inspire(kind)` themes the next piece. `morning()` grants fresh starts, and on every
+`K.FESTIVAL_EVERY`th day sets `S.festival`, pushes a `lanterns` decoration, gives everyone a fresh start
+and emits `festival`; `flowMult()` doubles the bonus while it is set. `adopt(kind, how)` adds a pet to
+`S.pets` (from `ranks()` by `K.PET_RANKS`, or the trader's `pet` good) and emits `pet`.
 
 **The sea.**
 - `sea()` runs the tide's wash-ups and burials, drifts the plankton patches in `S.glow` with the tide, and
@@ -311,6 +314,7 @@ because a crusher waiting at a full pile is the only crab that could empty it.
   lost, the drive eased by `K.RIVAL_EASE`). `sell()` raises the drive by `K.RIVAL_PUSH` when
   the player fills a raced order.
 - `turtle()` runs the turtle: it chooses its side, looks ahead for the crab that would gain most from a lift, steers toward it, may turn back once, carries the crab to its goal, and leaves.
+- `manta()` runs the manta ray along the deepest claimed dune: every walking crab under it heading its way (`goal.t === S.t`) joins `riders` with a `ride` of up to `K.MANTA_CARRY` units, is moved with it, and is set down at `ride.gx`. `release(c)` takes a crab off the manta when it leaves or goes off shift.
 - `trader()` runs the trader: `come → stay → leave`, with three offers drawn from `K.TRADES`. `trade(id)` takes payment and delivers the good with `give(id)`. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
 
 **Market and money.**
@@ -364,7 +368,8 @@ notifications only: the sim never depends on anyone reading them.
 | Movement | `ride`, `land` |
 | Bonuses | `ocStart`, `ocEnd`, `flowLost` |
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
-| Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone` |
+| Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone`, `mantaArrive`, `mantaPick`, `mantaDrop`, `mantaGone` |
+| Den | `decor`, `festival`, `pet` |
 | Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `eelOut`, `eelSnap`, `eelShoo`, `eelIn`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
 
 ### 4.9 Public API
@@ -440,7 +445,12 @@ The canvas is drawn in painter's order:
       `sim.crushSpot(c)`), and debris.
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
-4. The sea turtle, then crabs in the air, riding the vent or the turtle.
+4. The sea turtle and the manta ray (`drawManta()`, riders spaced along its back in `drawCrab()`), then crabs in the air, riding the vent, the turtle or the manta.
+
+**Pets.** `updatePets(dt)` moves each of `S.pets` on view-only fields (`vx`, `vd`, `vmode`: rest, wander,
+follow or sleep by the porch at night) and makes an idle crab beside one pet it; `drawPet(p)` draws the
+four kinds, sorted into the front dune by `petY(p)`. On festival day `drawDen()` hangs bunting from the
+flagpole, and the `lanterns` decoration glows with `nightA`.
 
 **Ledger charts and sharing.** `ledgerCharts()` draws two whole-game line charts from
 `S.long` (`wholeGame()`): money earned, with the ranks as dashed reference lines (a label is

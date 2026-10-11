@@ -17,7 +17,7 @@
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0;
+  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -184,7 +184,8 @@
     spareBit: ['🛒⛏️👍', '🛒⛏️😊'], spareLeg: ['🛒🦵👍', '🛒🦵😊'], turtlePick: ['🐢😆', '🐢⬆️🤩'], turtleDrop: ['🐢❤️', '🐢👋😊'], glow: ['✨👀😊', '✨🦀👍'],
     decor: ['🐚✨🏠', '🏠🎀😍'], orderStart: ['🚢🪙❗', '🚢👀🪙'], orderDone: ['🚢✅🎉', '🚢🪙🥳'],
     rivalArrive: ['🦞❗😨', '🦞👀😬'], rivalWin: ['🦞🚢😤', '🦞🏆😒'], storm: ['🌩️😨', '🌊🌩️😱'], lava: ['🌋🔥🎉', '🌋🔥😎'],
-    octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], eelSnap: ['🐍🪨😱', '🪨💔🐍'], eelShoo: ['🐍🏃', '🐍👋😆'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨']
+    octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], eelSnap: ['🐍🪨😱', '🪨💔🐍'], eelShoo: ['🐍🏃', '🐍👋😆'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨'],
+    festival: ['🎪🎉🦀', '🏮🎶🦀', '🎪🥳'], mantaPick: ['🪁⬆️🤩', '🪁😆'], mantaDrop: ['🪁❤️', '🪁👋😊'], pet: ['🐾❤️🏠', '🐾😍'], petPat: ['🐾😊', '🐾❤️']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -200,7 +201,8 @@
     spareBit: "Fitting the trader's spare bit", spareLeg: "Fitting the trader's spare leg", turtlePick: 'Climbing on the turtle', turtleDrop: 'Thanking the turtle', glow: 'Seeing by the glowing plankton',
     decor: 'Decorating the den', orderStart: 'A ship order', orderDone: 'An order filled', rivalArrive: 'The rival crew turning up', rivalWin: 'The rival filling an order',
     storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore', eelSnap: 'The eel snapping', eelShoo: 'The eel shooed',
-    veteran: 'Earning a star', whale: 'Waving at the whale'
+    veteran: 'Earning a star', whale: 'Waving at the whale',
+    festival: 'Festival day', mantaPick: 'Swept up by the manta', mantaDrop: 'Thanking the manta', pet: 'A pet moving in', petPat: "Petting the den's pet"
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
   Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
@@ -210,7 +212,8 @@
     '😭': ':(', '😤': '#@!', '🤷': '?', '🎉': 'yay', '🎶': '♪', '😵': '@_@', '☀': 'up', '👋': 'hi', '⬆': '^', '😆': ':D', '⚡': 'zap', '💪': '!', '🔌': 'plug', '💨': '~', '🐙': 'octopus', '🦪': 'pearl', '🌊': 'tide', '🏃': 'run', '🌩': 'storm', '😨': 'eek', '🚢': 'ship', '🐋': 'whale', '🐚': 'shell', '✨': 'shiny', '🏠': 'den', '🐢': 'turtle', '🛒': 'shop', '⭐': 'star', '🦞': 'rival',
     '😩': 'ugh', '😊': ':)', '🔧': 'fix', '💥': 'bang', '😫': 'ugh', '🙈': 'oops', '😱': 'eek!', '🕳': 'hole', '😒': 'meh', '👀': 'look',
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
-    '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel' };
+    '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel',
+    '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet' };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -428,6 +431,21 @@
         break;
       case 'turtlePick': say(a, TALK.turtlePick, 2); a.vhop = 1; break;
       case 'turtleDrop': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.6); say(a, TALK.turtleDrop, 1.6); play(a, ['bow', 'wave', 'hopJoy'], 1.4); break;
+      case 'mantaArrive': if (!mantaToast && started) { mantaToast = true; toast('A manta ray glides over the claim', 'Every crab walking its way beneath it is swept along a short way and set down again. Several at once.'); } break;
+      case 'mantaPick': say(a, TALK.mantaPick, 2); a.vhop = 1; break;
+      case 'mantaDrop': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.6); say(a, TALK.mantaDrop, 1.6); play(a, ['bow', 'wave', 'hopJoy', 'twirl'], 1.4); break;
+      case 'festival':
+        if (!started) break;
+        partyUntil = T + 20;                             // the festival rave: twenty seconds of claws in the air
+        for (j = 0; j < S.crabs.length; j++) if (j % 2 === 0) say(S.crabs[j], TALK.festival, 3);
+        for (i = 0; i < 220; i++) confetti.push({ x: rr(0, W), y: rr(-H * 0.4, 0), vx: rr(-20, 20), vy: rr(30, 100), r: rr(0, TAU), vr: rr(-6, 6), c: ['#ff5c5c', '#ffd23f', '#5cc8ff', '#7fe08a', pal.ingot][i % 5], life: 0 });
+        toast('Crab festival day!', 'Day ' + a + ': a long rave at dawn, every crab starts fresh, the flow bonus is doubled all day, and the den gets a string of lanterns. Every tenth day is a festival.');
+        break;
+      case 'pet':
+        p = X(S.pos.DEN); spark(p, groundY(p, 0.9) - 10 * CS, 14, pal.light); poof(p, groundY(p, 0.9), 6, 0.5);
+        near(S.pos.DEN, 120).forEach(function (n) { play(n, ['sparkleEyes', 'clap', 'hopJoy'], 2); if (Math.random() < 0.5) say(n, TALK.pet, 2); });
+        if (started) toast(a.name + ' the ' + PET_NAMES[a.kind] + ' has moved in', (a.how === 'rank' ? 'A rank-up gift. ' : 'From the trader. ') + 'It lives by the den, and idle crabs stop to pet it. Pure charm: it changes nothing in the economy.');
+        break;
       case 'decor':
         var ds = decorSlot(S.decor.length - 1);
         spark(ds.x, ds.y - 8 * CS, 12, pal.light); poof(ds.x, ds.y, 6, 0.5);
@@ -647,6 +665,7 @@
       }
       ecoLogSeen = lg.length;
     }
+    updatePets(dtReal);
     var si = sim.shiftInfo();
     nightA += ((si.night ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);
     if (started && si.mode !== 'all' && lastShift && lastShift !== si.name + si.index) {
@@ -988,7 +1007,8 @@
   // ----- the den, and the decorations the crabs make for it -----
   var DECOR_NAMES = { shellGarland: 'shell garland', seaGlass: 'sea-glass mosaic', cairn: 'pebble cairn', kelpWreath: 'kelp wreath',
     coral: 'coral sculpture', sandCastle: 'sand castle', noduleTotem: 'nodule totem', trophy: 'rank trophy', pearlLamp: 'pearl lamp',
-    inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp' };
+    inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp', lanterns: 'string of festival lanterns' };
+  var PET_NAMES = { slug: 'sea slug', babyOcto: 'baby octopus', starfish: 'starfish', snail: 'sea snail' };
   var DEN_S = 2;                         // the den is drawn at twice the scale of the crabs: four times the house
   function decorSlot(i) {                // decorations ring the den on the sand, nearest first
     var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), spots = [[-44, 2], [44, 2], [-56, 7], [56, 7], [-50, -6], [50, -6], [-66, 0], [66, 0], [-74, 6], [74, 6], [-62, -12], [62, -12], [-84, 0], [84, 0]];
@@ -1054,6 +1074,16 @@
         ctx.fillStyle = 'rgba(255,150,60,.35)'; ctx.fillRect(-3, -16, 6, 14);
         ctx.fillStyle = pal.lava; ctx.beginPath(); ctx.ellipse(0, -9 + Math.sin(T * 1.3) * 4, 2, 2.6, 0, 0, TAU); ctx.fill();
         break;
+      case 'lanterns':                   // festival day's gift: paper lanterns on a string between two posts, lit at night
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-10, -14); ctx.lineTo(-10, 0); ctx.moveTo(10, -14); ctx.lineTo(10, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-10, -13); ctx.quadraticCurveTo(0, -9, 10, -13); ctx.stroke();
+        for (i = 0; i < 4; i++) {
+          var lx = -7.5 + i * 5 + Math.sin(T * 2 + i) * 0.6, ly = -11.6 + Math.abs(i - 1.5) * -0.9 + 3;
+          ctx.fillStyle = 'rgba(255,230,150,' + (0.15 + 0.45 * nightA).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(lx, ly, 3.4, 0, TAU); ctx.fill();
+          ctx.fillStyle = i % 2 ? '#ffb347' : '#ff5c5c'; ctx.beginPath(); ctx.ellipse(lx, ly, 1.8, 2.4, 0, 0, TAU); ctx.fill();
+          ctx.fillStyle = pal.ingot; ctx.fillRect(lx - 0.8, ly - 2.9, 1.6, 0.8);
+        }
+        break;
     }
     ctx.restore();
   }
@@ -1079,8 +1109,117 @@
     if (!still && Math.random() < 0.02) bubbles.push({ x: p + 11.5 * s * DEN_S, y: y - 25 * s * DEN_S, r: rr(1, 2.2) * s, vy: rr(14, 24), ph: rr(0, TAU) });
     ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, -33); ctx.stroke();   // the flagpole
     ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.moveTo(0, -33); ctx.lineTo(7, -30.5 + Math.sin(T * 3) * 0.8); ctx.lineTo(0, -28); ctx.closePath(); ctx.fill();
+    if (S.festival) {                                                                                            // festival day: bunting from the flagpole to a post either side
+      ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.4;
+      [-1, 1].forEach(function (sd) {
+        var j, t, bx, bY, fl;
+        ctx.beginPath(); ctx.moveTo(0, -33); ctx.quadraticCurveTo(sd * 16, -22, sd * 30, -14); ctx.moveTo(sd * 30, -14); ctx.lineTo(sd * 30, 0); ctx.stroke();
+        for (j = 1; j <= 6; j++) {
+          t = j / 7; bx = 2 * (1 - t) * t * sd * 16 + t * t * sd * 30; bY = (1 - t) * (1 - t) * -33 + 2 * (1 - t) * t * -22 + t * t * -14; fl = Math.sin(T * 4 + j + sd) * 0.5;
+          ctx.fillStyle = ['#ff5c5c', '#ffd23f', '#5cc8ff', '#7fe08a'][j % 4]; ctx.beginPath(); ctx.moveTo(bx - 1.6, bY); ctx.lineTo(bx + 1.6, bY); ctx.lineTo(bx + fl, bY + 3.2); ctx.closePath(); ctx.fill();
+        }
+      });
+    }
     ctx.restore();
     for (i = 0; i < S.decor.length; i++) { d = decorSlot(i); if (d.y >= y - 20 * s) drawDecor(S.decor[i].kind, d.x, d.y, d.s); }
+  }
+  // ----- pets: they live by the den, wander, sleep by the porch at night, and get petted -----
+  // Their view state hangs on the sim's pet objects under v-names, so saves leave it out and a new game forgets it.
+  var PET_SPEED = { slug: 5, babyOcto: 26, starfish: 3, snail: 4 };
+  function updatePets(dtReal) {
+    var i, j, p, c, home = S.pos.DEN, night = S.si && S.si.night, dtv = dtReal * Math.max(speed, 0.25), tx, v, st, cand;
+    for (i = 0; i < S.pets.length; i++) {
+      p = S.pets[i];
+      if (p.vx === undefined) { p.vx = home + rr(-40, 40); p.vd = rr(0.88, 0.95); p.vdir = 1; p.vph = rr(0, TAU); p.vmode = 'rest'; p.vt = rr(1, 4); p.vhop = 0; p.vfriend = null; p.vtx = p.vx; }
+      p.vt -= dtv;
+      if (p.vhop > 0) p.vhop = Math.max(0, p.vhop - dtv * 2.5);
+      if (night) p.vmode = 'sleep';
+      else if (p.vmode === 'sleep' || p.vt <= 0) {
+        var r = Math.random();
+        if (p.kind === 'babyOcto' && r < 0.35) {              // the baby octopus tags along after a crab passing the den
+          cand = near(home, 110).filter(function (n) { return n.d > 0.75 && !n.manta && !n.turtle; });
+          p.vfriend = cand.length ? anyOf(cand) : null; p.vmode = p.vfriend ? 'follow' : 'wander'; p.vtx = home + rr(-70, 70); p.vt = rr(4, 9);
+        } else if (r < 0.55) { p.vmode = 'wander'; p.vtx = home + rr(-70, 70); p.vt = rr(3, 8); }
+        else { p.vmode = 'rest'; p.vt = rr(2, 6); }
+      }
+      if (speed === 0) continue;
+      tx = null;
+      if (p.vmode === 'sleep') tx = home + 24 + i * 9;       // curled up by the porch
+      else if (p.vmode === 'follow') {
+        if (p.vfriend && !p.vfriend.gone && p.vfriend.state !== 'sleep' && Math.abs(p.vfriend.x - home) < 140) tx = p.vfriend.x - p.vfriend.dir * 14;
+        else { p.vmode = 'wander'; tx = p.vtx; }
+      } else if (p.vmode === 'wander') tx = p.vtx;
+      if (tx !== null && Math.abs(tx - p.vx) > 2) {
+        v = PET_SPEED[p.kind] * dtv; st = clamp(tx - p.vx, -v, v);
+        p.vdir = st > 0 ? 1 : -1; p.vx += st; p.vmoving = true;
+        if (p.kind === 'babyOcto' && p.vhop === 0) p.vhop = 1;   // it gets about in little jets
+      } else p.vmoving = false;
+      if (p.vmode !== 'sleep') for (j = 0; j < S.crabs.length; j++) {     // an idle crab beside a pet stops to pet it
+        c = S.crabs[j];
+        if (c.moving || c.working || c.state === 'sleep' || c.alt > 0 || c.d < 0.75 || Math.abs(c.x - p.vx) > 18 || T < (c.vnextPat || 0)) continue;
+        c.vnextPat = T + rr(8, 16); play(c, ['sparkleEyes', 'wave', 'bow', 'cheerUp'], 1.8);
+        if (Math.random() < 0.6) say(c, TALK.petPat, 1.6);
+        p.vhappy = T + 2; p.vt = Math.max(p.vt, 2); break;
+      }
+    }
+  }
+  function petY(p) { return p.vx === undefined ? groundY(X(S.pos.DEN), 0.9) : groundY(X(p.vx), p.vd); }
+  function drawPet(p) {
+    if (p.vx === undefined) return;
+    var px = X(p.vx), gy = petY(p), s = scaleAt(p.vd) * 0.7, asleep = p.vmode === 'sleep', happy = p.vhappy > T, k = p.kind, i, hop = Math.sin((p.vhop || 0) * Math.PI) * 6;
+    var eyes = function (x, y, r, gap) {   // two eyes: closed lines asleep, happy arcs when petted, else white with a pupil
+      var e;
+      for (e = -1; e <= 1; e += 2) {
+        var ex = x + e * gap;
+        if (asleep) { ctx.strokeStyle = pal.pupil; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(ex - r, y); ctx.lineTo(ex + r, y); ctx.stroke(); }
+        else if (happy) { ctx.strokeStyle = pal.pupil; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(ex, y + r * 0.6, r, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }
+        else { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ex, y, r, 0, TAU); ctx.fill(); ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(ex + 0.3, y, r * 0.5, 0, TAU); ctx.fill(); }
+      }
+    };
+    ctx.save(); ctx.translate(px, gy); ctx.scale(s * p.vdir, s); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.fillStyle = 'rgba(0,0,0,.1)'; ctx.beginPath(); ctx.ellipse(0, 0.5, 9, 2, 0, 0, TAU); ctx.fill();
+    if (k === 'slug') {                  // a nudibranch: an orange body, purple cerata with yellow tips along its back, two rhinophores
+      var inch = p.vmoving ? Math.abs(Math.sin(T * 5 + p.vph)) : 0;
+      ctx.fillStyle = '#ff9a3c'; ctx.beginPath(); ctx.ellipse(0, -3, 10 + inch * 2, 3.2, 0, 0, TAU); ctx.fill();
+      for (i = -3; i <= 3; i++) {
+        var cx = i * 2.6 + Math.sin(T * 3 + i + p.vph) * 0.8, cy = -8.5 + Math.abs(i) * 0.4;
+        ctx.strokeStyle = '#a65cff'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(i * 2.6, -5); ctx.lineTo(cx, cy); ctx.stroke();
+        ctx.fillStyle = '#fff1a8'; ctx.beginPath(); ctx.arc(cx, cy, 0.9, 0, TAU); ctx.fill();
+      }
+      ctx.strokeStyle = '#a65cff'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(8, -5); ctx.lineTo(9.5, -9); ctx.moveTo(10, -4.5); ctx.lineTo(12, -8); ctx.stroke();   // rhinophores
+      eyes(9, -3.6, 0.8, 1.2);
+    } else if (k === 'babyOcto') {       // a baby octopus: a round pink head with big eyes, six little arms, jetting about in hops
+      var sq = p.vmoving ? 1 + 0.12 * Math.sin(T * 8) : 1 + 0.04 * Math.sin(T * 2 + p.vph);
+      ctx.translate(0, -hop);
+      if (hop > 1) { ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.arc(-4, 1 + hop, 1.2, 0, TAU); ctx.arc(-6, 2 + hop, 0.8, 0, TAU); ctx.fill(); }
+      ctx.strokeStyle = '#e88bd0'; ctx.lineWidth = 1.6;
+      for (i = 0; i < 6; i++) { var ax = -5 + i * 2, aw = Math.sin(T * 5 + i + p.vph); ctx.beginPath(); ctx.moveTo(ax, -4); ctx.quadraticCurveTo(ax + aw * 2, -1.5, ax + aw * 2.5, 0.2); ctx.stroke(); }
+      ctx.fillStyle = '#e88bd0'; ctx.beginPath(); ctx.ellipse(0, -8, 6 * sq, 6.5 / sq, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.3)'; [[-3, -12], [2, -13.5], [4, -10]].forEach(function (d) { ctx.beginPath(); ctx.arc(d[0], d[1], 0.8, 0, TAU); ctx.fill(); });
+      eyes(0, -8.5, 1.7, 2.6);
+      ctx.strokeStyle = pal.pupil; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.arc(0, -5.6, 1.2, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
+    } else if (k === 'starfish') {       // a starfish: five orange arms with pale dots, a tiny face in the middle, creeping along
+      ctx.save(); ctx.translate(0, -5); ctx.rotate(p.vmoving ? T * 0.8 * p.vdir : Math.sin(T + p.vph) * 0.08);
+      star(0, 0, 6.5, '#ff7a59', '#d85a3a');
+      ctx.fillStyle = '#ffd6b8'; for (i = 0; i < 5; i++) { var sa = -Math.PI / 2 + i * TAU / 5; ctx.beginPath(); ctx.arc(Math.cos(sa) * 3.2, Math.sin(sa) * 3.2, 0.6, 0, TAU); ctx.arc(Math.cos(sa) * 5, Math.sin(sa) * 5, 0.45, 0, TAU); ctx.fill(); }
+      ctx.restore();
+      eyes(0, -5.6, 0.7, 1.2);
+      ctx.strokeStyle = pal.pupil; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.arc(0, -4.4, 0.9, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+    } else {                             // a sea snail: a green foot, eye stalks, a spiral shell, and a glistening trail
+      ctx.fillStyle = 'rgba(255,255,255,.35)'; for (i = 1; i <= 3; i++) { ctx.beginPath(); ctx.arc(-9 - i * 4 + Math.sin(i * 7) , 0.2, 0.9, 0, TAU); ctx.fill(); }
+      var slide = p.vmoving ? Math.sin(T * 4 + p.vph) * 0.6 : 0;
+      ctx.fillStyle = '#9ad67a'; ctx.beginPath(); ctx.ellipse(2 + slide, -2, 8.5, 2.6, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = '#9ad67a'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(8, -3); ctx.lineTo(9.5 + slide, -8.5); ctx.moveTo(9.5, -3); ctx.lineTo(11.5 + slide, -8); ctx.stroke();
+      ctx.fillStyle = '#d9a066'; ctx.beginPath(); ctx.arc(-2, -6.5, 5, 0, TAU); ctx.fill();
+      ctx.strokeStyle = '#a8743f'; ctx.lineWidth = 0.9; ctx.beginPath();
+      for (i = 0; i <= 18; i++) { var th = i * 0.6, rad = 4.4 - i * 0.22; ctx.lineTo(-2 + Math.cos(th) * rad, -6.5 + Math.sin(th) * rad); } ctx.stroke();
+      eyes(10.5 + slide, -8.6, 0.7, 1);
+    }
+    if (asleep) { ctx.fillStyle = pal.ink || pal.pupil; ctx.font = 'bold 5px sans-serif'; ctx.textAlign = 'center'; ctx.scale(p.vdir, 1); ctx.fillText('z', 6, -14 + Math.sin(T * 2) * 1); }
+    else if (happy) {                    // a little heart over its head
+      ctx.fillStyle = '#ff5c8a'; ctx.save(); ctx.translate(0, -17 - (T - (p.vhappy - 2)) * 3); ctx.beginPath(); ctx.moveTo(0, 2.6); ctx.lineTo(-2.6, 0); ctx.arc(-1.3, -0.6, 1.5, Math.PI, 0); ctx.arc(1.3, -0.6, 1.5, Math.PI, 0); ctx.lineTo(2.6, 0); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+    ctx.restore();
   }
   // The crushing yard is a line of press stations, one a crusher, on a roller table: each press is a frame with a
   // hammer block that drops as its crusher pounds. Haulers queue up to the ore pile on the field side, and the smelters
@@ -1274,7 +1413,7 @@
       riserShip: { x: top.x, y: sy }, perches: [{ x0: top.x - 40, x1: top.x + 40, y: sy - 6 }], crabs: [], geom: ecoGeom
     };
     if (e.cargo) e.perches.push({ x0: e.cargo.x - 76, x1: e.cargo.x + 40, y: e.cargo.y - 10 });
-    if (S) for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.alt > 0 || c.turtle) continue; px = crabX(c); e.crabs.push({ x: px, y: groundY(px, c.d), d: c.d }); }
+    if (S) for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.alt > 0 || c.turtle || c.manta) continue; px = crabX(c); e.crabs.push({ x: px, y: groundY(px, c.d), d: c.d }); }
     return e;
   }
   function drawDeep(dt) {                // the far silhouettes, and the ecosystem's step for the frame
@@ -1574,6 +1713,24 @@
     ctx.beginPath(); ctx.moveTo(-10, -1); ctx.lineTo(-5, -7); ctx.lineTo(5, -7); ctx.lineTo(10, -1); ctx.moveTo(-5, -7); ctx.lineTo(0, -1); ctx.lineTo(5, -7); ctx.stroke();
     ctx.restore();
   }
+  function mantaPos() { var m = S.manta, px = X(m.x), gy = groundY(px, clamp(m.d, 0.02, 0.98)); return { x: px, y: gy - 42 * CS + Math.sin(T * 1.6) * 4 * CS, gy: gy }; }
+  function drawManta() {                 // a manta ray gliding low over the dunes: wings beating slowly, two head fins, a whip of a tail
+    var m = S.manta; if (!m) return;
+    var p = mantaPos(), s = CS * 1.9, f = Math.sin(T * 2.4), span = 17 + f * 7, i;
+    ctx.save(); ctx.fillStyle = 'rgba(8,24,40,.16)'; ctx.beginPath(); ctx.ellipse(p.x, p.gy, 42 * s, 6 * s, 0, 0, TAU); ctx.fill(); ctx.restore();   // its shadow on the sand
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(m.dir * s, s); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#2b3a4e'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-18, 0); ctx.quadraticCurveTo(-30, 2 - f * 3, -44, -1 + f * 5); ctx.stroke();   // the tail
+    ctx.fillStyle = '#34465f';                                                                                                                 // the far wing
+    ctx.beginPath(); ctx.moveTo(18, 0); ctx.quadraticCurveTo(10, -4, -2, -span); ctx.quadraticCurveTo(-9, -span * 0.9, -16, -3); ctx.quadraticCurveTo(-18, -1, -20, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#4a607c';                                                                                                                 // the near wing, in the light
+    ctx.beginPath(); ctx.moveTo(18, 0); ctx.quadraticCurveTo(10, 4, -2, span); ctx.quadraticCurveTo(-9, span * 0.9, -16, 3); ctx.quadraticCurveTo(-18, 1, -20, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#3d5270'; ctx.beginPath(); ctx.moveTo(18, 0); ctx.quadraticCurveTo(4, -3.5, -18, -1.5); ctx.lineTo(-18, 1.5); ctx.quadraticCurveTo(4, 3.5, 18, 0); ctx.closePath(); ctx.fill();   // the body down the middle
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; for (i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(-4 - i * 3, (i % 2 ? 1 : -1) * (2 + i), 0.9, 0, TAU); ctx.fill(); }   // pale spots on its back
+    ctx.strokeStyle = '#2b3a4e'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(16, -2.5); ctx.quadraticCurveTo(22, -4, 23, -1); ctx.moveTo(16, 2.5); ctx.quadraticCurveTo(22, 4, 23, 1); ctx.stroke();   // the head fins
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(13, -3.6, 1.3, 0, TAU); ctx.arc(13, 3.6, 1.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(13.4, -3.6, 0.6, 0, TAU); ctx.arc(13.4, 3.6, 0.6, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
   function drawStorm() {                 // dark water, slanting rain at the surface, and the odd flash of lightning
     if (stormA < 0.02 && flash < 0.02) return;
     ctx.save();
@@ -1596,7 +1753,7 @@
     ctx.fillRect(0, 0, W, H);
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     for (var i = 0; i < S.crabs.length; i++) {
-      var c = S.crabs[i], s = scaleAt(c.d), px = crabX(c), y = c.alt > 0 ? airPos(c).y : groundY(px, c.d) - 9 * s;
+      var c = S.crabs[i], s = scaleAt(c.d), px = crabX(c), y = c.alt > 0 ? airPos(c).y : c.turtle && S.turtle ? turtlePos().y : c.manta && S.manta ? mantaPos().y : groundY(px, c.d) - 9 * s;
       if (c.state === 'sleep') continue;
       var g = ctx.createRadialGradient(px, y - 6 * s, 1, px, y - 6 * s, 22 * s), col = c.glow ? GLOW : '255,240,170';   // lit by plankton: a blue-green glow
       g.addColorStop(0, 'rgba(' + col + ',' + (0.35 * nightA).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + col + ',0)');
@@ -1885,6 +2042,7 @@
       return { eye: 'closed', mouth: 'o', glyph: 'z', sleep: true, tilt: 0.12 };
     }
     if (c.turtle) return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 3 + c.vph) * 0.12 };   // riding the turtle
+    if (c.manta) return { eye: 'wide', mouth: 'open', arms: 'up', tilt: -c.dir * 0.12 + Math.sin(T * 2.4 + c.vph) * 0.1 };   // swept along on the manta's back
     if (c.air && c.air.phase === 'rise') return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 4 + c.vph) * 0.25 };
     if (c.air && c.air.phase === 'glide') return { eye: 'wide', mouth: 'open', swim: true, tilt: -0.35 };
     if (T < partyUntil) return { eye: 'happy', mouth: 'open', party: true };
@@ -2130,6 +2288,7 @@
     if (c.role === 'energy' && c.broken) px += Math.sin(T * 23) * 0.6;
     if (airborne) { ap = airPos(c); px = ap.x; gy = ap.y + 9 * s; moving = true; }
     if (c.turtle && S.turtle) { var tp2 = turtlePos(); px = tp2.x; gy = tp2.y - 6 * CS; moving = false; }
+    if (c.manta && S.manta) { var mp = mantaPos(), mi = S.manta.riders.indexOf(c), mn = S.manta.riders.length; px = mp.x + ((mi - (mn - 1) / 2) * 15 - 5) * CS; gy = mp.y - 3 * CS; moving = false; }   // riders sit along its back
     bob = moving ? Math.sin(c.vgait * 2) * 0.7 : Math.sin(T * 2 + c.vph) * 0.35;   // walking bob, or slow breathing
     if (c.limp && c.moving) bob += Math.abs(Math.sin(c.vgait)) * 1.8 * s;          // a hobble
     by = gy - (f.sleep ? 6 : 9) * s + bob;
@@ -2428,7 +2587,7 @@
     for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
     for (i = 0; i < S.flags.length; i++) { o = S.flags[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.01, kind: 1, o: o }); }
     var air = [];
-    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0 || o.turtle) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
+    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0 || o.turtle || o.manta) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
     for (i = 0; i < debris.length; i++) { o = debris[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.02, kind: 3, f: drawDebris.bind(null, o) }); }
     layers[2].push({ y: basePos().y, kind: 3, f: drawBase });
     layers[2].push({ y: postPos().y, kind: 3, f: drawPost });
@@ -2442,6 +2601,7 @@
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
     layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
     layers[2].push({ y: groundY(X(S.pos.DEN), 0.82), kind: 3, f: drawDen });
+    for (i = 0; i < S.pets.length; i++) layers[2].push({ y: petY(S.pets[i]) + 0.02, kind: 3, f: drawPet.bind(null, S.pets[i]) });
     layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
       sheet(k, dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); }, k < 2 ? function (x) { return crestY(k + 1, x); } : null, 1);
@@ -2462,8 +2622,8 @@
     }
     drawPasses(); drawTideCurrents(); drawWhaleShadow(); drawInk();
     drawRings(); drawFlights();
-    drawTurtle();
-    for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent or the turtle are above everything
+    drawTurtle(); drawManta();
+    for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent, the turtle or the manta are above everything
     drawNight(); drawPlankton(); drawStorm(); drawGlow(); drawBombs(); drawBubbles(); drawParticles(); drawFloaters();
   }
 
@@ -2513,7 +2673,8 @@
     map: ['Treasure map', 'Three rich flags appear on your dunes.'],
     cells: ['Crate of cells', 'Fills the Stirling engine\'s store and every energy bot.'],
     gear: ['Gold gear', 'The whole crew gets the morning bonus now.'],
-    lucky: ['Lucky shell', 'The next strike on a rich flag finds a pearl.']
+    lucky: ['Lucky shell', 'The next strike on a rich flag finds a pearl.'],
+    pet: ['A pet for the den', 'A starfish, then a sea snail, moves in by the den. Charm only.']
   };
   function priceText(pay) { return pay.bars ? pay.bars + ' bar' + (pay.bars > 1 ? 's' : '') : pay.ingots + ' ingot' + (pay.ingots > 1 ? 's' : ''); }
   var TECH_INFO = {
@@ -2679,7 +2840,8 @@
     ui.arrangeBtn.setAttribute('aria-pressed', String(arrange));
     ui.arrangeNote.textContent = arrange ? (pick === 'post' ? 'Now tap the front dune where the refuel post should go.' : pick ? 'Now tap the plot to move the ' + BLD_NAMES[pick].toLowerCase() + ' to.' : 'Tap a building, or the refuel post, to pick it up.') : 'The line\'s buildings stand on plots along the front dune. Shorter walks between them mean more metal.';
     ui.decor.innerHTML = '<b>Den decorations: ' + S.decor.length + ' of ' + sim.decorMax() + '</b>' + (S.decor.length ? ' · ' + S.decor.map(function (d) { return DECOR_NAMES[d.kind]; }).join(', ') : '') +
-      '<br>Morning bonus ' + Math.round((K.MORNING_BONUS - 1 + S.decor.length * K.DECOR_MORNING) * 100) + '% for ' + (K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME) + ' s; dancing recharges ' + Math.round(S.decor.length * K.DECOR_DANCE * 100) + '% faster. Idle crabs make more, up to the den\'s room.';
+      '<br>Morning bonus ' + Math.round((K.MORNING_BONUS - 1 + S.decor.length * K.DECOR_MORNING) * 100) + '% for ' + (K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME) + ' s; dancing recharges ' + Math.round(S.decor.length * K.DECOR_DANCE * 100) + '% faster. Idle crabs make more, up to the den\'s room.' +
+      (S.pets.length ? '<br>Pets: ' + S.pets.map(function (p) { return p.name + ' the ' + PET_NAMES[p.kind]; }).join(', ') + '.' : '');
     var tr = S.trader, open = tr && tr.state === 'stay';
     ui.traderCard.hidden = !tr;
     if (tr) {
@@ -2784,10 +2946,10 @@
     ui.rMinus.disabled = S.reserve <= 0; ui.rPlus.disabled = S.reserve >= 12;
     ui.advice.innerHTML = advice();
     var si = sim.shiftInfo();
-    ui.shift.textContent = 'Day ' + si.day + ' · ' + clock(si.hour) + (si.night ? ' night' : '') + (si.periods > 1 ? ' · ' + si.name : '');
+    ui.shift.textContent = 'Day ' + si.day + (S.festival ? ' festival' : '') + ' · ' + clock(si.hour) + (si.night ? ' night' : '') + (si.periods > 1 ? ' · ' + si.name : '');
     ui.shiftLeft.textContent = (si.periods > 1 ? SHIFT_INFO[S.shift].short + ' · ' + Math.ceil(si.left / (K.DAY / 24)) + ' h to change' : SHIFT_INFO[S.shift].name) + ' · ' + (S.storm ? 'storm!' : S.lavaSurge ? 'lava surge!' : S.tide > 0.75 ? 'high tide' : S.tide < -0.75 ? 'low tide' : S.tide > 0 ? 'tide rising' : 'tide falling');
     ui.flow.textContent = '×' + sim.flowMult().toFixed(2);
-    ui.flowNote.textContent = S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily';
+    ui.flowNote.textContent = (S.festival ? 'festival: bonus doubled · ' : '') + (S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily');
     ui.order.hidden = !S.order;
     if (S.order) {
       ui.orderN.textContent = S.order.got + ' of ' + S.order.need + (S.order.rivalRate ? ' · rival ' + Math.floor(S.order.rival) : '');
@@ -2918,14 +3080,16 @@
       '<tr><th scope="row">Weather</th><td class="n">' + S.stat.storms + ' storms, ' + S.stat.surges + ' lava surges' + (S.storm ? ' (storm now)' : S.lavaSurge ? ' (surge now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Trader</th><td class="n">' + S.stat.trades + ' swaps; spares: ' + S.spares.bit + ' bits, ' + S.spares.leg + ' legs' + (S.trader ? ' (in town now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Sea turtle</th><td class="n">' + S.stat.turtleRides + ' rides given</td></tr>' +
-      '<tr><th scope="row">Den</th><td class="n">' + S.decor.length + ' of ' + sim.decorMax() + ' decorations</td></tr>' +
+      '<tr><th scope="row">Manta ray</th><td class="n">' + S.stat.mantaRides + ' crabs swept along' + (S.manta ? ' (gliding over now)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Den</th><td class="n">' + S.decor.length + ' of ' + sim.decorMax() + ' decorations' + (S.pets.length ? ' · pets: ' + S.pets.map(function (p) { return p.name + ' the ' + PET_NAMES[p.kind]; }).join(', ') : '') + '</td></tr>' +
       '<tr><th scope="row">Ship orders</th><td class="n">' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' filled, ' + money(S.stat.orderCredits) + ' in premiums and bonuses, reputation ' + '★'.repeat(S.rep) + '☆'.repeat(K.REP_MAX - S.rep) + '</td></tr>' +
       '<tr><th scope="row">Rival crew 🦞</th><td class="n">' + (S.rival ? 'races won ' + S.rival.lost + ', lost ' + S.rival.won + ' · they are pushing at ' + Math.round(S.rival.drive * 100) + '%' : 'arrives at ' + K.RANKS[K.RIVAL_RANK][1]) + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
       '<tr><th scope="row">Sunken chests</th><td class="n">' + S.stat.chests + ' opened, ' + money(S.stat.chestCredits) + '</td></tr>' +
       '</tbody></table>';
     html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
-      '<tr><th scope="row">Flow</th><td class="n">×' + sim.flowMult().toFixed(2) + ' on sales, ' + S.streak + ' in a row</td></tr>' +
+      '<tr><th scope="row">Flow</th><td class="n">×' + sim.flowMult().toFixed(2) + ' on sales, ' + S.streak + ' in a row' + (S.festival ? ' (festival day: doubled)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Festival days</th><td class="n">' + S.stat.festivals + ' so far' + (S.festival ? ', today!' : '; the next is day ' + (Math.floor(S.day / K.FESTIVAL_EVERY) + 1) * K.FESTIVAL_EVERY) + '</td></tr>' +
       '<tr><th scope="row">Flow bonus earned</th><td class="n">' + money(r.flowBonus) + ' a minute, ' + money(S.stat.flowBonus) + ' in all</td></tr>' +
       '<tr><th scope="row">Overclock</th><td class="n">' + Math.floor(S.ocBank) + ' s banked' + (S.oc ? ', running now' : '') + '</td></tr>' +
       '</tbody></table><p class="note">A delivery within ' + K.FLOW_GAP + ' s of the last keeps the flow going: each one adds 2% to the price, up to 40%, and banks more overclock. Overclock makes the whole crew 50% faster, but they use more power and wear twice as fast.</p>';
@@ -3325,7 +3489,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

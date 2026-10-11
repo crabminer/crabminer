@@ -61,8 +61,19 @@ function CrabSim() {
       map: { pay: { ingots: 2 } },    // a treasure map: three rich flags appear on the claimed dunes
       cells: { pay: { ingots: 1 } },  // a crate of cells: the engine's store and every energy bot filled up
       gear: { pay: { bars: 3 } },     // a gold gear: the whole crew gets a morning bonus right away
-      lucky: { pay: { bars: 4 } }     // a lucky shell: the next strike on a rich flag finds a pearl for sure
+      lucky: { pay: { bars: 4 } },    // a lucky shell: the next strike on a rich flag finds a pearl for sure
+      pet: { pay: { ingots: 2 } }     // a pet for the den: a starfish, then a snail (offered while there is a kind the den lacks)
     },
+    // crab festival day: every tenth day. A long rave at dawn, every crab starts fresh, the flow bonus is doubled
+    // all day, and the den gets a string of festival lanterns.
+    FESTIVAL_EVERY: 10, FESTIVAL_FLOW: 2,
+    // pets: a sea slug adopts the den at Nodule Baron and a baby octopus at Lava Lord; the trader sells the others.
+    // Pure charm: a pet changes nothing in the economy.
+    PET_KINDS: ['slug', 'babyOcto', 'starfish', 'snail'], PET_RANKS: { 2: 'slug', 4: 'babyOcto' }, PET_SHOP: ['starfish', 'snail', 'slug', 'babyOcto'],
+    PET_NAMES: { slug: 'Doodle', babyOcto: 'Inky', starfish: 'Twinkle', snail: 'Escargo' },
+    // the manta ray: glides along the back of the claim now and then, and every walking crab it passes over that is
+    // heading its way is swept along up to 140 units, then set down. Several at once; it does not steer or turn.
+    MANTA_FIRST: 400, MANTA_EVERY: [240, 420], MANTA_SPEED: 70, MANTA_REACH: 40, MANTA_DIP: 120, MANTA_CARRY: 140, MANTA_MIN_TRIP: 40,
     // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
     TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
@@ -162,7 +173,8 @@ function CrabSim() {
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
-    'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed'];
+    'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
+    'festivals', 'pets', 'mantaRides'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
   // Who a stuck crab helps, in order of preference: fast crabs like to help haulers, slow ones drillers.
@@ -236,6 +248,7 @@ function CrabSim() {
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
       glow: K.GLOW_X.map(function (x, i) { return { x: x, d: K.GLOW_D[i] }; }), bloom: 0.25,
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
+      festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -326,6 +339,7 @@ function CrabSim() {
     if (S.post.carrier === c) { S.post.carrier = null; S.post.moved = S.t; }
     if (c.dance) { if (c.dance.dance === c) c.dance.dance = null; c.dance = null; }
     if (c.turtle) { c.turtle.rider = null; c.turtle = null; }
+    if (c.manta) { var m = c.manta.riders.indexOf(c); if (m >= 0) c.manta.riders.splice(m, 1); c.manta = null; c.ride = null; }
     if (c.helping) { if (c.helping.helper === c) c.helping.helper = null; c.helping = null; c.held = false; }
     if (c.helper) c.helper = null;                          // its helper notices and goes back to its own work
   }
@@ -766,7 +780,7 @@ function CrabSim() {
   }
   // ----- helping: follow a crab of another (or the same) kind and lend it a claw -----
   function helpable(w, c) {
-    if (w === c || w.gone || w.helper || w.helping || w.air || w.turtle || w.state === 'sleep' || !HELP_STATES[w.role][w.state]) return false;
+    if (w === c || w.gone || w.helper || w.helping || w.air || w.turtle || w.manta || w.state === 'sleep' || !HELP_STATES[w.role][w.state]) return false;
     if (w.role === 'haul') return (!!w.target || w.load > 0) && freeNodule();
     if (w.role === 'drill') return S.nodules.length < K.FIELD_CAP / 2;   // holding a drill steady only pays while the sand is not littered
     return true;
@@ -978,9 +992,10 @@ function CrabSim() {
       var bonus = Math.round(K.RANKS[S.rank][0] * K.RANK_BONUS);
       S.credits += bonus;
       emit('rank', S.rank, bonus);
+      if (K.PET_RANKS[S.rank]) adopt(K.PET_RANKS[S.rank], 'rank');
     }
   }
-  function flowMult() { return 1 + K.FLOW_STEP * S.streak; }
+  function flowMult() { return 1 + K.FLOW_STEP * S.streak * (S.festival ? K.FESTIVAL_FLOW : 1); }   // doubled on festival day
   function sell() {
     S.liftT -= dt;
     if (S.liftT > 0) return;
@@ -1056,7 +1071,7 @@ function CrabSim() {
         if (onDuty(c)) { c.state = RESUME[c.role]; emit('wake', c); }
         continue;
       }
-      if (c.turtle) { c.floating = true; continue; }          // riding the turtle: nothing to do but enjoy it
+      if (c.turtle || c.manta) { c.floating = true; continue; }   // riding the turtle or the manta: nothing to do but enjoy it
       if (!isHeld(c)) (BACK[c.state] ? backupHaul : c.state === 'help' ? help : RULES[c.role])(c);
       if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
         if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, spd(c));
@@ -1079,6 +1094,7 @@ function CrabSim() {
     octopus();
     eel();
     turtle();
+    manta();
     trader();
     if (S.si.day !== S.day) morning();
     S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * dt / 60);   // lava heat drives the Stirling engine
@@ -1155,7 +1171,7 @@ function CrabSim() {
     for (i = 0; i < S.crabs.length; i++) {
       c = S.crabs[i];
       n = c.state === 'haul' || c.state === 'seek' ? c.load : (c.state === 'bhaul' || c.state === 'bseek' ? c.bload : 0);
-      if (!n || c.air || c.turtle || far(c, K.EEL_X, K.EEL_D) >= K.EEL_REACH) continue;
+      if (!n || c.air || c.turtle || c.manta || far(c, K.EEL_X, K.EEL_D) >= K.EEL_REACH) continue;
       for (k = 0; k < n; k++) S.nodules.push({ x: clamp(c.x + srr(-12, 12), K.FIELD0, K.FIELD1), d: clamp(c.d + srr(-0.04, 0.04), 0.7, 0.97), alive: true, eddy: -1, by: null });
       if (c.target) { c.target.by = null; c.target = null; }
       if (BACK[c.state]) { c.bload = 0; c.state = 'bseek'; } else { c.load = 0; c.state = 'seek'; }
@@ -1294,7 +1310,7 @@ function CrabSim() {
     if (!tu.rider) {
       for (i = 0; i < S.crabs.length; i++) {             // look ahead for the crab that would gain most from a lift
         c = S.crabs[i];
-        if (c.state === 'sleep' || c.air || c.turtle || isHeld(c) || !c.goal || c.goal.t !== S.t) continue;
+        if (c.state === 'sleep' || c.air || c.turtle || c.manta || isHeld(c) || !c.goal || c.goal.t !== S.t) continue;
         var ahead = (c.x - tu.x) * tu.dir;
         if (ahead < -K.TURTLE_REACH || ahead > 400) {
           if (!tu.turned && ahead < 0 && ahead > -300 && (c.goal.x - c.x) * -tu.dir >= K.TURTLE_MIN_TRIP) { tu.dir = -tu.dir; tu.turned = true; emit('turtleTurn', tu); }   // turn back for it, once
@@ -1327,13 +1343,50 @@ function CrabSim() {
       emit('turtleGone');
     }
   }
+  // The manta ray glides straight along the back of the claim, the deepest dune claimed, and sweeps along
+  // every walking crab it passes over that is heading its way: each rides up to K.MANTA_CARRY units, or to
+  // where it was going if that is nearer, and is set down. It carries several at once, and never turns.
+  function manta() {
+    var m = S.manta, i, c, z, dist, f;
+    if (!m) {
+      if (S.t < S.nextManta) return;
+      z = K.ZONES[up('field') - 1];
+      var dir = sr() < 0.5 ? 1 : -1;
+      S.manta = { x: dir > 0 ? -80 : K.END + 80, d: (z.d0 + z.d1) / 2, dir: dir, riders: [] };
+      emit('mantaArrive', S.manta);
+      return;
+    }
+    m.x += m.dir * K.MANTA_SPEED * dt;
+    for (i = 0; i < S.crabs.length; i++) {               // whoever walks under it, going its way, is swept along
+      c = S.crabs[i];
+      if (c.manta || c.state === 'sleep' || c.air || c.turtle || isHeld(c) || !c.goal || c.goal.t !== S.t) continue;
+      if (Math.abs(c.x - m.x) > K.MANTA_REACH || Math.abs(c.d - m.d) * K.DEPTH > K.MANTA_DIP) continue;
+      dist = (c.goal.x - c.x) * m.dir;
+      if (dist < K.MANTA_MIN_TRIP) continue;
+      if (c.dance) { c.dance.dance = null; c.dance = null; }
+      f = Math.min(1, K.MANTA_CARRY / dist);
+      c.manta = m; c.ride = { x0: c.x, d0: c.d, gx: c.x + m.dir * dist * f, gd: c.d + (c.goal.d - c.d) * f };
+      m.riders.push(c); S.stat.mantaRides++; emit('mantaPick', c, m);
+    }
+    for (i = m.riders.length - 1; i >= 0; i--) {
+      c = m.riders[i];
+      f = clamp((m.x - c.ride.x0) / ((c.ride.gx - c.ride.x0) || 1), 0, 1);
+      c.x = clamp(m.x, 0, K.END); c.d = c.ride.d0 + (c.ride.gd - c.ride.d0) * f; c.dir = m.dir;
+      if (f >= 1) { c.x = c.ride.gx; c.d = c.ride.gd; c.manta = null; c.ride = null; m.riders.splice(i, 1); emit('mantaDrop', c, m); }
+    }
+    if (m.x < -100 || m.x > K.END + 100) {
+      for (i = m.riders.length - 1; i >= 0; i--) { c = m.riders[i]; c.x = clamp(c.x, K.FIELD0, K.STIRLING - 40); c.manta = null; c.ride = null; m.riders.splice(i, 1); emit('mantaDrop', c, m); }
+      S.manta = null; S.nextManta = S.t + srr(K.MANTA_EVERY[0], K.MANTA_EVERY[1]);
+      emit('mantaGone');
+    }
+  }
   // The hermit-crab trader walks in from the left, keeps shop beside the den for a minute with three goods
-  // out of six, and walks off again.
+  // out of seven (the pet only while the den lacks a kind), and walks off again.
   function trader() {
     var tr = S.trader, keys, offers = [], i, j;
     if (!tr) {
       if (S.t < S.nextTrader) return;
-      keys = Object.keys(K.TRADES);
+      keys = Object.keys(K.TRADES).filter(function (k) { return k !== 'pet' || S.pets.length < K.PET_KINDS.length; });
       while (offers.length < 3) { j = keys[Math.floor(sr() * keys.length)]; if (offers.indexOf(j) < 0) offers.push(j); }
       S.trader = { x: -40, d: 0.9, state: 'come', offers: offers, sold: {}, until: 0 };
       emit('traderArrive', S.trader);
@@ -1374,6 +1427,18 @@ function CrabSim() {
     } else if (id === 'gear') {
       for (i = 0; i < S.crabs.length; i++) S.crabs[i].fresh = K.MORNING_TIME;
     } else if (id === 'lucky') S.luckyPearls++;
+    else if (id === 'pet') adopt(K.PET_SHOP[0], 'shop');
+  }
+  // A pet moves in by the den. If the den has that kind already, the next kind it lacks comes instead,
+  // and once it has every kind, a second of the kind asked for.
+  function adopt(kind, how) {
+    var owned = S.pets.map(function (p) { return p.kind; }), i, order = how === 'shop' ? K.PET_SHOP : K.PET_KINDS, p;
+    if (owned.indexOf(kind) >= 0) for (i = 0; i < order.length; i++) if (owned.indexOf(order[i]) < 0) { kind = order[i]; break; }
+    var nth = owned.filter(function (k) { return k === kind; }).length;
+    p = { kind: kind, name: K.PET_NAMES[kind] + (nth ? ' ' + ['II', 'III', 'IV', 'V'][Math.min(nth - 1, 3)] : ''), at: S.t, how: how };
+    S.pets.push(p); S.stat.pets++;
+    emit('pet', p);
+    return p;
   }
   function shoo() {                        // the player chases the octopus off; it drops whatever it took
     var o = S.octo, i;
@@ -1404,12 +1469,15 @@ function CrabSim() {
   function inspire(kind) { S.decorTheme = kind; }
   function morning() {                     // a new day: crabs that rested well start it fresh
     S.day = S.si.day;
+    S.festival = S.day % K.FESTIVAL_EVERY === 0;   // every tenth day is festival day: everyone fresh, the flow bonus doubled
+    if (S.festival) { S.decor.push({ kind: 'lanterns', at: S.t }); S.stat.decorations++; S.stat.festivals++; }
     for (var i = 0; i < S.crabs.length; i++) {
       var c = S.crabs[i];
-      if (c.rested >= K.REST_FOR_BONUS) { c.fresh = K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME; S.stat.mornings++; emit('morning', c); }
+      if (S.festival || c.rested >= K.REST_FOR_BONUS) { c.fresh = K.MORNING_TIME + S.decor.length * K.DECOR_MORNING_TIME; S.stat.mornings++; emit('morning', c); }
       c.rested = 0;
     }
     emit('dawn', S.day);
+    if (S.festival) emit('festival', S.day);
   }
 
   // flows over the last `secs` simulated seconds, per minute
@@ -1626,7 +1694,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

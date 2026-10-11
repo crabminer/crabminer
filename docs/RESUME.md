@@ -42,7 +42,7 @@ the line, which the advisor and the Ledger tab point out.
   orders with reputation stars. From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.
 - **The sea:** tides (which also push the refuel post around), storms, lava surges, an octopus
-  thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, sunken chests on the back dune,
+  thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, a manta ray that sweeps walking crabs along the back of the claim, sunken chests on the back dune,
   sea life in the deep shadows, a plankton cycle that glows at night after ship wakes and storms, and a closed
   food web (`eco.js`, view-only): shoals, shrimp, jellies and crawlers, their hunters, a shark or two, gulls on
   the ships, and a fisherman whose jellyfish bait feeds more fish than it catches, with a lab report in the Ledger. Three patches of
@@ -51,7 +51,10 @@ the line, which the advisor and the Ledger tab point out.
   job), emoji crab-talk grammar, 119 animations (acrobatics, 30 dances for two, the claw-in-claw
   walk, bopping along to a dance nearby, which also sheds wear for everyone within 60 units),
   and a crab rave on rank-up. The crushing yard is a line of press stations, one a crusher, and
-  haulers and smelters queue up to the piles in lines; the den is a big two-storey crab house.
+  haulers and smelters queue up to the piles in lines; the den is a big two-storey crab house, with
+  pets (a sea slug and a baby octopus from ranks, a starfish and a snail from the trader) that idle
+  crabs stop to pet. Every tenth day is a festival: a long rave at dawn, everyone fresh, the flow
+  bonus doubled, bunting on the den and a string of lanterns for it.
 - **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the
   page hides, and a reload resumes it exactly (the seed is saved too). New game is under ?.
 - **Interface:** starts straight into play on the big field, with a phone layout for small screens

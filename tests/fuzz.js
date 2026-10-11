@@ -37,6 +37,10 @@ function check(sim) {
   const plots = Object.values(S.layout);
   ok(new Set(plots).size === plots.length, 'two buildings on one plot: ' + JSON.stringify(S.layout));
 
+  // the manta and its riders agree
+  if (S.manta) for (const c of S.manta.riders) ok(live.has(c) && c.manta === S.manta, 'ghost manta rider ' + who(c));
+  for (const c of S.crabs) if (c.manta) ok(c.manta === S.manta && S.manta.riders.indexOf(c) >= 0, 'one-sided manta ride: ' + who(c));
+
   for (const c of S.crabs) {
     ok(!c.gone, 'retired crab still in the crew: ' + who(c));
     // dance pairs symmetric
@@ -59,7 +63,8 @@ function check(sim) {
   if (check(sim).length) throw new Error('the checker fails a clean game: ' + check(sim));
   const cases = [
     S => { S.ore = -1; }, S => { S.nodules[0].by = ghost; }, S => { S.docks.push(ghost); },
-    S => { S.crabs[0].dance = S.crabs[1]; }, S => { S.layout.den = S.layout.ore; }, S => { S.crabs[0].x = NaN; }
+    S => { S.crabs[0].dance = S.crabs[1]; }, S => { S.layout.den = S.layout.ore; }, S => { S.crabs[0].x = NaN; },
+    S => { S.crabs[0].manta = { riders: [] }; }
   ];
   cases.forEach((corrupt, i) => {
     sim.load(clean); corrupt(sim.state());

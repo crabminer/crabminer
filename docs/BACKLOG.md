@@ -15,14 +15,12 @@ light that lets tired crabs work at full speed at night, sunken chests on the ba
 the moray eel, lending a claw, the closed food web with the fisherman and the gulls (`eco.js`)
 and its lab report, the crushing line of press stations, the two-storey den, a repertoire
 of 119 animations with dances that cheer up the crabs around them, the manta-ray glide, the crab
-festival every tenth day, and the den's pets.
+festival every tenth day, the den's pets, crab moods, earthquakes, surface news and achievements.
 
 ## Visitors and the sea
 
 - **Kelp forest claim.** A fourth claimable area on the left that slows walking but grows
   kelp, a new material for den decorations or a "kelp rope" upgrade.
-- **Earthquake / sand slide.** Rare event: one dune shifts, burying nodules and flags in a
-  band and uncovering a fresh rich patch elsewhere.
 - **Hydrothermal chimney.** A second, smaller vent that appears and fades over days; a
   temporary shortcut and a temporary heat source the engine can tap.
 
@@ -30,8 +28,6 @@ festival every tenth day, and the den's pets.
 
 - **Apprentices.** Cheap trainee crabs that work at half speed and become full crabs of
   their kind after a day. An early-game option when money is tight.
-- **Moods.** A slow happiness value per crab from dancing, rest, decorations and
-  breakdowns; happy crabs dance more, grumpy ones grumble and drop a little speed.
 - **A hungrier web.** Let the food web touch the game: a shark that scares the octopus off, a
   gull that steals a nodule from a hauler on the crest, or the fisherman's catch sold at the
   surface. All decoration now (`eco.js` never reads `S`).
@@ -42,12 +38,8 @@ festival every tenth day, and the den's pets.
   big reward and a unique decoration.
 - **Metal grades.** Rich flags make "fine" ingots worth 50% more; the smelter keeps them on
   a separate shelf of the stockpile, and the reserve can be set per grade.
-- **Market events.** News at the surface: a copper boom or a glut that moves the price for
-  a minute, with a headline toast.
 - **Prestige / new dig site.** After Crab Tycoon, start a new site with one permanent perk
   carried over (a tech, a decoration, a veteran crab). Replay value.
-- **Achievements.** A short list (first pearl, ten turtle rides, a full den, an order at
-  five stars, a night with no breakdowns) shown in the Ledger.
 - **Insurance.** Pay credits up front to have storms and octopus losses refunded; an
   economic choice rather than a reflex.
 

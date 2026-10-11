@@ -140,7 +140,7 @@ off.
 | Group | Fields |
 | --- | --- |
 | Clock | `t` (seconds), `tick` (last whole second), `si` (current shift info: hour, day, night, period), `day` |
-| Money | `credits`, `earned`, `price`, `walk` (price random walk), `liftT` (riser timer), `reserve`, `streak`, `lastSale`, `oc`, `ocBank`, `rank` |
+| Money | `credits`, `earned`, `price`, `walk` (price random walk), `liftT` (riser timer), `reserve`, `streak`, `lastSale`, `oc`, `ocBank`, `rank`, `news{kind, mult, until, n, sold}`, `nextNews`, `ach{id: t}` (achievements won), `nightBreaks`, `nightWork` (for the quiet-night achievement) |
 | Stocks | `nodules[]` (on the sand), `flags[]`, `ore`, `bars`, `stock`, `heat` (engine store) |
 | Crew | `crabs[]`, `nextId` |
 | Progress | `lv{}` (upgrade levels), `tech{}`, `wu{}` (worker upgrades), `layout{}` (building → plot), `pos{}` (derived positions) |
@@ -149,6 +149,7 @@ off.
 | Sea | `tide`, `glow[{x, d}]` (the plankton patches), `bloom`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `eel{out, until, next, bite}`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
 | Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
 | Den | `decor[]`, `decorWork`, `decorTheme`, `festival` (true through a festival day), `pets[{kind, name, at, how}]` |
+| Quake | `quake{zone, x, until}` while a dune shakes, `nextQuake` |
 | Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle`, `manta{x,d,dir,riders[]}`, `nextManta` |
 | Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes), `long[]` and `longEvery` (the whole game: a sample every 15 s, halved in resolution each time it passes `K.LONG_MAX` = 240 points) |
 
@@ -163,6 +164,7 @@ off.
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
 | Claims | `claimedBy` (energy bot coming), `fixBy`, `mendBy` (repair and maintenance bots coming) |
 | Rest | `lastRest`, `rested`, `fresh` (morning bonus seconds left), `dance` (partner) |
+| Mood | `mood` (0–1), `moodZone` (`happy`, `ok` or `grumpy`; `pace()` slows a grumpy crab, `dance()` widens a happy one's reach) |
 | Travel | `goal{x,d,t}` (where `moveTo` last headed; the turtle and the manta read it), `turtle`, `manta`, `ride` (lift in progress) |
 | Per-step flags | `moving`, `working`, `floating` |
 
@@ -189,15 +191,18 @@ Every 1/60 s of crab time, in this order:
    4. If a vent ride was dropped mid-air, keep floating and land.
    5. If it was active, add wear, drain the battery (by role, broken bit, overclock and
       night battery), and roll for a lost leg. If it was idle, shed idle wear.
+   6. `mood(c, active)` on every path out of the loop: the rates in `K.MOOD_RATE`, the drift, and
+      the `happy`, `grumpy` and `moodOk` events when the zone changes. Moments hit a mood in `tally()`
+      through `K.MOOD_HIT` (the crab the event is about) and `K.MOOD_HIT_B` (the one it was done to).
 3. `dance()`: pair idle neighbours, apply recharge and rest, and `craft()` den decorations
    from idle time.
-4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `eel()`; `turtle()`; `manta()`; `trader()`.
-   Crabs riding the turtle or the manta skip their own rules for the step.
+4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `eel()`; `turtle()`; `manta()`; `trader()`;
+   `quake()`; `news()`. Crabs riding the turtle or the manta skip their own rules for the step.
 5. `morning()` when the day number changes (fresh starts, `dawn`).
 6. The engine's store gains heat; `weather()` (storms, lava surges, ship orders).
 7. `sell()`: the riser timer, flow streak, order premium and bonus, overclock banking,
    `ranks()`.
-8. Once a second: `market()` (price) and `snapshot()` (into `hist`, and into `long` when a sample is due).
+8. Once a second: `market()` (price, times the news multiplier), `snapshot()` (into `hist`, and into `long` when a sample is due) and `achievements()` (each of `ACH` not yet in `S.ach` is tested; a win stores the time and emits `achievement`).
 
 ### 4.5 The role state machines
 
@@ -307,6 +312,8 @@ and emits `festival`; `flowMult()` doubles the bonus while it is set. `adopt(kin
   `K.EEL_EVERY`, it makes a carrying crab within `K.EEL_REACH` drop its load as nodules, at most
   once every `K.EEL_BITE`. `eelGuards(n)` keeps `nearestNodule()` off nodules in its reach while it
   is out. `shooEel()` and the end of its stay call `eelHide()`.
+- `quake()` runs an earthquake: `S.quake` for `K.QUAKE_TIME` (walkers slowed in `moveTo`), then the slide buries free nodules and idle flags in the band, pushes `K.QUAKE_FLAGS` rich flags (`map: true, quake: true`) clear of it, and emits `quakeEnd` with the counts and the patch.
+- `news()` runs a surface headline: `S.news` for `K.NEWS_TIME` with a price multiplier that `market()` applies; `sell()` books the difference into `stat.newsCredits`.
 - `weather()` runs storms, lava surges and ship orders. It also brings in the rival crew at
   `K.RIVAL_RANK`, gives each new order a `rivalRate` (ingots a second, from `K.RIVAL_PACE` and
   `S.rival.drive`), and calls `rival(o)`. That advances `o.rival`, emits `rivalSell` for each
@@ -370,6 +377,8 @@ notifications only: the sim never depends on anyone reading them.
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
 | Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone`, `mantaArrive`, `mantaPick`, `mantaDrop`, `mantaGone` |
 | Den | `decor`, `festival`, `pet` |
+| Crew | `happy`, `grumpy`, `moodOk`, `achievement` |
+| Shocks | `quakeStart`, `quakeEnd`, `newsStart`, `newsEnd` |
 | Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `eelOut`, `eelSnap`, `eelShoo`, `eelIn`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
 
 ### 4.9 Public API
@@ -446,6 +455,8 @@ The canvas is drawn in painter's order:
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
 4. The sea turtle and the manta ray (`drawManta()`, riders spaced along its back in `drawCrab()`), then crabs in the air, riding the vent, the turtle or the manta.
+
+**Shocks and moods.** `draw()` jitters the whole canvas while `S.quake` is set (not under reduced motion) and `update()` throws sand up along the band. `NEWS_HEADLINES` holds three headlines a kind; the toast, the advisor and the HUD's price trend read `S.news`. `moodFor()` gives grumpy idle crabs a sulking ladder and happy ones a humming one, `statusText()` appends the mood, and the Ledger has a Moods table and the achievements list (`sim.achievements()` for the names, `S.ach` for the times).
 
 **Pets.** `updatePets(dt)` moves each of `S.pets` on view-only fields (`vx`, `vd`, `vmode`: rest, wander,
 follow or sleep by the porch at night) and makes an idle crab beside one pet it; `drawPet(p)` draws the

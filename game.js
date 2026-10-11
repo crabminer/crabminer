@@ -185,7 +185,9 @@
     decor: ['🐚✨🏠', '🏠🎀😍'], orderStart: ['🚢🪙❗', '🚢👀🪙'], orderDone: ['🚢✅🎉', '🚢🪙🥳'],
     rivalArrive: ['🦞❗😨', '🦞👀😬'], rivalWin: ['🦞🚢😤', '🦞🏆😒'], storm: ['🌩️😨', '🌊🌩️😱'], lava: ['🌋🔥🎉', '🌋🔥😎'],
     octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], eelSnap: ['🐍🪨😱', '🪨💔🐍'], eelShoo: ['🐍🏃', '🐍👋😆'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨'],
-    festival: ['🎪🎉🦀', '🏮🎶🦀', '🎪🥳'], mantaPick: ['🪁⬆️🤩', '🪁😆'], mantaDrop: ['🪁❤️', '🪁👋😊'], pet: ['🐾❤️🏠', '🐾😍'], petPat: ['🐾😊', '🐾❤️']
+    festival: ['🎪🎉🦀', '🏮🎶🦀', '🎪🥳'], mantaPick: ['🪁⬆️🤩', '🪁😆'], mantaDrop: ['🪁❤️', '🪁👋😊'], pet: ['🐾❤️🏠', '🐾😍'], petPat: ['🐾😊', '🐾❤️'],
+    happy: ['🎶😊', '😄✨', '🦀😊🎶'], grumpy: ['😤💢', '😒💢', '🦀😤'], boom: ['📰📈🤩', '🪙📈😎'], glut: ['📰📉😩', '🪙📉😒'], rumour: ['📰🤷', '📰👀❓'],
+    quake: ['😱🌊💥', '😵💫', '💥🦀😨'], achievement: ['🏆✨🎉', '🏆😎']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -202,7 +204,8 @@
     decor: 'Decorating the den', orderStart: 'A ship order', orderDone: 'An order filled', rivalArrive: 'The rival crew turning up', rivalWin: 'The rival filling an order',
     storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore', eelSnap: 'The eel snapping', eelShoo: 'The eel shooed',
     veteran: 'Earning a star', whale: 'Waving at the whale',
-    festival: 'Festival day', mantaPick: 'Swept up by the manta', mantaDrop: 'Thanking the manta', pet: 'A pet moving in', petPat: "Petting the den's pet"
+    festival: 'Festival day', mantaPick: 'Swept up by the manta', mantaDrop: 'Thanking the manta', pet: 'A pet moving in', petPat: "Petting the den's pet",
+    happy: 'In a good mood', grumpy: 'In a bad mood', boom: 'A copper boom', glut: 'A glut at the surface', rumour: 'A rumour from the surface', quake: 'An earthquake', achievement: 'An achievement won'
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
   Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
@@ -213,7 +216,12 @@
     '😩': 'ugh', '😊': ':)', '🔧': 'fix', '💥': 'bang', '😫': 'ugh', '🙈': 'oops', '😱': 'eek!', '🕳': 'hole', '😒': 'meh', '👀': 'look',
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
     '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel',
-    '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet' };
+    '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet', '💢': 'grr', '📰': 'news', '📈': 'up', '📉': 'down', '💫': 'dizzy' };
+  var NEWS_HEADLINES = {   // three headlines a kind; the sim picks which (S.news.n)
+    boom: ['Copper boom at the surface!', 'Shipyards bid up every ingot!', 'Metal shortage on land: prices soar!'],
+    glut: ['Glut at the docks: ingots pile up unsold', 'A rival port floods the market', 'Smelters on land undercut the sea'],
+    rumour: ['Rumour of a boom... that comes to nothing', 'Traders whisper of a glut, then shrug', 'A headline about crabs. Nobody reads it']
+  };
   var emojiOK = (function () {          // can this device draw emoji? If not, crabs spell their words
     try {
       var c = document.createElement('canvas'), g = c.getContext('2d'), draw2 = function (t) {
@@ -441,6 +449,31 @@
         for (i = 0; i < 220; i++) confetti.push({ x: rr(0, W), y: rr(-H * 0.4, 0), vx: rr(-20, 20), vy: rr(30, 100), r: rr(0, TAU), vr: rr(-6, 6), c: ['#ff5c5c', '#ffd23f', '#5cc8ff', '#7fe08a', pal.ingot][i % 5], life: 0 });
         toast('Crab festival day!', 'Day ' + a + ': a long rave at dawn, every crab starts fresh, the flow bonus is doubled all day, and the den gets a string of lanterns. Every tenth day is a festival.');
         break;
+      case 'happy': if (Math.random() < 0.4) say(a, TALK.happy, 1.6); play(a, ['jazz', 'bounce', 'whistle', 'hopJoy', 'sparkleEyes'], 1.6); break;
+      case 'grumpy': if (Math.random() < 0.5) say(a, TALK.grumpy, 1.6); play(a, ['grumble', 'sulk', 'crossArms', 'stomp'], 1.8); break;
+      case 'quakeStart':
+        toast('Earthquake!', 'The ' + K.ZONES[a.zone].name.toLowerCase() + ' is shaking. Walking is slow for six seconds, and then the sand slides: nodules and idle flags in its path get buried, and the slide bares a rich patch somewhere else.');
+        S.crabs.forEach(function (n, j2) { if (n.state === 'sleep') return; if (j2 % 3 === 0) say(n, TALK.quake, 2); play(n, ['dizzy', 'shock', 'nervous', 'struggle', 'hug'], 2.5); });
+        break;
+      case 'quakeEnd':
+        var qz = K.ZONES[a.zone], qb = e.b, qi;
+        for (qi = 0; qi < 24; qi++) { p = X(a.x + rr(-K.QUAKE_BAND / 2, K.QUAKE_BAND / 2)); poof(p, groundY(p, rr(qz.d0, qz.d1)), 3, 0.9, pal.sandLine); }
+        p = X(qb.x); rings.push({ x: p, y: groundY(p, qb.d), t: 0, c: pal.energy }); spark(p, groundY(p, qb.d) - 8, 12, pal.energy);
+        S.flags.forEach(function (f) { if (f.quake && !f.vborn) { f.vborn = T; var fx = X(f.x); rings.push({ x: fx, y: groundY(fx, f.d), t: 0, c: pal.ingot }); } });
+        toast('The sand has settled', 'The slide on the ' + qz.name.toLowerCase() + ' buried ' + qb.buried + ' nodule' + (qb.buried === 1 ? '' : 's') + ' and ' + qb.flags + ' flag' + (qb.flags === 1 ? '' : 's') + ', and bared a rich patch of three flags on the ' + K.ZONES[sim.zoneOf(qb.d)].name.toLowerCase() + '.');
+        near(qb.x, 80).forEach(function (n) { play(n, ['sparkleEyes', 'pointUp', 'cheer'], 1.8); });
+        break;
+      case 'newsStart':
+        toast('Surface news: ' + NEWS_HEADLINES[a.kind][a.n], a.kind === 'boom' ? 'Ingots fetch 40% more for a minute. Drop the reserve and send everything up.' : a.kind === 'glut' ? 'Ingots fetch 35% less for a minute. Raise the reserve and hold them back if you can.' : 'The price does not move. News is like that.');
+        near(S.pos.STOCK, 140).forEach(function (n, j2) { if (j2 % 2 === 0) say(n, TALK[a.kind], 2); play(n, a.kind === 'boom' ? ['cheer', 'sparkleEyes', 'pump'] : a.kind === 'glut' ? ['slump', 'sigh', 'facepalm'] : ['shrug', 'think', 'eyeRoll'], 1.8); });
+        break;
+      case 'newsEnd': if (a.kind !== 'rumour') toast('The ' + a.kind + ' is over', 'The metal price is back to its own swell' + (a.sold ? ', after ' + a.sold + ' ingot' + (a.sold === 1 ? '' : 's') + ' sold while it lasted' : '') + '.'); break;
+      case 'achievement':
+        var ach = sim.achievements().filter(function (x) { return x.id === a; })[0];
+        if (ach && started) toast('🏆 ' + ach.name, ach.what + '. ' + Object.keys(S.ach).length + ' of ' + sim.achievements().length + ' achievements; the Ledger keeps the list.');
+        for (i = 0; i < 50; i++) confetti.push({ x: rr(W * 0.3, W * 0.7), y: rr(-H * 0.2, 0), vx: rr(-20, 20), vy: rr(40, 100), r: rr(0, TAU), vr: rr(-6, 6), c: [pal.ingot, pal.energy, pal.crab][i % 3], life: 0 });
+        S.crabs.forEach(function (n, j2) { if (j2 % 3 === 0 && n.state !== 'sleep') { play(n, ['pump', 'clap', 'cheer'], 1.6); if (j2 % 6 === 0) say(n, TALK.achievement, 1.8); } });
+        break;
       case 'pet':
         p = X(S.pos.DEN); spark(p, groundY(p, 0.9) - 10 * CS, 14, pal.light); poof(p, groundY(p, 0.9), 6, 0.5);
         near(S.pos.DEN, 120).forEach(function (n) { play(n, ['sparkleEyes', 'clap', 'hopJoy'], 2); if (Math.random() < 0.5) say(n, TALK.pet, 2); });
@@ -666,6 +699,10 @@
       ecoLogSeen = lg.length;
     }
     updatePets(dtReal);
+    if (S.quake && !reduce && Math.random() < dtReal * 24) {   // the shaking dune throws up sand along the band that will slide
+      var qz2 = K.ZONES[S.quake.zone], qx2 = X(S.quake.x + rr(-K.QUAKE_BAND / 2, K.QUAKE_BAND / 2));
+      poof(qx2, groundY(qx2, rr(qz2.d0, qz2.d1)), 2, 0.6, pal.sandLine);
+    }
     var si = sim.shiftInfo();
     nightA += ((si.night ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);
     if (started && si.mode !== 'all' && lastShift && lastShift !== si.name + si.index) {
@@ -2010,6 +2047,8 @@
     if (c.state === 'scan') return ANIMS.think(c, T);
     if (S.oc && (c.moving || c.working)) return ANIMS.determined(c, T);
     if (c.wear > K.WEAR_FREE && !c.moving && !c.working) return ANIMS[Math.sin(T * 0.3 + c.vph) > 0 ? 'sigh' : 'slump'](c, T % 3);
+    if (!c.moving && !c.working && idle > 0.6 && c.moodZone === 'grumpy') return ANIMS[['sulk', 'grumble', 'crossArms', 'eyeRoll', 'slump'][Math.floor((idle / 4 + c.id) % 5)]](c, idle % 4);   // a grumpy crab sulks
+    if (!c.moving && !c.working && idle > 0.6 && c.moodZone === 'happy' && idle < 10) return ANIMS[['whistle', 'bounce', 'hula', 'daydream', 'jazz', 'sway'][Math.floor((idle / 3 + c.id) % 6)]](c, idle % 4);   // a happy one hums and sways
     if (!c.moving && !c.working && idle > 0.6) {               // the longer the wait, the sillier it gets
       var ladder = idle < 3 ? ['lookAround', 'curious'] : idle < 6 ? ['tap', 'lookAround', 'scratchHead', 'lookUp'] : idle < 10 ? ['crossArms', 'eyeRoll', 'tap', 'stretchUp', 'daydream'] : idle < 16 ? ['whistle', 'juggle', 'blowBubbles', 'sideStretch', 'balance', 'drum', 'shakeOff'] : ['sit', 'peekaboo', 'sneeze', 'whistle', 'juggle', 'pushups', 'airGuitar', 'armWave'];
       var name = ladder[Math.floor((idle / 4 + c.id) % ladder.length)];
@@ -2556,8 +2595,10 @@
     if (c.role === 'drill' && !c.bitOk) t += ' (bit broken)';
     if (c.role === 'energy' && c.broken) t += ' (worn out)';
     if (c.role !== 'energy' && c.bat < K.LOW) t += ' (battery low)';
+    if (c.moodZone === 'grumpy') t += ' · grumpy'; else if (c.moodZone === 'happy') t += ' · happy';
     return t;
   }
+  function moodWord(c) { return c.moodZone === 'happy' ? 'happy' : c.moodZone === 'grumpy' ? 'grumpy' : 'content'; }
   function drawInfo(c, x, y, s) {
     var line1 = c.name + ', ' + NAMES[c.role].toLowerCase() + starText(c), line2 = statusText(c), line3 = recText(c), w;
     ctx.save();
@@ -2576,8 +2617,9 @@
 
   function draw() {
     if (!W || !H || !S) return;
-    var i, k, list, o, px, layers = [[], [], []];
+    var i, k, list, o, px, layers = [[], [], []], shaking = S.quake && !mqReduce.matches;
     ctx.clearRect(0, 0, W, H);
+    if (shaking) { ctx.save(); ctx.translate(rr(-3, 3) * CS, rr(-2, 2) * CS); }   // the whole sea judders through an earthquake
     drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawCargo(); drawWhale(); drawEcoSurface(); drawSnow();
     // the far dune, a faint sheet behind everything
     sheet(3, farPath, pal.sandFar, farY, function (x) { return crestY(0, x); }, 0.75);
@@ -2625,6 +2667,7 @@
     drawTurtle(); drawManta();
     for (i = 0; i < air.length; i++) drawCrab(air[i]);        // crabs riding the vent, the turtle or the manta are above everything
     drawNight(); drawPlankton(); drawStorm(); drawGlow(); drawBombs(); drawBubbles(); drawParticles(); drawFloaters();
+    if (shaking) ctx.restore();
   }
 
   // ===== the controls =====
@@ -2906,6 +2949,9 @@
     if (sim.pattern() && S.scoutsNight && !S.si.night && !S.flags.length && !sim.has('flagBundle') && sim.counts().scout)
       return 'Advisor: <b>The drills have run out of flags.</b> Your scouts work nights. Give them a bigger flag bundle in the Tech tab (Sonar lab), or untick "Scouts work the night".';
     if (S.trader && S.trader.state === 'stay') return 'Advisor: <b>The hermit-crab trader is open for ' + fmtTime(S.trader.until - S.t) + '.</b> Swap bars or ingots for its goods in the Build tab.';
+    if (S.quake) return 'Advisor: <b>Earthquake!</b> The ' + K.ZONES[S.quake.zone].name.toLowerCase() + ' is shaking. When the sand slides it buries what lies in its path and bares a rich patch elsewhere: send the scouts and drills there.';
+    if (S.news && S.news.kind === 'boom') return 'Advisor: <b>Copper boom!</b> Ingots fetch 40% more for ' + fmtTime(S.news.until - S.t) + '.' + (S.reserve > 0 ? ' Drop the stockpile reserve to send everything up.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock to make the most of it.' : '');
+    if (S.news && S.news.kind === 'glut') return 'Advisor: <b>A glut at the surface.</b> Ingots fetch 35% less for ' + fmtTime(S.news.until - S.t) + '. Raise the stockpile reserve to hold them back until it passes' + (S.order ? ', unless the ship order matters more' : '') + '.';
     if (S.storm) return 'Advisor: <b>Storm!</b> Everyone walks slower and the riser sells at half speed, but the waves are turning up free nodules. Let the haulers gather them.';
     if (S.lavaSurge) return 'Advisor: <b>Lava surge!</b> Smelting and forging run twice as fast and the engine makes double charge.' + (S.ocBank >= 5 && !S.oc ? ' Overclock now to make the most of it.' : '');
     if (waitMetal && S.stock === 0) return 'Advisor: <b>Repairs are stuck.</b> A repair bot is waiting at an empty stockpile. Keep more ingots back with the + beside the stockpile.';
@@ -2939,8 +2985,9 @@
     } else { ui.rankBar.style.width = '100%'; ui.rankNext.textContent = money(S.earned) + ' earned. Top rank!'; }
     ui.price.textContent = '$' + S.price.toFixed(1);
     var d = S.price - old.price;
-    ui.trend.textContent = d > 0.15 ? '▲ rising' : (d < -0.15 ? '▼ falling' : 'steady');
-    ui.trend.className = 'hud-rate ' + (d > 0.15 ? 'up' : (d < -0.15 ? 'down' : ''));
+    var nk = S.news && S.news.kind;
+    ui.trend.textContent = nk === 'boom' ? '▲ boom! ' + fmtTime(S.news.until - S.t) : nk === 'glut' ? '▼ glut ' + fmtTime(S.news.until - S.t) : d > 0.15 ? '▲ rising' : (d < -0.15 ? '▼ falling' : 'steady');
+    ui.trend.className = 'hud-rate ' + (nk === 'boom' || (!nk && d > 0.15) ? 'up' : (nk === 'glut' || (!nk && d < -0.15) ? 'down' : ''));
     ui.stock.textContent = String(S.stock);
     ui.reserve.textContent = String(S.reserve);
     ui.rMinus.disabled = S.reserve <= 0; ui.rPlus.disabled = S.reserve >= 12;
@@ -3032,6 +3079,11 @@
       '</tbody></table>' +
       '<p class="note">Earned in total: ' + money(S.earned) + ' · spent on crabs and upgrades: ' + money(S.stat.spent) + ' · repairs: ' + S.stat.repairs + ' · crab time ' + fmtTime(S.t) + '</p>';
     html += '<p class="share-row"><button type="button" class="mini wide" data-share>Copy a summary of this run</button></p>' + ledgerCharts() + ledgerTotals() + ledgerTalk() + ledgerLab();
+    var achs = sim.achievements(), won = achs.filter(function (x) { return S.ach[x.id]; }).length;
+    html += '<h3>Achievements: ' + won + ' of ' + achs.length + '</h3><table class="ltable ach"><tbody>' + achs.map(function (x) {
+      var at = S.ach[x.id];
+      return '<tr' + (at ? '' : ' class="unheard"') + '><th scope="row">' + (at ? '🏆 ' : '○ ') + x.name + '<span class="says">' + x.what + '</span></th><td class="n">' + (at ? 'won at ' + fmtTime(at) : 'not yet') + '</td></tr>';
+    }).join('') + '</tbody></table>';
     html += '<h3>Metal price, last five minutes</h3><div class="spark-wrap" id="spark-wrap">' + sparkline() + '</div>';
     html += '<h3>The line: what each stage could do, ingots a minute</h3><table class="ltable"><thead><tr><th scope="col">Stage</th><th scope="col">Capacity</th><th scope="col" class="n">Doing now</th></tr></thead><tbody>';
     for (i = 0; i < flows.length; i++) {
@@ -3071,7 +3123,13 @@
       html += '<tr><th scope="row">' + cr2.name + (cr2.stars ? ' <span class="vet" aria-label="' + cr2.stars + ' star' + (cr2.stars === 1 ? '' : 's') + '">' + '★'.repeat(cr2.stars) + '</span>' : '') + '</th><td>' + ROLE_NOUN[cr2.role] + '</td><td class="note">' + recText(cr2) +
         (nextAt ? ' (next star at ' + nextAt + ')' : '') + '</td></tr>';
     });
+    var nHappy = 0, nGrumpy = 0, moodSum = 0;
+    S.crabs.forEach(function (c2) { moodSum += c2.mood; if (c2.moodZone === 'happy') nHappy++; else if (c2.moodZone === 'grumpy') nGrumpy++; });
     html += '</tbody></table><p class="note">' + (crew.length > shown.length ? 'And ' + (crew.length - shown.length) + ' more. ' : '') + 'Each star makes a crab ' + Math.round(K.VET_BONUS * 100) + '% faster at its own job. Retiring takes the newest crab of a kind, so veterans stay.</p>';
+    html += '<h3>Moods</h3><table class="ltable"><tbody>' +
+      '<tr><th scope="row">The crew now</th><td class="n">' + nHappy + ' happy, ' + nGrumpy + ' grumpy, ' + (S.crabs.length - nHappy - nGrumpy) + ' content; average ' + (S.crabs.length ? Math.round(moodSum / S.crabs.length * 100) : 0) + '%</td></tr>' +
+      '<tr><th scope="row">Whole game</th><td class="n">' + fmtTime(S.stat.happyTime) + ' of crab time happy, ' + fmtTime(S.stat.grumpyTime) + ' grumpy; ' + S.stat.happy + ' good moods and ' + S.stat.grumpy + ' bad ones begun</td></tr>' +
+      '</tbody></table><p class="note">Dancing, rest, a dance nearby, fresh mornings, decorations and festivals lift a mood; breakdowns, dry holes, lost legs, flat batteries, long wear and tired nights drag it. A happy crab (75% up) dances with friends from further off; a grumpy one (25% down) sulks and works 5% slower.</p>';
     html += '<h3>The sea</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Tide</th><td class="n">' + (S.tide > 0.75 ? 'high: washing nodules up' : S.tide < -0.75 ? 'low: burying idle flags' : S.tide > 0 ? 'rising' : 'falling') + '</td></tr>' +
       '<tr><th scope="row">Washed up / buried</th><td class="n">' + S.stat.washed + ' nodules / ' + S.stat.buried + ' flags</td></tr>' +
@@ -3086,6 +3144,8 @@
       '<tr><th scope="row">Rival crew 🦞</th><td class="n">' + (S.rival ? 'races won ' + S.rival.lost + ', lost ' + S.rival.won + ' · they are pushing at ' + Math.round(S.rival.drive * 100) + '%' : 'arrives at ' + K.RANKS[K.RIVAL_RANK][1]) + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
       '<tr><th scope="row">Sunken chests</th><td class="n">' + S.stat.chests + ' opened, ' + money(S.stat.chestCredits) + '</td></tr>' +
+      '<tr><th scope="row">Earthquakes</th><td class="n">' + S.stat.quakes + ', burying ' + S.stat.quakeBuried + ' nodules and ' + S.stat.quakeFlags + ' flags' + (S.quake ? ' (shaking now!)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Surface news</th><td class="n">' + S.stat.news + ' headlines, ' + (S.stat.newsCredits < 0 ? '−' : '+') + money(Math.abs(S.stat.newsCredits)) + ' from booms and gluts' + (S.news ? ' (' + S.news.kind + ' now)' : '') + '</td></tr>' +
       '</tbody></table>';
     html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Flow</th><td class="n">×' + sim.flowMult().toFixed(2) + ' on sales, ' + S.streak + ' in a row' + (S.festival ? ' (festival day: doubled)' : '') + '</td></tr>' +
@@ -3179,7 +3239,7 @@
       money(S.earned) + ' earned in ' + fmtTime(S.t) + ' of crab time',
       ranks.length ? 'Ranks: ' + ranks.join(' · ') : 'No rank-ups yet',
       'Crew of ' + S.crabs.length + ': ' + crew.join(', '),
-      S.stat.sold.toLocaleString('en-US') + ' ingots delivered, best pace ' + bestRate.toFixed(1) + ' a minute, ' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' ship orders, ' + S.stat.pearls + ' pearls' + (S.stat.chests ? ', ' + S.stat.chests + ' sunken chest' + (S.stat.chests === 1 ? '' : 's') : ''),
+      S.stat.sold.toLocaleString('en-US') + ' ingots delivered, best pace ' + bestRate.toFixed(1) + ' a minute, ' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' ship orders, ' + S.stat.pearls + ' pearls' + (S.stat.chests ? ', ' + S.stat.chests + ' sunken chest' + (S.stat.chests === 1 ? '' : 's') : '') + ', ' + Object.keys(S.ach).length + ' of ' + sim.achievements().length + ' achievements',
       'https://crabminer.com'].join('\n');
   }
   function copySummary() {
@@ -3489,7 +3549,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

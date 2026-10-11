@@ -74,6 +74,22 @@ function CrabSim() {
     // the manta ray: glides along the back of the claim now and then, and every walking crab it passes over that is
     // heading its way is swept along up to 140 units, then set down. Several at once; it does not steer or turn.
     MANTA_FIRST: 400, MANTA_EVERY: [240, 420], MANTA_SPEED: 70, MANTA_REACH: 40, MANTA_DIP: 120, MANTA_CARRY: 140, MANTA_MIN_TRIP: 40,
+    // moods: a slow happiness per crab, 0 to 1. Dancing, rest, a dance nearby, fresh mornings, decorations and festivals
+    // lift it a little a second; breakdowns, dry holes, lost legs and the like knock it down at once; long wear and night
+    // drudgery drag it. It drifts back toward the middle on its own. Happy crabs (0.75 up) dance with friends from
+    // further off; grumpy ones (0.25 down) grumble and work and walk a little slower.
+    MOOD_START: 0.6, MOOD_HAPPY: 0.75, MOOD_GRUMPY: 0.25, MOOD_DRIFT: 0.012, GRUMPY_SLOW: 0.95, HAPPY_DANCE: 1.5,
+    MOOD_RATE: { dance: 0.006, cheer: 0.002, sleep: 0.003, fresh: 0.002, worn: -0.004, tiredNight: -0.005, low: -0.004, limp: -0.003, broken: -0.003, decor: 0.0003, festival: 0.003 },
+    MOOD_HIT: { bitBreak: -0.15, ebotBreak: -0.15, legOff: -0.2, dry: -0.03, eelSnap: -0.1, miss: -0.01, strike: 0.01, pearl: 0.3, chest: 0.3, veteran: 0.25,
+      turtlePick: 0.15, mantaPick: 0.1, morning: 0.08, ride: 0.05, glow: 0.05, flag: 0.01, ingot: 0.005, bar: 0.005, stack: 0.005 },
+    MOOD_HIT_B: { fixed: 0.15, charge: 0.03 },   // the crab on the receiving end of a repair or a charge
+    // earthquakes: a rare sand slide. One claimed dune shakes for 6 s, slowing walkers; then a 120-unit band of it buries
+    // its free nodules and idle flags, and the slide lays a fresh rich patch of three flags bare somewhere else on the claim.
+    QUAKE_FIRST: 540, QUAKE_EVERY: [600, 900], QUAKE_TIME: 6, QUAKE_BAND: 120, QUAKE_WALK: 0.6, QUAKE_FLAGS: 3,
+    // surface news: now and then a headline from the surface moves the metal price for a minute: a boom (price x1.4),
+    // a glut (x0.65), or a rumour that comes to nothing
+    NEWS_FIRST: 420, NEWS_EVERY: [300, 540], NEWS_TIME: 60, NEWS_KINDS: ['boom', 'glut', 'rumour'], NEWS_MULT: { boom: 1.4, glut: 0.65, rumour: 1 },
+    QUIET_NIGHT_WORK: 60,   // a quiet night (the achievement) needs at least this much crab-work in the dark with no breakdown
     // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
     TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
@@ -174,7 +190,30 @@ function CrabSim() {
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
     'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
-    'festivals', 'pets', 'mantaRides'];
+    'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights'];
+  // achievements: checked once a second; each is won once, at the time kept in S.ach
+  var ACH = [
+    ['pearl', 'First pearl', 'Strike a pearl', function () { return S.stat.pearls >= 1; }],
+    ['chest', 'Treasure hunter', 'Open a sunken chest', function () { return S.stat.chests >= 1; }],
+    ['hundred', 'A hundred ingots', 'Deliver 100 ingots up the riser', function () { return S.stat.sold >= 100; }],
+    ['thousand', 'A thousand ingots', 'Deliver 1,000 ingots', function () { return S.stat.sold >= 1000; }],
+    ['turtle', 'Frequent flyer', 'Ten rides on the sea turtle', function () { return S.stat.turtleRides >= 10; }],
+    ['manta', 'Manta riders', 'Five crabs swept along by the manta', function () { return S.stat.mantaRides >= 5; }],
+    ['fullDen', 'Homely', 'Fill the den with decorations', function () { return S.decor.length >= decorMax(); }],
+    ['fiveStars', 'Five stars', 'Reach five stars of reputation with the ships', function () { return S.rep >= K.REP_MAX; }],
+    ['quietNight', 'A quiet night', 'A night of work with no breakdown', function () { return S.stat.quietNights >= 1; }],
+    ['veteran', 'Old claws', 'A crab with three stars', function () { for (var i = 0; i < S.crabs.length; i++) if (S.crabs[i].stars >= 3) return true; return false; }],
+    ['twenty', 'A crowd', 'A crew of twenty', function () { return S.crabs.length >= 20; }],
+    ['allTech', 'Lab coat', 'Research every technology', function () { for (var id in K.TECH) if (!S.tech[id]) return false; return true; }],
+    ['festival', 'Party animal', 'Celebrate a festival day', function () { return S.stat.festivals >= 1; }],
+    ['bouncer', 'Bouncer', 'Shoo the octopus or the eel ten times', function () { return S.stat.shooed + S.stat.eelShooed >= 10; }],
+    ['orders', 'Reliable', 'Fill five ship orders', function () { return S.stat.ordersFilled >= 5; }],
+    ['lobsters', 'Beat the lobsters', 'Win three races against the rival crew', function () { return !!S.rival && S.rival.lost >= 3; }],
+    ['menagerie', 'Menagerie', 'All four pets by the den', function () { return S.pets.length >= 4; }],
+    ['happy', 'Happy crew', 'Eight or more crabs, and four in five of them happy', function () { var n = 0, i; if (S.crabs.length < 8) return false; for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].mood >= K.MOOD_HAPPY) n++; return n >= S.crabs.length * 0.8; }],
+    ['quake', 'Shaken, not stirred', 'Live through an earthquake', function () { return S.stat.quakes >= 1; }],
+    ['tycoon', 'Crab Tycoon', 'Reach the top rank', function () { return S.rank >= K.RANKS.length - 1; }]
+  ];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
   // Who a stuck crab helps, in order of preference: fast crabs like to help haulers, slow ones drillers.
@@ -221,7 +260,8 @@ function CrabSim() {
     return (BACK[c.state] ? 1 : 1 + K.VET_BONUS * c.stars) * (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
       (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) * nightSlow(c) *
       (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1) *   // the night crew
-      (c.helper && c.helper.helping === c && c.helper.held ? K.HELP_BONUS[c.role] || 1 : 1);                       // a claw from a friend
+      (c.helper && c.helper.helping === c && c.helper.held ? K.HELP_BONUS[c.role] || 1 : 1) *                       // a claw from a friend
+      (c.moodZone === 'grumpy' ? K.GRUMPY_SLOW : 1);                                                                // a grumpy crab drags its feet
   }
   function has(id) { return !!S.wu[id]; }
   function carry() { return has('bigHopper') ? 5 : K.CARRY; }
@@ -249,6 +289,7 @@ function CrabSim() {
       glow: K.GLOW_X.map(function (x, i) { return { x: x, d: K.GLOW_D[i] }; }), bloom: 0.25,
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST,
+      quake: null, nextQuake: K.QUAKE_FIRST, news: null, nextNews: K.NEWS_FIRST, ach: {}, nightBreaks: 0, nightWork: 0,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -309,11 +350,15 @@ function CrabSim() {
     }
     c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0, chests: 0, assists: 0 };
     c.stars = c.stars || 0;
+    if (c.mood === undefined) { c.mood = K.MOOD_START; c.moodZone = 'ok'; }
   }
   var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1, chest: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
   function tally(type, a, b) {             // each crab's personal record, kept from the events it takes part in
+    if ((type === 'bitBreak' || type === 'ebotBreak' || type === 'legOff') && S.si && S.si.night) S.nightBreaks++;
     if (!a || !a.rec) return;
     var r = a.rec;
+    if (K.MOOD_HIT[type]) a.mood = clamp(a.mood + K.MOOD_HIT[type], 0, 1);           // the moment lifts or knocks its mood
+    if (K.MOOD_HIT_B[type] && b && b.rec) b.mood = clamp(b.mood + K.MOOD_HIT_B[type], 0, 1);
     if (JOB[a.role][type]) {
       r.jobs++;
       if (a.stars < K.VET_LEVELS.length && r.jobs >= K.VET_AT[a.role] * K.VET_LEVELS[a.stars]) { a.stars++; emit('veteran', a, a.stars); }
@@ -432,7 +477,7 @@ function CrabSim() {
     if (!c.goal) c.goal = {};
     c.goal.x = tx; c.goal.d = td; c.goal.t = S.t;            // where it is heading this step
     var crest = Math.abs(c.d - 1 / 3) < K.CREST || Math.abs(c.d - 2 / 3) < K.CREST;
-    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1) * (S.storm ? K.STORM_WALK : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
+    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1) * (S.storm ? K.STORM_WALK : 1) * (S.quake ? K.QUAKE_WALK : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
     if (Math.abs(dx) > 0.5) {
       c.dir = dx > 0 ? 1 : -1;
       c.x += Math.abs(dx) <= mv ? dx : c.dir * mv;
@@ -1009,6 +1054,7 @@ function CrabSim() {
         var pv = Math.round(v * (1 + o.premium));
         S.stat.orderCredits += pv - v; v = pv; o.got++;
       }
+      if (S.news && S.news.mult !== 1) { S.stat.newsCredits += v - Math.round(v / S.news.mult); S.news.sold++; }
       S.stock--; S.credits += v; S.earned += v; S.stat.sold++; S.stat.revenue += v;
       S.ocBank = Math.min(K.OC_MAX, S.ocBank + K.OC_PER_SALE * (1 + S.streak / 10));
       S.liftT = up('riser') * (S.storm ? K.STORM_RISER : 1);   // in a storm the ship rocks and the riser slows
@@ -1029,7 +1075,10 @@ function CrabSim() {
     var tt = S.t, w;
     S.walk = clamp(S.walk * 0.97 + srr(-0.035, 0.035), -0.15, 0.15);
     w = 1 + 0.18 * Math.sin(tt * 2 * Math.PI / 150) + 0.07 * Math.sin(tt * 2 * Math.PI / 43 + 1.3) + S.walk;
-    S.price = K.PRICE * clamp(w, 0.55, 1.5);
+    S.price = K.PRICE * clamp(w, 0.55, 1.5) * (S.news ? S.news.mult : 1);   // a boom or a glut at the surface
+  }
+  function achievements() {                // once a second: anything newly earned
+    for (var i = 0; i < ACH.length; i++) if (!S.ach[ACH[i][0]] && ACH[i][3]()) { S.ach[ACH[i][0]] = S.t; emit('achievement', ACH[i][0]); }
   }
   function snapshot() {
     var h = { t: S.t, credits: S.credits, price: S.price, stock: S.stock, bat: avgBattery(), wear: avgWear() }, i;
@@ -1069,18 +1118,21 @@ function CrabSim() {
         c.bat = Math.min(1, c.bat + K.REST_CHARGE * dt);
         c.wear = Math.max(0, c.wear - K.REST_RECOVER * dt);
         if (onDuty(c)) { c.state = RESUME[c.role]; emit('wake', c); }
+        mood(c, false);
         continue;
       }
-      if (c.turtle || c.manta) { c.floating = true; continue; }   // riding the turtle or the manta: nothing to do but enjoy it
+      if (c.turtle || c.manta) { c.floating = true; mood(c, false); continue; }   // riding the turtle or the manta: nothing to do but enjoy it
       if (!isHeld(c)) (BACK[c.state] ? backupHaul : c.state === 'help' ? help : RULES[c.role])(c);
       if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
         if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, spd(c));
       }
       active = c.moving || c.working;
-      if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); continue; }
+      if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); mood(c, false); continue; }
+      if (S.si.night) S.nightWork += dt;
       if (S.si.night && tired(c) && !c.air) {                // a tired crab at night: glowing plankton light its way
         if (lit(c.x, c.d)) { S.stat.glowLit += dt; if (!c.glow) { c.glow = true; emit('glow', c); } } else c.glow = false;
       } else c.glow = false;
+      mood(c, true);
       c.wear += dt * (S.oc ? K.OC_WEAR : 1) * (c.role === 'crush' && has('shockPads') ? 0.5 : 1);
       if (c.role !== 'energy' && !(c.role === 'scout' && S.si.night && has('nightBattery'))) {
         drain = K.DRAIN * (c.role === 'drill' && !c.bitOk && c.state === 'drill' ? K.BROKEN_DRAIN : 1) * (S.oc ? K.OC_DRAIN : 1);
@@ -1096,11 +1148,31 @@ function CrabSim() {
     turtle();
     manta();
     trader();
+    quake();
+    news();
     if (S.si.day !== S.day) morning();
     S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * dt / 60);   // lava heat drives the Stirling engine
     weather();
     sell();
-    if (S.t >= S.tick + 1 - 1e-9) { S.tick += 1; market(); snapshot(); }
+    if (S.t >= S.tick + 1 - 1e-9) { S.tick += 1; market(); snapshot(); achievements(); }
+  }
+  // A crab's mood, a step at a time: what it is doing lifts or drags it, and it drifts back toward the middle.
+  function mood(c, active) {
+    var r = K.MOOD_RATE, dm = 0, zone;
+    if (c.state === 'sleep') dm += r.sleep;
+    if (c.dance) dm += r.dance;
+    if (c.cheer > S.t) dm += r.cheer;
+    if (c.fresh > 0) dm += r.fresh;
+    if (c.wear > K.WEAR_FREE) dm += r.worn;
+    if (active && S.si.night && tired(c) && !c.glow) dm += r.tiredNight;
+    if (c.role !== 'energy' && c.bat < K.LOW) dm += r.low;
+    if (c.limp) dm += r.limp;
+    if ((c.role === 'drill' && !c.bitOk) || (c.role === 'energy' && c.broken)) dm += r.broken;
+    dm += r.decor * S.decor.length + (S.festival ? r.festival : 0) + (0.5 - c.mood) * K.MOOD_DRIFT;
+    c.mood = clamp(c.mood + dm * dt, 0, 1);
+    zone = c.mood >= K.MOOD_HAPPY ? 'happy' : c.mood <= K.MOOD_GRUMPY ? 'grumpy' : 'ok';
+    if (zone === 'happy') S.stat.happyTime += dt; else if (zone === 'grumpy') S.stat.grumpyTime += dt;
+    if (zone !== c.moodZone) { c.moodZone = zone; if (zone === 'happy') { S.stat.happy++; emit('happy', c); } else if (zone === 'grumpy') { S.stat.grumpy++; emit('grumpy', c); } else emit('moodOk', c); }
   }
   // Idle neighbours dance. Two crabs standing about with nothing to do, side by side, pair up and dance:
   // it tops up their batteries a little and clears their wear, and it counts towards a fresh morning.
@@ -1117,7 +1189,7 @@ function CrabSim() {
       if (a.dance && (a.dance.gone || idle.indexOf(a.dance) < 0)) a.dance = null;
       if (!a.dance) for (j = 0; j < idle.length; j++) {
         b = idle[j];
-        if (b === a || b.dance || Math.abs(b.x - a.x) > K.DANCE_RANGE || Math.abs(b.d - a.d) > 0.12) continue;
+        if (b === a || b.dance || Math.abs(b.x - a.x) > K.DANCE_RANGE * (a.moodZone === 'happy' || b.moodZone === 'happy' ? K.HAPPY_DANCE : 1) || Math.abs(b.d - a.d) > 0.12) continue;
         a.dance = b; b.dance = a; emit('dance', a, b); break;
       }
       if (a.dance) {
@@ -1380,6 +1452,39 @@ function CrabSim() {
       emit('mantaGone');
     }
   }
+  // An earthquake: one claimed dune shakes for a few seconds, then a band of it slides. Free nodules and idle flags
+  // in the band are buried, and the slide bares a fresh rich patch of flags somewhere else on the claim.
+  function quake() {
+    var q = S.quake, i, n, f, p, z, buried = 0, flags = 0, tries;
+    if (!q) {
+      if (S.t < S.nextQuake) return;
+      S.quake = { zone: Math.floor(sr() * up('field')), x: srr(K.FIELD0 + K.QUAKE_BAND / 2, K.FIELD1 - K.QUAKE_BAND / 2), until: S.t + K.QUAKE_TIME };
+      S.stat.quakes++; emit('quakeStart', S.quake);
+      return;
+    }
+    if (S.t < q.until) return;
+    var inBand = function (o) { return zoneOf(o.d) === q.zone && Math.abs(o.x - q.x) < K.QUAKE_BAND / 2; };
+    for (i = S.nodules.length - 1; i >= 0; i--) { n = S.nodules[i]; if (n.alive && !n.taken && !n.by && inBand(n)) { S.nodules.splice(i, 1); buried++; } }
+    for (i = S.flags.length - 1; i >= 0; i--) { f = S.flags[i]; if (!f.by && inBand(f)) { removeFlag(f); flags++; } }
+    for (tries = 0; tries < 12; tries++) { p = spot(); if (zoneOf(p.d) !== q.zone || Math.abs(p.x - q.x) > K.QUAKE_BAND) break; }   // the fresh patch lies clear of the slide
+    z = zoneOf(p.d);
+    for (i = 0; i < K.QUAKE_FLAGS; i++) S.flags.push({ id: S.nextId++, x: clamp(p.x + srr(-22, 22), K.FIELD0, K.FIELD1), d: clamp(p.d + srr(-0.05, 0.05), K.ZONES[z].d0, K.ZONES[z].d1), q: srr(0.8, 0.95), size: 3 + K.ZONES[z].size, by: null, zone: z, born: S.t, map: true, quake: true });
+    S.stat.quakeBuried += buried; S.stat.quakeFlags += flags; S.stat.buried += flags;
+    emit('quakeEnd', q, { buried: buried, flags: flags, x: p.x, d: p.d });
+    S.quake = null; S.nextQuake = S.t + srr(K.QUAKE_EVERY[0], K.QUAKE_EVERY[1]);
+  }
+  // News from the surface: a headline moves the metal price for a minute, or turns out to be only a rumour.
+  function news() {
+    var k;
+    if (!S.news) {
+      if (S.t < S.nextNews) return;
+      k = K.NEWS_KINDS[Math.floor(sr() * K.NEWS_KINDS.length)];
+      S.news = { kind: k, mult: K.NEWS_MULT[k], until: S.t + K.NEWS_TIME, n: Math.floor(sr() * 3), sold: 0 };
+      S.stat.news++; emit('newsStart', S.news);
+      return;
+    }
+    if (S.t >= S.news.until) { emit('newsEnd', S.news); S.news = null; S.nextNews = S.t + srr(K.NEWS_EVERY[0], K.NEWS_EVERY[1]); }
+  }
   // The hermit-crab trader walks in from the left, keeps shop beside the den for a minute with three goods
   // out of seven (the pet only while the den lacks a kind), and walks off again.
   function trader() {
@@ -1469,6 +1574,8 @@ function CrabSim() {
   function inspire(kind) { S.decorTheme = kind; }
   function morning() {                     // a new day: crabs that rested well start it fresh
     S.day = S.si.day;
+    if (S.nightWork >= K.QUIET_NIGHT_WORK && !S.nightBreaks) S.stat.quietNights++;   // a night's work with no breakdown
+    S.nightBreaks = 0; S.nightWork = 0;
     S.festival = S.day % K.FESTIVAL_EVERY === 0;   // every tenth day is festival day: everyone fresh, the flow bonus doubled
     if (S.festival) { S.decor.push({ kind: 'lanterns', at: S.t }); S.stat.decorations++; S.stat.festivals++; }
     for (var i = 0; i < S.crabs.length; i++) {
@@ -1694,7 +1801,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, achievements: function () { return ACH.map(function (a) { return { id: a[0], name: a[1], what: a[2] }; }); }, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

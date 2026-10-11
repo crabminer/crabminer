@@ -176,6 +176,18 @@ async function check(b, size) {
   expect(await js('crabminer.state().pets.length === 4 && crabminer.state().decor.some(d => d.kind === "lanterns") && crabminer.state().festival'), 'the festival hooks did not add the lanterns and the pets');
   await shot('festival');
 
+  // an earthquake, a copper boom and an achievement, forced through the hooks: no console errors, and the Ledger lists them
+  await js('crabminer.news("boom"); crabminer.quake(); crabminer.state().stat.pearls = Math.max(1, crabminer.state().stat.pearls); document.querySelector(\'[data-speed="4"]\').click(); true');
+  for (let i = 0; i < 200 && !(await js('!!crabminer.state().ach.pearl && !!crabminer.state().news')); i++) await wait(100);   // a crab second or two; headless frames can be slow
+  await key('1');
+  expect(await js('!!crabminer.state().news && crabminer.state().news.kind === "boom"'), 'the news hook did not start a boom');
+  expect(await js('!!crabminer.state().ach.pearl'), 'the pearl achievement was not won after the pearl');
+  await js('document.getElementById("t-ledger").click(); true');
+  await wait(1200);
+  expect(await js('/Achievements: \\d+ of \\d+/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no achievements list');
+  await shot('quake');
+  await js('document.getElementById("t-crew").click(); true');
+
   // the save: a reload picks up where the game was
   const saved = await js('(dispatchEvent(new Event("pagehide")), { t: crabminer.state().t, n: crabminer.state().crabs.length })');
   await load();

@@ -135,6 +135,18 @@ its stars at these job counts, which come to roughly 6, 18 and 36 minutes of ste
 
 Retiring always takes the newest crab of a kind, so your veterans stay.
 
+### Moods
+
+Every crab has a mood from 0 to 1, starting at 0.6. It drifts back toward 0.5 on its own (1.2% of the gap a second), and:
+
+- **Lifts a second:** dancing +0.006, a dance nearby +0.002, sleep +0.003, the morning bonus +0.002, each den decoration +0.0003, festival day +0.003.
+- **Drags a second:** wear past four minutes −0.004, tired night work (unlit by plankton) −0.005, a flat battery −0.004, a missing leg −0.003, a broken bit or worn-out cell −0.003.
+- **Moments:** a pearl or a chest +0.3, a star +0.25, a turtle lift +0.15, a manta lift +0.1, a fresh morning +0.08, a repair or a charge received +0.15 / +0.03, a strike +0.01, a job done +0.005; a lost leg −0.2, a broken bit or cell −0.15, the eel's snap −0.1, a dry hole −0.03.
+- **Happy** (0.75 and up): the crab hums, sways and bounces when idle, and dances with friends from 63 units instead of 42.
+- **Grumpy** (0.25 and down): it sulks and grumbles when idle, and works and walks 5% slower.
+
+The crab's card and the crew list say "happy" or "grumpy", and the Ledger counts the crew's moods and the time spent in each. Crabs that never rest turn grumpy over a long all-hands day; shifts, dancing and a decorated den keep them cheerful.
+
 ## 5. The production chain
 
 ```
@@ -368,6 +380,8 @@ are slow haulers.
 ## 13. Money
 
 - **Metal price.** It centres on 12 credits per ingot and moves within 6.6 to 18. A slow swell (±18% over 150 s), a faster ripple (±7% over 43 s), and a seeded random walk (up to ±15%) set it.
+- **Surface news.** From 420 s, and 300 to 540 s after each headline passes, news from the surface runs for 60 s: a **boom** (the price ×1.4), a **glut** (×0.65), or a **rumour** (no change), one in three each. The top bar's price trend says "boom!" or "glut" with the time left, the advisor says what to do with the reserve, and the Ledger counts the headlines and what the booms and gluts were worth.
+- **Achievements.** Twenty, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), and Crab Tycoon.
 - **Flow bonus.** An ingot sold within 6 s of the last keeps the flow going. Each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow.
 - **Overclock.**
   - Every sale banks 0.6 s of overclock, multiplied by (1 + streak / 10), up to 30 s.
@@ -474,6 +488,7 @@ Everything costs 4,450 in total.
   1. A crab carrying nodules (a hauler, or any crab on the backup job) that comes within 34 units of the crack gets snapped at and drops everything it carries on the sand around it. The eel snaps at most once every 4 s.
   2. While the eel is out, haulers leave nodules within its reach alone, and pick them up once it has gone back in. Nothing is lost, only time.
   3. Click it, or press **Shoo the eel** over the field (the S key, once the octopus is dealt with), to send it back into its crack early.
+- **Earthquakes.** The first comes at 540 s, then 600 to 900 s after each. One claimed dune shakes for 6 s: the whole sea judders, walking drops to 60% speed, and the crabs reel. Then a 120-unit band of that dune slides: every free nodule and every flag nobody is working in the band is buried (the flags count as buried in the Ledger), and the slide bares a fresh patch of three flags of richness 0.8 to 0.95 somewhere on the claim clear of the band. Nodules in a hauler's claws or claim, and flags being drilled, are safe.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
 - **The food web.** The water and the seabed hold a closed ecosystem, decoration only, that never touches the crabs or the economy.
   - A bottom-heavy pyramid, with counts scaled to the screen's width (these at 1,200 px): 36 minnows in schools, 14 shrimp by the rocks, 8 jellyfish, and 24 tiny crawlers a tenth of a crab's size on the sand; above them 3 seahorses, 5 piranha, 2 squid, 2 eels, 2 sea snakes, 2 frogs, 2 small turtles, 3 lobsters and 5 gulls; at the top 1 shark, 2 on screens wider than 1,400 px.

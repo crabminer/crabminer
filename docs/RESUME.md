@@ -38,17 +38,18 @@ the line, which the advisor and the Ledger tab point out.
   its own speed.
 - **Progression:** upgrades, 5 technologies unlocking 20 worker upgrades (including night
   scouting), and movable building plots.
-- **Money and bonuses:** overclock and a flow bonus, a drifting market price, and cargo-ship
+- **Money and bonuses:** overclock and a flow bonus, a drifting market price with surface news
+  (booms, gluts and rumours that move it for a minute), twenty achievements listed in the Ledger, and cargo-ship
   orders with reputation stars. From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.
-- **The sea:** tides (which also push the refuel post around), storms, lava surges, an octopus
+- **The sea:** tides (which also push the refuel post around), storms, earthquakes that bury a band of a dune and bare a rich patch elsewhere, lava surges, an octopus
   thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, a manta ray that sweeps walking crabs along the back of the claim, sunken chests on the back dune,
   sea life in the deep shadows, a plankton cycle that glows at night after ship wakes and storms, and a closed
   food web (`eco.js`, view-only): shoals, shrimp, jellies and crawlers, their hunters, a shark or two, gulls on
   the ships, and a fisherman whose jellyfish bait feeds more fish than it catches, with a lab report in the Ledger. Three patches of
   plankton drift over the sand with the tide; at night a tired crab inside one works at full speed.
 - **Crabs:** names and personal records, veteran stars (up to three, +5% each at their own
-  job), emoji crab-talk grammar, 119 animations (acrobatics, 30 dances for two, the claw-in-claw
+  job), moods (happy crabs dance from further off, grumpy ones sulk and slow 5%), emoji crab-talk grammar, 119 animations (acrobatics, 30 dances for two, the claw-in-claw
   walk, bopping along to a dance nearby, which also sheds wear for everyone within 60 units),
   and a crab rave on rank-up. The crushing yard is a line of press stations, one a crusher, and
   haulers and smelters queue up to the piles in lines; the den is a big two-storey crab house, with

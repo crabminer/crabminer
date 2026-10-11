@@ -17,7 +17,7 @@
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0;
+  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -122,7 +122,7 @@
     farPath = dunePath(farY);
     sheets = [];
     if (grain === null) makeGrain();
-    if (widthChanged) decorate();
+    if (widthChanged) { decorate(); ecoDirty = true; }
   }
   function decorate() {
     var i, j, n;
@@ -137,7 +137,7 @@
     for (i = 0; i < n; i++) snow.push({ x: rr(0, W), y: rr(0, 1), r: rr(0.6, 1.6), vy: rr(5, 14), ph: rr(0, TAU) });
     lavaBub = [];
     for (i = 0; i < 6; i++) lavaBub.push({ u: rr(0.1, 0.95), t: rr(0, 1), dur: rr(0.9, 2), r: rr(2, 4.5) });
-    bubbles = []; fish = []; jellies = []; deep = []; plankton = [];
+    bubbles = []; plankton = []; ecoDirty = true;
   }
 
   // ----- small effects -----
@@ -178,6 +178,7 @@
     toForgeIngot: ['🪙➡️🔥', '🪙🏃🔥'], toForgeBar: ['🧱➡️🔥', '🧱🏃🔥'], needHeat: ['🔥❓', '🔥🥶❓'],
     wake: ['☀️👋', '🥱☀️'], ride: ['🌋⬆️😆', '💨⬆️🤩'], land: ['🦀✅', '🦀👌'], oc: ['⚡💪', '⚡🏃💨'], rave: ['🎉🦀🎶', '🕺🦀💃'],
     dance: ['🎶🦀🦀🎶', '💃🦀🕺', '🦀❤️🦀'], morning: ['☀️💪', '☀️😄👋'],
+    help: ['🦀🤝🦀', '💪🦀❓', '🦀🏃🤝'], helpRun: ['🏃🦀🦀🏃', '🦀💨🦀💨'], dig: ['⛏️😴', '🏖️💤', '🕳️🥱'],
     postGrab: ['🔌➡️', '🔌🏃'], postGrabTide: ['🔌🌊👍', '🔌🌊💪'], postDrift: ['🔌🌊❗', '🔌🌊😮'],
     pearl: ['🦪❗🎉', '🦪✨🤩'], chestFound: ['🧰❗👀', '🧰✨😮'], chest: ['🧰💰🎉', '🧰✨🤩'], flagsWashed: ['🚩💔🌊', '🌊🚩😭'], stack: ['🪨👍', '🪨📦👍'], stackBroken: ['⛏️💔🪨👍', '⛏️💔🪨💪'],
     spareBit: ['🛒⛏️👍', '🛒⛏️😊'], spareLeg: ['🛒🦵👍', '🛒🦵😊'], turtlePick: ['🐢😆', '🐢⬆️🤩'], turtleDrop: ['🐢❤️', '🐢👋😊'], glow: ['✨👀😊', '✨🦀👍'],
@@ -194,7 +195,7 @@
     needIngot: 'Waiting for ingots', stockFull: 'The stockpile is full', smelted: 'An ingot smelted',
     toForgeIngot: 'An ingot to the forge', toForgeBar: 'A bar to the forge', needHeat: 'The engine is cold',
     wake: 'Waking up', ride: 'Riding the vent', land: 'Landing from the vent', oc: 'Overclocked', rave: 'The crab rave',
-    dance: 'Dancing with a friend', morning: 'Morning bonus', postGrab: 'Moving the refuel post', postGrabTide: 'Fetching the post back from the tide', postDrift: 'The tide moving the post',
+    dance: 'Dancing with a friend', morning: 'Morning bonus', help: 'Lending a claw', helpRun: 'Running claw in claw', dig: 'Digging in to sleep', postGrab: 'Moving the refuel post', postGrabTide: 'Fetching the post back from the tide', postDrift: 'The tide moving the post',
     pearl: 'Finding a pearl', chestFound: 'Finding a sunken chest', chest: 'Opening a sunken chest', flagsWashed: 'The tide burying flags', stack: 'Stacking nodules', stackBroken: 'Hauling with a broken bit',
     spareBit: "Fitting the trader's spare bit", spareLeg: "Fitting the trader's spare leg", turtlePick: 'Climbing on the turtle', turtleDrop: 'Thanking the turtle', glow: 'Seeing by the glowing plankton',
     decor: 'Decorating the den', orderStart: 'A ship order', orderDone: 'An order filled', rivalArrive: 'The rival crew turning up', rivalWin: 'The rival filling an order',
@@ -255,7 +256,7 @@
     if (c.role === 'energy' && c.state === 'refill' && S.heat < 1) return TALK.needHeat;
     return null;
   }
-  function crabX(c) { return X(c.x) + (c.role === 'crush' ? [-14, 14, 0][c.k % 3] * scaleAt(c.d) : 0); }
+  function crabX(c) { return X(c.x); }
   function clawPos(c, side) { var s = scaleAt(c.d), px = crabX(c); return { x: px + side * 15 * s, y: groundY(px, c.d) - 12 * s }; }
   function oreSlot(i) {                // the ore pile is a pyramid, six nodules wide
     var row = 0, size = 6, k = i, s = scaleAt(0.8), rp = 4 * s, px = X(S.pos.ORE);
@@ -324,9 +325,9 @@
     switch (e.type) {
       case 'join': a.vfall = started ? 1 : 0; a.vjoin = true; break;
       case 'leave': p = crabX(a); burst(p, groundY(p, a.d) - 10, 6); near(a.x, 70).forEach(function (n) { play(n, ['wave', 'bow'], 1.6); }); break;
-      case 'strike': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.8); express(a, 'joy', 1.2); a.vhop = 1; say(a, TALK.strike, 1.4); play(a, ['pump', 'hopJoy', 'clap', 'jazz'], 1.4); break;
+      case 'strike': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.8); express(a, 'joy', 1.2); a.vhop = 1; say(a, TALK.strike, 1.4); play(a, ['pump', 'hopJoy', 'clap', 'jazz', 'backflip', 'twirl', 'hopTwirl'], 1.4); break;
       case 'uncover': p = X(a.x); poof(p, groundY(p, a.d), 5, 0.6); near(a.x, 30).forEach(function (n) { if (n.role === 'drill') play(n, ['cheer', 'spin'], 1.6); }); break;
-      case 'dry': p = X(a.x); poof(p, groundY(p, a.d), 6, 0.5, pal.sandBack); express(a, 'grumble', 1.5); say(a, TALK.dry, 1.5); play(a, ['stomp', 'grumble', 'slump', 'shrug'], 1.6); break;
+      case 'dry': p = X(a.x); poof(p, groundY(p, a.d), 6, 0.5, pal.sandBack); express(a, 'grumble', 1.5); say(a, TALK.dry, 1.5); play(a, ['stomp', 'grumble', 'slump', 'shrug', 'facepalm', 'sulk'], 1.6); break;
       case 'bitBreak': p = clawPos(a, 0); spark(p.x, p.y + 10, 10, pal.drill); express(a, 'shock', 1.6); a.vhop = 0.6; say(a, TALK.bitBreak, 2); play(a, ['shock', 'ouch'], 1.6); break;
       case 'flag':
         e.b.vborn = T; p = X(e.b.x); rings.push({ x: p, y: groundY(p, e.b.d), t: 0, c: e.b.chest ? pal.ingot : pal.scout }); express(a, 'eureka', 1.4); a.vhop = 0.8;
@@ -343,7 +344,7 @@
       case 'stock': fly('ingot', clawPos(a, 1), stockSlot(Math.max(0, S.stock - 1)), 0.34, { tag: 'stock' }); break;
       case 'sell':
         fly('ingot', stockSlot(S.stock), chuteMouth(), 0.4, { lift: true, value: a, streak: e.b });
-        if (a >= 15) near(S.pos.COLLECTOR, 140).forEach(function (n) { play(n, ['cheer', 'headbang', 'disco', 'sparkleEyes'], 2); });
+        if (a >= 15) near(S.pos.COLLECTOR, 140).forEach(function (n) { play(n, ['cheer', 'headbang', 'disco', 'sparkleEyes', 'cartwheel', 'backflip', 'bigWave'], 2); });
         else if (Math.random() < 0.3) { var nb = near(S.pos.COLLECTOR, 120); if (nb.length) play(anyOf(nb), ['clap', 'jazz', 'whistle'], 1.4); }
         if (e.b === 5 || e.b === 10 || e.b === 20) near(S.pos.STOCK, 160).forEach(function (n) { play(n, { 5: 'shimmy', 10: 'robot', 20: 'floss' }[e.b], 2.4); });
         break;
@@ -351,17 +352,28 @@
         if (a.role === 'repair') fly('ingot', stockSlot(S.stock), clawPos(a, 1), 0.3); else fly('bar', barSlot(S.bars), clawPos(a, 1), 0.3); break;
       case 'forged': p = clawPos(a, 1); spark(p.x + 8 * CS, p.y, 10, pal.lavaHot); express(a, 'proud', 1.2); say(a, a.role === 'mech' ? TALK.bringLeg : TALK.bringBit, 2); break;
       case 'legOff': debris.push({ x: a.x, d: a.d, crab: a, rot: rr(-1, 1) }); p = clawPos(a, -1); spark(p.x, p.y + 8, 8, pal.metal); express(a, 'ouch', 1.8); a.vhop = 0.5; say(a, TALK.legOff, 2); break;
-      case 'sleep': express(a, 'yawn', 1.2); a.anim = null; break;
-      case 'wake': express(a, 'stretch', 1.2); say(a, TALK.wake, 1.4); play(a, ['yawnStretch', 'sideStretch', 'wave'], 1.6); break;
+      case 'sleep': express(a, 'yawn', 1.2); a.anim = null; a.vsleep = sleepForm(a, T); if (a.vsleep.burrow && Math.random() < 0.5) say(a, TALK.dig, 1.4); break;
+      case 'help': if (Math.random() < 0.6) say(a, TALK.help, 1.4); express(a, 'proud', 1); break;
+      case 'holdClaw':                                   // claws meet: a high-five from the helper, a little dance from the friend it helps
+        if (e.b && e.b.role === 'energy') say(a, TALK.helpRun, 1.5); else express(a, 'joy', 1);
+        play(a, 'highFive', 0.8); if (e.b) { e.b.vpd = crabX(a) >= crabX(e.b) ? 1 : -1; play(e.b, ['helpedDance', 'wiggle', 'twirl'], 1.2); }
+        break;
+      case 'helpEnd':                                    // the thanks: both bow, or dance a short duet
+        if (a.state === 'bhaul') break;
+        if (e.b && !e.b.gone && e.b.state !== 'sleep') { a.vpd = crabX(e.b) >= crabX(a) ? 1 : -1; e.b.vpd = -a.vpd; p = anyOf(['pattyCake', 'highTen', 'twirlDuet', 'thanks']); play(a, p, 1.6); play(e.b, p, 1.6); }
+        else play(a, ['wave', 'salute', 'thanks'], 0.9);
+        break;
+      case 'wake': if (a.vsleep && a.vsleep.burrow) { p = X(a.x); poof(p, groundY(p, a.d), 12, 0.9); play(a, ['shiver', 'shock'], 0.8); } a.vsleep = null;
+        express(a, 'stretch', 1.2); say(a, TALK.wake, 1.4); play(a, ['yawnStretch', 'sideStretch', 'wave'], 1.6); break;
       case 'ride': p = X(K.VENT_IN); burst(p, groundY(p, 0.8) - 6, 6); express(a, 'wheee', 2.5); say(a, TALK.ride, 2.2); break;
-      case 'land': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.7); a.vhop = 0.7; say(a, TALK.land, 1); play(a, ['hopJoy', 'bow', 'jazz'], 1.2); break;
+      case 'land': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.7); a.vhop = 0.7; say(a, TALK.land, 1); play(a, ['hopJoy', 'bow', 'jazz', 'frontflip', 'balance'], 1.2); break;
       case 'plug': p = postPos(); spark(p.x, p.y - 18 * CS, 4, pal.light); break;
       case 'ocStart': for (i = 0; i < S.crabs.length; i++) { p = clawPos(S.crabs[i], 0); spark(p.x, p.y, 3, pal.light); if (i % 3 === 0) say(S.crabs[i], TALK.oc, 1.6); if (i % 3 === 1) play(S.crabs[i], ['flex', 'determined'], 1.4); } break;
       case 'shiftMode': toast(SHIFT_INFO[a].name, SHIFT_INFO[a].note); S.crabs.forEach(function (n) { play(n, 'salute', 1.2); }); break;
       case 'ocEnd': S.crabs.forEach(function (n, j2) { if (j2 % 2) play(n, 'sigh', 1.2); }); break;
       case 'flowLost': near(S.pos.STOCK, 90).forEach(function (n) { play(n, 'slump', 1.4); }); break;
       case 'dance': a.vpd = e.b.x >= a.x ? 1 : -1; e.b.vpd = -a.vpd; if (Math.random() < 0.5) say(a, TALK.dance, 1.6); break;
-      case 'morning': say(a, TALK.morning, 1.8); play(a, ['salute', 'flex', 'jazz', 'yawnStretch'], 1.8); break;
+      case 'morning': say(a, TALK.morning, 1.8); play(a, ['salute', 'flex', 'jazz', 'yawnStretch', 'stretchUp', 'pointUp'], 1.8); break;
       case 'dawn': if (started) toast('Morning of day ' + a, 'Crabs that slept or danced in the night start the day fresh: 15% faster for a minute.'); break;
       case 'postGrab': say(a, Math.abs(S.post.x - S.post.home.x) > 40 ? TALK.postGrabTide : TALK.postGrab, 1.6); play(a, ['flex', 'determined'], 1.2); break;
       case 'postDrift':
@@ -400,7 +412,7 @@
         break;
       case 'traderArrive': toast('A hermit-crab trader is coming', 'It keeps shop by the den for a minute. Its goods are in the Build tab.'); break;
       case 'traderOpen':
-        near(K.TRADER_SPOT, 120).forEach(function (n) { play(n, ['wave', 'sparkleEyes'], 1.4); });
+        near(K.TRADER_SPOT, 120).forEach(function (n) { play(n, ['wave', 'sparkleEyes', 'curious', 'bigWave'], 1.4); });
         traderBubble = T + 3;
         break;
       case 'trade':
@@ -431,7 +443,7 @@
         cargo.phase = 'out';
         toast('Order filled! +$' + e.b, (a.rivalRate ? 'You beat the rival crew 🦞 to it. ' : '') + 'The ship pays a bonus, and your reputation rises to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Crab profit!');
         floater('Order filled! +$' + e.b, collectorBase().x, collectorBase().y - 90 * CS, true);
-        S.crabs.forEach(function (n, j2) { if (n.state !== 'sleep') { play(n, ['cheer', 'jazz', 'disco', 'clap'], 2); if (j2 % 3 === 0) say(n, TALK.orderDone, 1.8); } });
+        S.crabs.forEach(function (n, j2) { if (n.state !== 'sleep') { play(n, ['cheer', 'jazz', 'disco', 'clap', 'backflip', 'cartwheel', 'bigWave', 'canCan'], 2); if (j2 % 3 === 0) say(n, TALK.orderDone, 1.8); } });
         break;
       case 'rivalArrive':
         toast('A rival crew 🦞 has set up behind the ridge', 'Lobsters with their own line to the surface. From now on they race you for every ship order. If they fill it first, the ship sails with theirs and your reputation drops a star. Every order you win makes them try harder.');
@@ -451,9 +463,9 @@
       case 'stormWarn': toast('A storm is coming', 'In twenty seconds the sea gets rough: crabs slow down, the riser slows, and flags can be buried, but the waves stir up free nodules.'); break;
       case 'stormStart':
         toast('Storm!', 'Rough water for forty seconds. Haulers, grab the nodules the waves turn up.');
-        S.crabs.forEach(function (n, j2) { if (n.state === 'sleep') return; if (j2 % 3 === 0) say(n, TALK.storm, 1.8); play(n, ['shiver', 'shock', 'hug'], 2); });
+        S.crabs.forEach(function (n, j2) { if (n.state === 'sleep') return; if (j2 % 3 === 0) say(n, TALK.storm, 1.8); play(n, ['shiver', 'shock', 'hug', 'nervous'], 2); });
         break;
-      case 'stormEnd': toast('The storm has passed', 'Calm water again.'); S.crabs.forEach(function (n) { if (n.state !== 'sleep') play(n, ['cheer', 'sigh', 'jazz'], 1.6); }); break;
+      case 'stormEnd': toast('The storm has passed', 'Calm water again.'); S.crabs.forEach(function (n) { if (n.state !== 'sleep') play(n, ['cheer', 'sigh', 'jazz', 'shakeOff', 'cheerUp'], 1.6); }); break;
       case 'lavaStart':
         toast('Lava surge!', 'For thirty seconds smelting and forging run twice as fast and the Stirling engine makes double charge. A good time to overclock.');
         S.crabs.forEach(function (n) { if (n.role === 'smelt' || n.role === 'repair' || n.role === 'mech' || n.role === 'energy') { say(n, TALK.lava, 1.8); play(n, ['jazz', 'disco', 'pump'], 2); } });
@@ -490,18 +502,18 @@
         buryToast = false;
         break;
       case 'layout': var bx = S.pos[{ den: 'DEN', workshop: 'WORKSHOP', ore: 'ORE', crush: 'CRUSH', bar: 'BAR', stock: 'STOCK', collector: 'COLLECTOR' }[a]]; near(bx, 90).forEach(function (n) { play(n, ['lookAround', 'think'], 1.6); }); break;
-      case 'charge': p = clawPos(e.b, 0); spark(p.x, p.y, 6); express(e.b, 'zap', 1.2); say(e.b, TALK.gotCharge, 1.6); play(e.b, ['spin', 'shimmy', 'sparkleEyes'], 1.4); play(a, ['salute', 'wave'], 1); break;
+      case 'charge': p = clawPos(e.b, 0); spark(p.x, p.y, 6); express(e.b, 'zap', 1.2); say(e.b, TALK.gotCharge, 1.6); play(e.b, ['spin', 'shimmy', 'sparkleEyes', 'twirl', 'bounce'], 1.4); play(a, ['salute', 'wave', 'snap'], 1); break;
       case 'ebotBreak': p = clawPos(a, 0); spark(p.x, p.y, 10, pal.warn); express(a, 'shock', 1.6); say(a, TALK.ebotBreak, 2); play(a, 'dizzy', 2.4); break;
       case 'refill': express(a, 'phew', 1); play(a, ['sigh', 'robot'], 1.2); break;
       case 'fixed':
         p = clawPos(e.b, 0); spark(p.x, p.y, 8, a.role === 'mech' ? pal.lavaHot : pal.hat); express(e.b, 'relief', 1.8); express(a, 'proud', 1.4); e.b.vhop = 0.8;
         say(e.b, a.role === 'mech' ? TALK.mended : TALK.fixedBit, 2);
-        play(e.b, ['relief', 'hug', 'bow', 'spin'], 1.8); play(a, ['flex', 'salute', 'bow'], 1.4);
+        play(e.b, ['relief', 'hug', 'bow', 'spin', 'thanks', 'twirl'], 1.8); play(a, ['flex', 'salute', 'bow', 'smug'], 1.4);
         if (a.role === 'mech') debris = debris.filter(function (dd) { return dd.crab !== e.b; });   // the leg goes back on
         break;
       case 'veteran':                                    // a crab earns a star at its own job
         p = clawPos(a, 1); spark(p.x, p.y - 6 * CS, 12, pal.ingot); express(a, 'proud', 2); a.vhop = 0.8;
-        say(a, TALK.veteran, 2); play(a, ['flex', 'pump', 'sparkleEyes'], 1.8);
+        say(a, TALK.veteran, 2); play(a, ['flex', 'pump', 'sparkleEyes', 'backflip', 'smug'], 1.8);
         near(a.x, 60).forEach(function (n) { if (n !== a) play(n, ['clap', 'cheer'], 1.4); });
         if (!vetToast || e.b === K.VET_LEVELS.length) {    // the first star of the game, and every third star
           toast(a.name + (e.b === K.VET_LEVELS.length ? ' is a master ' : ' is a veteran ') + ROLE_NOUN[a.role] + ' ' + '★'.repeat(e.b),
@@ -553,6 +565,7 @@
       if ((c.state === 'fix' || c.state === 'charge') && c.target) { if (!c.vpass || c.vpass.w !== c.target) c.vpass = { w: c.target, total: Math.max(c.timer, 0.01) }; }
       else c.vpass = null;
       if (c.vhop > 0) c.vhop = Math.max(0, c.vhop - dtReal * 2.2);
+      if (c.state === 'sleep' && c.vsleep && c.vsleep.burrow && T - c.vsleep.t < DIG_T && Math.random() < dtReal * 4) poof(px - c.dir * 16 * scaleAt(c.d), groundY(px, c.d) - 2, 1, 0.5);
       if (!c.moving && !c.working && c.state !== 'sleep') c.vidle = (c.vidle || 0) + dtReal * Math.max(speed, 0.25); else c.vidle = 0;
       if (c.vjoin && !(c.vfall > 0)) { c.vjoin = false; play(c, ['salute', 'wave', 'jazz'], 1.6); }
       if (c.target !== c.vlastT) {                       // a helper answers the crab it has just picked
@@ -625,6 +638,14 @@
           play(c, ['wave', 'sparkleEyes', 'jazz'], 1.8);
         }
       }
+    }
+    if (eco && started) {                            // the first bite on the fisherman's bait opens the lab report
+      var lab = eco.report(), lg = lab.log || [];
+      if (!labToast) for (i = Math.max(0, ecoLogSeen - 0); i < lg.length; i++) if (/bait/i.test(lg[i].text)) {
+        labToast = true; toast('Lab report: ' + lg[i].text, 'The sea is a closed food web: whatever is eaten is born again, and the fisherman\'s bait feeds more fish than it catches. The Ledger keeps the lab report: every species by count, who ate whom, and the latest observations.');
+        break;
+      }
+      ecoLogSeen = lg.length;
     }
     var si = sim.shiftInfo();
     nightA += ((si.night ? 1 : 0) - nightA) * Math.min(1, dtReal * 1.5);
@@ -968,8 +989,9 @@
   var DECOR_NAMES = { shellGarland: 'shell garland', seaGlass: 'sea-glass mosaic', cairn: 'pebble cairn', kelpWreath: 'kelp wreath',
     coral: 'coral sculpture', sandCastle: 'sand castle', noduleTotem: 'nodule totem', trophy: 'rank trophy', pearlLamp: 'pearl lamp',
     inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp' };
+  var DEN_S = 2;                         // the den is drawn at twice the scale of the crabs: four times the house
   function decorSlot(i) {                // decorations ring the den on the sand, nearest first
-    var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), spots = [[-24, 0], [24, 0], [-36, 4], [36, 4], [-30, -8], [30, -8], [-48, -2], [48, -2], [-58, 4], [58, 4], [-44, -10], [44, -10], [-68, -2], [68, -2]];
+    var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), spots = [[-44, 2], [44, 2], [-56, 7], [56, 7], [-50, -6], [50, -6], [-66, 0], [66, 0], [-74, 6], [74, 6], [-62, -12], [62, -12], [-84, 0], [84, 0]];
     var sp = spots[i % spots.length];
     return { x: p + sp[0] * s, y: y + sp[1] * s, s: s };
   }
@@ -1035,19 +1057,58 @@
     }
     ctx.restore();
   }
-  function drawDen() {                   // a round crab house with a door, a flag, and whatever the crabs have made for it
-    var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), i, d;
+  function drawDen() {                   // a big round crab house: two floors of lit windows, a porch, a chimney, a flag, and the crabs' decorations
+    var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), i, d, k = T * 1.5, still = mqReduce.matches;
     for (i = 0; i < S.decor.length; i++) { d = decorSlot(i); if (d.y < y - 20 * s) drawDecor(S.decor[i].kind, d.x, d.y, d.s); }   // the ones behind first
-    ctx.save(); ctx.translate(p, y); ctx.scale(s, s);
-    ctx.fillStyle = pal.crab; ctx.beginPath(); ctx.ellipse(0, -10, 18, 14, 0, Math.PI, TAU); ctx.lineTo(18, 0); ctx.lineTo(-18, 0); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = pal.crabDark; ctx.lineWidth = 1.4; ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.beginPath(); ctx.ellipse(-6, -16, 7, 3, -0.3, 0, TAU); ctx.fill();
-    ctx.fillStyle = pal.crabDark; ctx.beginPath(); ctx.ellipse(0, 0, 6, 8, 0, Math.PI, TAU); ctx.fill();   // the door
-    ctx.fillStyle = pal.light; ctx.globalAlpha = 0.6 + 0.3 * Math.sin(T * 1.5); ctx.beginPath(); ctx.arc(-10, -9, 2.4, 0, TAU); ctx.arc(10, -9, 2.4, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;   // lit windows
-    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, -34); ctx.stroke();
-    ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.moveTo(0, -34); ctx.lineTo(8, -31 + Math.sin(T * 3)); ctx.lineTo(0, -28); ctx.closePath(); ctx.fill();
+    ctx.save(); ctx.translate(p, y); ctx.scale(s * DEN_S, s * DEN_S); ctx.lineCap = 'round';
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.ellipse(2, 1, 22, 3.2, 0, 0, TAU); ctx.fill();   // its shadow on the sand
+    ctx.fillStyle = pal.crab; ctx.beginPath(); ctx.ellipse(0, -10, 18, 14, 0, Math.PI, TAU); ctx.lineTo(18, 0); ctx.lineTo(-18, 0); ctx.closePath(); ctx.fill();   // the shell
+    ctx.strokeStyle = pal.crabDark; ctx.lineWidth = 0.9; ctx.stroke();
+    ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.moveTo(-18, -8); ctx.quadraticCurveTo(0, -13, 18, -8); ctx.stroke(); ctx.globalAlpha = 1;   // the line between the floors
+    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.beginPath(); ctx.ellipse(-6, -17, 7, 2.6, -0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = pal.crabDark; ctx.beginPath(); ctx.ellipse(0, 0, 4.2, 6.5, 0, Math.PI, TAU); ctx.fill();   // the door
+    ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.arc(2.6, -2.6, 0.5, 0, TAU); ctx.fill();                   // its handle
+    ctx.fillStyle = pal.sandLine; ctx.globalAlpha = 0.7; ctx.fillRect(-7, -0.5, 14, 1.2); ctx.globalAlpha = 1;   // the porch step
+    ctx.fillStyle = pal.light;                                                                                   // lit windows: four downstairs, three up, each on its own flicker
+    [[-11, -6], [-6, -5], [6, -5], [11, -6]].forEach(function (w, j) { ctx.globalAlpha = 0.55 + 0.35 * Math.sin(k + j * 1.7); ctx.beginPath(); ctx.arc(w[0], w[1], 1.5, 0, TAU); ctx.fill(); });
+    [[-7, -14], [0, -17], [7, -14]].forEach(function (w, j) { ctx.globalAlpha = 0.55 + 0.35 * Math.sin(k * 1.2 + j * 2.1 + 1); ctx.beginPath(); ctx.arc(w[0], w[1], 1.3, 0, TAU); ctx.fill(); });
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = pal.crabDark; ctx.lineWidth = 0.5;                                                         // window frames
+    [[-11, -6, 1.5], [-6, -5, 1.5], [6, -5, 1.5], [11, -6, 1.5], [-7, -14, 1.3], [0, -17, 1.3], [7, -14, 1.3]].forEach(function (w) { ctx.beginPath(); ctx.arc(w[0], w[1], w[2], 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.moveTo(w[0] - w[2], w[1]); ctx.lineTo(w[0] + w[2], w[1]); ctx.moveTo(w[0], w[1] - w[2]); ctx.lineTo(w[0], w[1] + w[2]); ctx.stroke(); });
+    ctx.fillStyle = pal.crabDark; ctx.fillRect(10, -24, 3, 6);                                                   // the chimney, with a bubble now and then
+    if (!still && Math.random() < 0.02) bubbles.push({ x: p + 11.5 * s * DEN_S, y: y - 25 * s * DEN_S, r: rr(1, 2.2) * s, vy: rr(14, 24), ph: rr(0, TAU) });
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(0, -33); ctx.stroke();   // the flagpole
+    ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.moveTo(0, -33); ctx.lineTo(7, -30.5 + Math.sin(T * 3) * 0.8); ctx.lineTo(0, -28); ctx.closePath(); ctx.fill();
     ctx.restore();
     for (i = 0; i < S.decor.length; i++) { d = decorSlot(i); if (d.y >= y - 20 * s) drawDecor(S.decor[i].kind, d.x, d.y, d.s); }
+  }
+  // The crushing yard is a line of press stations, one a crusher, on a roller table: each press is a frame with a
+  // hammer block that drops as its crusher pounds. Haulers queue up to the ore pile on the field side, and the smelters
+  // line up to the bar stack, so the yard reads as a factory floor rather than a huddle.
+  function drawPress(c) {                // one crusher's press station, drawn just behind the crusher
+    var st = sim.crushSpot(c), px = X(st.x), y = groundY(px, st.d), s = scaleAt(st.d), hit = c.state === 'crush' ? Math.abs(Math.sin(T * 9 + c.vph)) : 0.1;
+    ctx.save(); ctx.translate(px, y); ctx.scale(s, s);
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-9, -26); ctx.lineTo(9, -26); ctx.lineTo(9, 0); ctx.stroke();           // the frame
+    ctx.fillStyle = pal.metal; ctx.fillRect(-10, -27.5, 20, 3);                                                             // the crossbar
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(0, -26); ctx.lineTo(0, -21 + hit * 7); ctx.stroke();   // the ram
+    ctx.fillStyle = pal.crushDark; roundRect(-5, -21 + hit * 7, 10, 5, 1); ctx.fill();                                      // the hammer block
+    ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.8; ctx.fillRect(-11, -2.2, 22, 2.2); ctx.globalAlpha = 1;             // the anvil plate
+    ctx.restore();
+  }
+  function drawRollers() {               // the roller table the front row of presses stands on; an empty press marks a yard with no crushers
+    var i, c, st, px, x0 = 1e9, x1 = -1e9, s = scaleAt(0.78), y = groundY(X(S.pos.CRUSH), 0.78);
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role !== 'crush') continue; st = sim.crushSpot(c); if (st.d > 0.75) { px = X(st.x); x0 = Math.min(x0, px); x1 = Math.max(x1, px); } }
+    if (x0 > x1) {
+      px = X(S.pos.CRUSH);
+      ctx.save(); ctx.translate(px, y); ctx.scale(s, s); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
+      ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-9, -26); ctx.lineTo(9, -26); ctx.lineTo(9, 0); ctx.stroke(); ctx.fillStyle = pal.metal; ctx.fillRect(-10, -27.5, 20, 3); ctx.restore();
+      return;
+    }
+    ctx.save(); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.moveTo(x0 - 14 * s, y + 1.5 * s); ctx.lineTo(x1 + 14 * s, y + 1.5 * s); ctx.stroke();
+    for (px = x0 - 12 * s; px <= x1 + 12 * s; px += 5 * s) { ctx.beginPath(); ctx.arc(px, y + 1.5 * s, 1.4 * s, 0, TAU); ctx.stroke(); }
+    ctx.restore();
   }
   function drawOrePile() {
     var n = Math.max(0, S.ore - incoming('ore')), i, s, sc = scaleAt(0.8);
@@ -1193,93 +1254,40 @@
   var BLD_SHORT = { den: 'Den', workshop: 'Workshop', ore: 'Ore', crush: 'Crusher', bar: 'Bars', stock: 'Stock', collector: 'Riser' };
   var arrange = false, pick = null;
 
-  // ----- sea life: shoals of fish, jellyfish, and the ship at the top of the riser -----
-  var fish = [], jellies = [];
-  function stockSea() {
-    fish = []; jellies = [];
-    for (var i = 0; i < 4; i++) fish.push({ x: rr(0, W), y: rr(surfH + 30, base[0] - 40), v: rr(18, 34) * (Math.random() < 0.5 ? -1 : 1), n: 4 + Math.floor(Math.random() * 5), ph: rr(0, TAU) });
-    for (i = 0; i < 3; i++) jellies.push({ x: rr(0, W), y: rr(surfH + 40, base[0] - 60), ph: rr(0, TAU), v: rr(4, 9) });
+  // ----- sea life: the food web in eco.js (Script 4), and the ship at the top of the riser -----
+  // eco.js runs the closed ecosystem: shoals and shrimp, their predators, the fisherman, the birds and the deep.
+  // It is decoration like the plankton: it reads the geometry and the weather from here and never touches the sim.
+  var eco = typeof CrabEco === 'function' ? CrabEco() : null, ecoDirty = true, lures = [];
+  var ecoGeom = {
+    surfH: 0, farBase: 0, base: [0, 0, 0],
+    farY: function (x) { return farY(x); }, crestY: function (k, x) { return crestY(k, x); }, groundY: function (px, d) { return groundY(px, d); },
+    waveY: function (x) { return waveY(LAYERS[2], x); }, X: function (lx) { return X(lx); }, scaleAt: function (d) { return scaleAt(d); }
+  };
+  var ecoEnvObj = null;
+  function ecoEnv() {                    // rebuilt once a frame: what the ecosystem needs to know about the scene
+    var top = riserPoint(1), sy = waveY(LAYERS[2], top.x) - 4, i, c, px, e;
+    ecoGeom.surfH = surfH; ecoGeom.farBase = farBase; ecoGeom.base = base;
+    e = ecoEnvObj = {
+      W: W, H: H, CS: CS, T: T, pal: pal, nightA: nightA, stormA: stormA, tide: S ? S.tide : 0, bloom: bloom, still: mqReduce.matches,
+      whale: whale ? { x: whale.x, y: whale.y, v: whale.v } : null,
+      cargo: cargo.phase !== 'gone' && cargo.x >= 0 ? { x: cargo.x, y: waveY(LAYERS[2], cargo.x) - 6 } : null,
+      riserShip: { x: top.x, y: sy }, perches: [{ x0: top.x - 40, x1: top.x + 40, y: sy - 6 }], crabs: [], geom: ecoGeom
+    };
+    if (e.cargo) e.perches.push({ x0: e.cargo.x - 76, x1: e.cargo.x + 40, y: e.cargo.y - 10 });
+    if (S) for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.alt > 0 || c.turtle) continue; px = crabX(c); e.crabs.push({ x: px, y: groundY(px, c.d), d: c.d }); }
+    return e;
   }
-  // ----- the deep: shapes in the shadows far behind the dunes -----
-  // Mantas, a cruising shark, a swirling school, a squid now and then, and an anglerfish along the far dune whose
-  // lure glows at night. They are drawn before the far dune, faint and small with distance.
-  var deep = [], lures = [];
-  function stockDeep() {
-    var lo = surfH + 30, hi = farBase - 20, i;
-    deep = [
-      { kind: 'manta', x: rr(0, W), y: rr(lo, hi), v: rr(10, 16), k: rr(0.55, 0.8), ph: rr(0, TAU) },
-      { kind: 'manta', x: rr(0, W), y: rr(lo, hi), v: -rr(8, 13), k: rr(0.4, 0.6), ph: rr(0, TAU) },
-      { kind: 'shark', x: rr(0, W), y: rr(lo + 20, hi), v: rr(16, 24) * (Math.random() < 0.5 ? -1 : 1), k: rr(0.5, 0.75), ph: rr(0, TAU) },
-      { kind: 'school', x: rr(0, W), y: rr(lo, hi), v: rr(6, 10) * (Math.random() < 0.5 ? -1 : 1), k: rr(0.6, 0.9), ph: rr(0, TAU) },
-      { kind: 'angler', x: rr(0, W), y: 0, v: rr(3, 5) * (Math.random() < 0.5 ? -1 : 1), k: rr(0.7, 0.9), ph: rr(0, TAU) },
-      { kind: 'squid', x: rr(W * 0.1, W * 0.9), y: farBase + 40, v: 0, k: rr(0.6, 0.85), ph: 0, wait: rr(30, 90) }
-    ];
-    for (i = 0; i < deep.length; i++) deep[i].k *= CS;
+  function drawDeep(dt) {                // the far silhouettes, and the ecosystem's step for the frame
+    if (!eco) return;
+    var e = ecoEnv();
+    if (ecoDirty) { eco.reset(e); ecoDirty = false; }
+    eco.update(dt, e);
+    lures = eco.lures();
+    eco.drawDeep(ctx, e);
   }
-  function drawDeep(dt) {
-    var i, j, d, L, dir, flap, a, x, y, still = mqReduce.matches;
-    if (!deep.length) stockDeep();
-    lures = [];
-    ctx.save();
-    for (i = 0; i < deep.length; i++) {
-      d = deep[i]; d.ph += dt; L = 60 * d.k;
-      if (d.kind !== 'squid') { d.x += d.v * dt; if (d.x < -L * 2) d.x = W + L * 2; if (d.x > W + L * 2) d.x = -L * 2; }
-      dir = d.v < 0 ? -1 : 1;
-      a = 0.16 + 0.22 * clamp((d.k / CS - 0.4) / 0.5, 0, 1);       // the further, the fainter
-      ctx.fillStyle = 'rgba(6,26,42,' + a.toFixed(3) + ')'; ctx.strokeStyle = ctx.fillStyle;
-      if (d.kind === 'manta') {
-        flap = still ? 0 : Math.sin(d.ph * 1.3) * L * 0.12;
-        y = d.y + Math.sin(d.ph * 0.4) * 8;
-        ctx.save(); ctx.translate(d.x, y); ctx.scale(dir, 1);
-        ctx.beginPath(); ctx.moveTo(L * 0.32, 0);
-        ctx.quadraticCurveTo(L * 0.1, -L * 0.1, -L * 0.04, -L * 0.36 + flap);   // the near wing, its tip rising and falling
-        ctx.quadraticCurveTo(-L * 0.12, -L * 0.1, -L * 0.3, 0);
-        ctx.quadraticCurveTo(-L * 0.12, L * 0.05, -L * 0.02, L * 0.14 - flap * 0.35);   // the far wing, foreshortened
-        ctx.quadraticCurveTo(L * 0.12, L * 0.06, L * 0.32, 0); ctx.fill();
-        ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-L * 0.3, 0); ctx.quadraticCurveTo(-L * 0.5, Math.sin(d.ph * 2) * 3, -L * 0.72, 2); ctx.stroke();
-        ctx.restore();
-      } else if (d.kind === 'shark') {
-        var tail = still ? 0 : Math.sin(d.ph * 3) * 0.18;
-        y = d.y + Math.sin(d.ph * 0.5) * 5;
-        ctx.save(); ctx.translate(d.x, y); ctx.scale(dir, 1);
-        ctx.beginPath(); ctx.moveTo(L * 0.5, 0);
-        ctx.bezierCurveTo(L * 0.4, -L * 0.1, L * 0.05, -L * 0.11, -L * 0.3, -L * 0.03);
-        ctx.lineTo(-L * 0.52, -L * 0.18 + tail * L * 0.2); ctx.lineTo(-L * 0.45, 0); ctx.lineTo(-L * 0.5, L * 0.12 + tail * L * 0.2);   // the tail
-        ctx.lineTo(-L * 0.3, L * 0.03); ctx.bezierCurveTo(L * 0.05, L * 0.09, L * 0.4, L * 0.07, L * 0.5, 0); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(L * 0.05, -L * 0.09); ctx.lineTo(-L * 0.06, -L * 0.24); ctx.lineTo(-L * 0.12, -L * 0.07); ctx.fill();   // the dorsal fin
-        ctx.beginPath(); ctx.moveTo(L * 0.12, L * 0.06); ctx.lineTo(L * 0.02, L * 0.17); ctx.lineTo(-L * 0.02, L * 0.06); ctx.fill();
-        ctx.restore();
-      } else if (d.kind === 'school') {                 // a bait ball, turning on itself as it drifts
-        for (j = 0; j < 26; j++) {
-          var ang = j * 2.399 + d.ph * (0.6 + (j % 3) * 0.15), rad = (8 + (j * 7) % 22) * d.k;
-          x = d.x + Math.cos(ang) * rad * 1.4; y = d.y + Math.sin(ang) * rad * 0.7 + Math.sin(d.ph * 0.5) * 6;
-          ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2);
-          ctx.beginPath(); ctx.ellipse(0, 0, 3 * d.k, 1.1 * d.k, 0, 0, TAU); ctx.fill(); ctx.restore();
-        }
-      } else if (d.kind === 'angler') {                 // creeping along the far dune, its lure bobbing ahead of it
-        y = farY(d.x) - 8 * d.k;
-        ctx.save(); ctx.translate(d.x, y); ctx.scale(dir, 1);
-        ctx.beginPath(); ctx.ellipse(0, 0, 11 * d.k, 8 * d.k, 0, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(-9 * d.k, 0); ctx.lineTo(-17 * d.k, -6 * d.k); ctx.lineTo(-17 * d.k, 6 * d.k); ctx.fill();
-        var lx = 16 * d.k, ly = -17 * d.k + Math.sin(d.ph * 1.7) * 2 * d.k;
-        ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(4 * d.k, -7 * d.k); ctx.quadraticCurveTo(10 * d.k, -20 * d.k, lx, ly); ctx.stroke();
-        ctx.restore();
-        lures.push({ x: d.x + dir * lx, y: y + ly, k: d.k, ph: d.ph });
-      } else if (d.kind === 'squid') {                  // now and then a squid jets up out of the deep and away
-        if (d.wait > 0) { d.wait -= dt; continue; }
-        var pulse = Math.max(0, Math.sin(d.ph * 2.2));
-        d.y -= (8 + pulse * 26) * dt * CS;
-        if (d.y < surfH - 40) { d.y = farBase + 40; d.x = rr(W * 0.1, W * 0.9); d.wait = rr(60, 150); d.ph = 0; continue; }
-        ctx.save(); ctx.translate(d.x, d.y);
-        ctx.beginPath(); ctx.ellipse(0, 0, 6 * d.k * (1 - pulse * 0.2), 18 * d.k, 0, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(-6 * d.k, -14 * d.k); ctx.lineTo(0, -24 * d.k); ctx.lineTo(6 * d.k, -14 * d.k); ctx.fill();
-        ctx.lineWidth = 1.2;
-        for (j = -3; j <= 3; j++) { ctx.beginPath(); ctx.moveTo(j * 1.6 * d.k, 16 * d.k); ctx.quadraticCurveTo(j * (3 + pulse * 3) * d.k + Math.sin(d.ph * 3 + j) * 2, 30 * d.k, j * (2 + pulse * 5) * d.k, (40 - pulse * 8) * d.k); ctx.stroke(); }
-        ctx.restore();
-      }
-    }
-    ctx.restore();
-  }
+  function drawEcoWater() { if (eco && ecoEnvObj) eco.drawWater(ctx, ecoEnvObj); }
+  function drawEcoFloor(k) { if (eco && ecoEnvObj) eco.drawFloor(ctx, ecoEnvObj, k); }
+  function drawEcoSurface() { if (eco && ecoEnvObj) eco.drawSurface(ctx, ecoEnvObj); }
 
   // ----- plankton: a daily cycle, and light when stirred at night -----
   // Plankton sink deep by day and rise toward the surface at night. The tide and storms carry them along.
@@ -1374,30 +1382,7 @@
     ctx.restore();
   }
   function drawSea(dt) {
-    var i, j, f, x, y, jl, pulse;
-    if (fish.length === 0) stockSea();
     drawDeep(dt); updatePlankton(dt);
-    ctx.save();
-    for (i = 0; i < fish.length; i++) {
-      f = fish[i]; f.x += f.v * dt; f.ph += dt;
-      if (f.x < -80) f.x = W + 60; if (f.x > W + 80) f.x = -60;
-      for (j = 0; j < f.n; j++) {
-        x = f.x - Math.sign(f.v) * (j % 3) * 14 - j * 3; y = f.y + Math.sin(f.ph * 2 + j) * 6 + (j % 2) * 9;
-        ctx.globalAlpha = 0.4; ctx.fillStyle = pal.foam;
-        ctx.beginPath(); ctx.ellipse(x, y, 5, 2, 0, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(x - Math.sign(f.v) * 4, y); ctx.lineTo(x - Math.sign(f.v) * 8, y - 2.5); ctx.lineTo(x - Math.sign(f.v) * 8, y + 2.5); ctx.closePath(); ctx.fill();
-      }
-    }
-    for (i = 0; i < jellies.length; i++) {
-      jl = jellies[i]; jl.ph += dt; pulse = Math.sin(jl.ph * 2.2);
-      jl.y += (pulse > 0 ? -jl.v : jl.v * 0.4) * dt; jl.x += Math.sin(jl.ph * 0.3) * 4 * dt;
-      if (jl.y < surfH + 20) jl.y = base[0] - 40;
-      ctx.globalAlpha = 0.35; ctx.fillStyle = pal.scout;
-      ctx.beginPath(); ctx.ellipse(jl.x, jl.y, 9 + pulse * 1.5, 6 - pulse, 0, Math.PI, TAU); ctx.fill();
-      ctx.strokeStyle = pal.scout; ctx.lineWidth = 1;
-      for (j = -2; j <= 2; j++) { ctx.beginPath(); ctx.moveTo(jl.x + j * 3, jl.y); ctx.quadraticCurveTo(jl.x + j * 3 + Math.sin(jl.ph * 3 + j) * 3, jl.y + 8, jl.x + j * 3, jl.y + 16 - pulse * 2); ctx.stroke(); }
-    }
-    ctx.restore();
     // the ship at the surface that takes the metal
     var top = riserPoint(1), sx = top.x, sy = waveY(LAYERS[2], sx) - 4;
     ctx.save(); ctx.translate(sx, sy); ctx.rotate(Math.sin(T * (0.8 + stormA * 1.6)) * (0.03 + stormA * 0.14));
@@ -1705,7 +1690,7 @@
     ctx.globalAlpha = 1;
   }
 
-  // ----- the crabs' repertoire: 52 animations -----
+  // ----- the crabs' repertoire: 119 animations (with the rave) -----
   // Each takes the crab and the seconds since it began, and returns a pose: eyes, mouth, a tilt of the whole
   // body (radians), an offset, where the two claws go (left x, y, right x, y, in shell units from the body),
   // what the legs do, and a prop. Events and states pick them; see moodFor() and the event hooks.
@@ -1765,10 +1750,88 @@
     salute: function (c, u) { return { eye: 'normal', mouth: 'smile', arm: c.dir > 0 ? [-15, -2, 6, -13] : [-6, -13, 15, -2] }; },
     nod: function (c, u) { var m = u % 2.6, k = m < 2 ? m / 2 : 0; return { eye: k > 0.1 ? 'sleepy' : 'wide', mouth: 'flat', tilt: c.dir * 0.3 * k * k, arm: [-14, 2, 14, 2] }; },
     sparkleEyes: function (c, u) { return { eye: 'star', mouth: 'grin', prop: 'sparkle' }; },
-    grumble: function (c, u) { return { eye: 'angry', mouth: 'frown', tilt: osc(u, 17) * 0.07, arm: [-11, -11, 11, -11] }; }
+    grumble: function (c, u) { return { eye: 'angry', mouth: 'frown', tilt: osc(u, 17) * 0.07, arm: [-11, -11, 11, -11] }; },
+    // acrobatics: whole-body turns; k runs 0 to 1 over the move and the body rises as it goes round
+    twirl: function (c, u) { var k = Math.min(1, u / 1.1); return { eye: 'happy', mouth: 'open', tilt: k * TAU, dy: -Math.sin(k * Math.PI) * 4, arm: [-16, -12, 16, -12], legs: 'step' }; },
+    backflip: function (c, u) { var k = Math.min(1, u / 0.9), e = k * k * (3 - 2 * k); return { eye: 'wide', mouth: 'open', tilt: -c.dir * TAU * e, dy: -Math.sin(k * Math.PI) * 16, arm: [-10, -12, 10, -12], legs: 'step' }; },
+    frontflip: function (c, u) { var k = Math.min(1, u / 0.9), e = k * k * (3 - 2 * k); return { eye: 'squint', mouth: 'grin', tilt: c.dir * TAU * e, dy: -Math.sin(k * Math.PI) * 14, arm: [-8, -6, 8, -6], legs: 'step' }; },
+    cartwheel: function (c, u) { var k = Math.min(1, u / 1.2); return { eye: 'happy', mouth: 'open', tilt: c.dir * TAU * k, dx: c.dir * Math.sin(k * Math.PI) * 10, dy: -Math.sin(k * Math.PI) * 6, arm: [-16, -10, 16, -10] }; },
+    hopTwirl: function (c, u) { var h = Math.abs(osc(u, 1.5)); return { eye: 'happy', mouth: 'grin', dy: -h * 6, tilt: (u % 1.5) / 1.5 * TAU, arm: [-14, -12, 14, -12] }; },
+    breakdance: function (c, u) { return { eye: 'closed', mouth: 'grin', tilt: Math.PI + osc(u, 1.2) * 0.5, dy: -10, arm: [-14, 6, 14, 6], legs: 'step' }; },
+    // side-steps and shuffles
+    sideStep: function (c, u) { var w = osc(u, 1.2); return { eye: 'happy', mouth: 'smile', dx: w * 6, tilt: -w * 0.05, legs: 'step', arm: [-14, -6 + w * 2, 14, -6 - w * 2] }; },
+    grapevine: function (c, u) { var w = osc(u, 0.8); return { eye: 'happy', mouth: 'open', dx: w * 10, legs: 'step', tilt: w * 0.06, arm: w > 0 ? [-15, -4, 14, -12] : [-14, -12, 15, -4] }; },
+    chaCha: function (c, u) { var w = osc(u, 2.4); return { eye: 'happy', mouth: 'grin', dx: w * 3, dy: -Math.abs(w) * 1, legs: 'step', arm: [-13, -8 + w * 4, 13, -8 - w * 4] }; },
+    slide: function (c, u) { return { eye: 'happy', mouth: 'grin', dx: c.dir * (u % 1.6) * 6, legs: 'step', tilt: 0.08 * c.dir, arm: [-15, -8, 15, -8] }; },
+    bounce: function (c, u) { var h = Math.abs(osc(u, 2.6)); return { eye: 'happy', mouth: 'open', dy: -h * 5, arm: [-12, -10 - h * 2, 12, -10 - h * 2] }; },
+    twist: function (c, u) { var w = osc(u, 2); return { eye: 'happy', mouth: 'grin', dx: w * 3, tilt: -w * 0.08, legs: 'step', arm: [-10 + w * 6, -6, 10 + w * 6, -6] }; },
+    charleston: function (c, u) { var w = osc(u, 2); return { eye: 'happy', mouth: 'open', dx: w * 2, legs: 'step', arm: [-6 + w * 8, -8, 6 + w * 8, -8] }; },
+    runningMan: function (c, u) { var w = osc(u, 3); return { eye: 'focus', mouth: 'grin', legs: 'step', dx: w * 2, dy: -Math.abs(w) * 2, arm: [-12, -8 + w * 6, 12, -8 - w * 6] }; },
+    shuffleKick: function (c, u) { var w = osc(u, 1.6); return { eye: 'happy', mouth: 'smile', legs: 'step', dx: w * 4, tilt: -w * 0.07, arm: [-13, -5, 13, -5] }; },
+    canCan: function (c, u) { var w = osc(u, 2); return { eye: 'happy', mouth: 'open', legs: 'step', dy: -Math.abs(w) * 3, tilt: w * 0.08, arm: [-16, -12, 16, -12] }; },
+    // dances on the spot
+    wiggle: function (c, u) { var w = osc(u, 5); return { eye: 'happy', mouth: 'grin', tilt: w * 0.12, dx: w * 1.5, arm: [-14, -5, 14, -5] }; },
+    bodyRoll: function (c, u) { var w = osc(u, 1), v = osc(u + 0.25, 1); return { eye: 'closed', mouth: 'smile', tilt: w * 0.15, body: v * 2, arm: [-13, -4 + w * 4, 13, -4 + w * 4] }; },
+    limbo: function (c, u) { var k = Math.sin(Math.min(1, u / 1.5) * Math.PI); return { eye: 'closed', mouth: 'grit', tilt: -c.dir * 0.4 * k, body: 3 * k, arm: [-14, -14, 14, -14], legs: 'step' }; },
+    hula: function (c, u) { var w = osc(u, 1.3); return { eye: 'happy', mouth: 'smile', dx: w * 4, tilt: w * 0.1, arm: [-15, -4 - w * 4, 15, -8 + w * 4] }; },
+    boogie: function (c, u) { var w = osc(u, 2.2); return { eye: 'happy', mouth: 'open', dx: w * 2, dy: -Math.abs(w) * 2, arm: w > 0 ? [-10, -16, 15, -2] : [-15, -2, 10, -16] }; },
+    dab: function (c, u) { var k = Math.min(1, u / 0.3); return { eye: 'closed', mouth: 'flat', tilt: c.dir * 0.25 * k, arm: c.dir > 0 ? [-18, -16, 6, -10] : [-6, -10, 18, -16] }; },
+    sprinkler: function (c, u) { var w = (u * 3) % 1; return { eye: 'happy', mouth: 'grin', tilt: c.dir * 0.08, arm: c.dir > 0 ? [-5 + w * 2, -14, 8 + w * 10, -8 + w * 6] : [-8 - w * 10, -8 + w * 6, 5 - w * 2, -14] }; },
+    armWave: function (c, u) { return { eye: 'happy', mouth: 'smile', arm: [-16, -8 + osc(u, 2) * 6, 16, -8 + osc(u + 0.25, 2) * 6] }; },
+    bigWave: function (c, u) { var w = osc(u, 2.5); return { eye: 'happy', mouth: 'open', arm: [-14 + w * 4, -17, 14 + w * 4, -17], tilt: w * 0.04 }; },
+    doubleWave: function (c, u) { var w = osc(u, 3); return { eye: 'happy', mouth: 'grin', arm: [-14, -14 + w * 3, 14, -14 - w * 3] }; },
+    pointUp: function (c, u) { var p = Math.abs(osc(u, 2)); return { eye: 'up', mouth: 'open', dy: -p * 2, tilt: -c.dir * 0.08, arm: c.dir > 0 ? [-15, -2, 8, -18] : [-8, -18, 15, -2] }; },
+    airGuitar: function (c, u) { return { eye: 'closed', mouth: 'open', tilt: -0.1 * c.dir, legs: 'tap', prop: 'note', arm: c.dir > 0 ? [-6, -6 + osc(u, 8) * 2, 14, -4] : [-14, -4, 6, -6 + osc(u, 8) * 2] }; },
+    clawClick: function (c, u) { var w = Math.abs(osc(u, 2)); return { eye: 'happy', mouth: 'grin', dy: -w, arm: [-14, -10, 14, -10], prop: w > 0.9 ? 'sparkle' : null }; },
+    armCircle: function (c, u) { var a = u * TAU * 0.8; return { eye: 'happy', mouth: 'smile', arm: [-6 - Math.cos(a) * 10, -8 + Math.sin(a) * 8, 6 + Math.cos(a) * 10, -8 - Math.sin(a) * 8] }; },
+    windmill: function (c, u) { var a = u * TAU * 1.2; return { eye: 'wide', mouth: 'open', arm: c.dir > 0 ? [-15, -2, 6 + Math.cos(a) * 12, -8 + Math.sin(a) * 12] : [-6 - Math.cos(a) * 12, -8 + Math.sin(a) * 12, 15, -2] }; },
+    swimArms: function (c, u) { var w = (u * 1.2) % 1, k = Math.sin(w * Math.PI); return { eye: 'happy', mouth: 'o', arm: [-8 - k * 10, -12 + k * 8, 8 + k * 10, -12 + k * 8], dy: -k * 2 }; },
+    // two crabs dancing (the pose takes the partner's side from vpd)
+    swing: function (c, u) { var p = c.vpd || 1, a = u * TAU * 0.6; return { eye: 'happy', mouth: 'open', dx: Math.cos(a) * 6 * p, dy: -Math.abs(Math.sin(a)) * 3, legs: 'step', arm: [-12, -10, 12, -10] }; },
+    mirror: function (c, u) { var p = c.vpd || 1, w = osc(u, 1.5); return { eye: 'happy', mouth: 'smile', tilt: w * 0.08, arm: p > 0 ? [-15, -2 + w * 3, 14, -14 + w * 4] : [-14, -14 + w * 4, 15, -2 + w * 3] }; },
+    seesaw: function (c, u) { var p = c.vpd || 1, h = Math.max(0, osc(u, 1) * p); return { eye: 'happy', mouth: 'open', dy: -h * 6, arm: [-13, -8 - h * 6, 13, -8 - h * 6] }; },
+    pattyCake: function (c, u) { var p = c.vpd || 1, w = Math.abs(osc(u, 2.5)); return { eye: 'happy', mouth: 'grin', arm: p > 0 ? [-14, -4, 14 + w * 5, -10] : [-14 - w * 5, -10, 14, -4], prop: w > 0.92 ? 'sparkle' : null }; },
+    tango: function (c, u) { var p = c.vpd || 1, w = osc(u, 0.7); return { eye: 'closed', mouth: 'smile', tilt: p * 0.2 + w * 0.08, dx: -p * w * 4, legs: 'step', arm: p > 0 ? [-14, -2, 18, -12] : [-18, -12, 14, -2] }; },
+    bump: function (c, u) { var p = c.vpd || 1, w = Math.max(0, osc(u, 1.5)); return { eye: 'happy', mouth: 'open', dx: p * w * 5, tilt: -p * 0.1 * w, arm: [-14, -10, 14, -10] }; },
+    twoStep: function (c, u) { var w = osc(u, 1); return { eye: 'happy', mouth: 'smile', dx: w * 5, legs: 'step', arm: [-13, -6 + w * 3, 13, -6 - w * 3] }; },
+    lineDance: function (c, u) { var w = osc(u, 0.9); return { eye: 'happy', mouth: 'grin', dx: w * 6, legs: 'step', tilt: w * 0.05, arm: [-14, -10, 14, -10] }; },
+    spinPair: function (c, u) { var p = c.vpd || 1; return { eye: 'wide', mouth: 'open', tilt: u * TAU * 0.8, dx: p * Math.cos(u * TAU * 0.4) * 5, arm: [-14, -8, 14, -8] }; },
+    waltz: function (c, u) { var p = c.vpd || 1, w = osc(u, 0.5), b = Math.abs(osc(u, 1.5)); return { eye: 'closed', mouth: 'smile', dx: w * 8 * p, dy: -b * 1.5, legs: 'step', arm: p > 0 ? [-12, -6, 16, -10] : [-16, -10, 12, -6] }; },
+    highTen: function (c, u) { var k = Math.min(1, u / 0.4); return { eye: 'happy', mouth: 'open', dy: -k * 2, arm: [-10 - 4 * k, -12 - 6 * k, 10 + 4 * k, -12 - 6 * k] }; },
+    twirlDuet: function (c, u) { var p = c.vpd || 1; return p > 0 ? { eye: 'happy', mouth: 'open', tilt: (u % 1.4) / 1.4 * TAU, dy: -Math.sin((u % 1.4) / 1.4 * Math.PI) * 3, arm: [-16, -12, 16, -12] } : { eye: 'happy', mouth: 'grin', arm: [-3 - Math.abs(osc(u, 3)) * 7, -9, 3 + Math.abs(osc(u, 3)) * 7, -9] }; },
+    // lending a claw: walking claw in claw, cheering the friend on, and the thanks after
+    handHold: function (c, u) { var w = osc(u, 1.2); return { eye: 'happy', mouth: 'smile', tilt: w * 0.04, arm: [-16, -6 + w * 3, 16, -6 - w * 3] }; },
+    cheerOn: function (c, u) { var p = Math.abs(osc(u, 2)); return { eye: 'happy', mouth: 'open', dy: -p * 1.5, arm: [-14, -14 - p * 3, 14, -14 - p * 3] }; },
+    helpedDance: function (c, u) { var w = osc(u, 4); return { eye: 'happy', mouth: 'grin', tilt: w * 0.1, dx: w * 1.5, dy: -Math.abs(w) * 1.5, arm: [-14, -10, 14, -10] }; },
+    helpedWalk: function (c, u) { var b = Math.abs(osc(u, 2.4)); return { eye: 'happy', mouth: 'open', dy: -b * 2, arm: [-16, -6 - b * 3, 16, -6 - b * 3] }; },
+    thanks: function (c, u) { var k = Math.sin(Math.min(1, u / 1.4) * Math.PI); return { eye: 'heart', mouth: 'smile', tilt: c.dir * 0.3 * k, arm: [-12, 2, 12, 2] }; },
+    // caught up in a dance nearby
+    bop: function (c, u) { var w = osc(u, 2); return { eye: 'happy', mouth: 'smile', dy: -Math.abs(w) * 1.5, tilt: w * 0.05, arm: [-14, -6, 14, -6] }; },
+    nodAlong: function (c, u) { return { eye: 'happy', mouth: 'smile', tilt: c.dir * osc(u, 2) * 0.08, arm: [-14, -4, 14, -4] }; },
+    tapAlong: function (c, u) { return { eye: 'happy', mouth: 'smile', legs: 'tap', arm: [-13, -6 + osc(u, 2) * 2, 13, -6 - osc(u, 2) * 2] }; },
+    snap: function (c, u) { var w = Math.abs(osc(u, 2)); return { eye: 'closed', mouth: 'grin', arm: c.dir > 0 ? [-15, -2, 12, -12 - w * 2] : [-12, -12 - w * 2, 15, -2], prop: w > 0.95 ? 'sparkle' : null }; },
+    // more idle routines
+    scratchHead: function (c, u) { return { eye: 'up', mouth: 'flat', glyph: '?', arm: c.dir > 0 ? [-15, -2, 4, -14 + osc(u, 3)] : [-4, -14 + osc(u, 3), 15, -2] }; },
+    stretchUp: function (c, u) { var k = Math.sin(Math.min(1, u / 1.4) * Math.PI); return { eye: 'closed', mouth: 'o', arm: [-8, -6 - 12 * k, 8, -6 - 12 * k], dy: -k, body: -k }; },
+    shakeOff: function (c, u) { return { eye: 'closed', mouth: 'flat', dx: osc(u, 12) * 1, tilt: osc(u, 12) * 0.06, arm: [-14, -4, 14, -4], prop: 'bubbles' }; },
+    daydream: function (c, u) { return { eye: 'up', mouth: 'smile', tilt: 0.08, arm: [-12, 2, 12, 2], glyph: '…' }; },
+    pushups: function (c, u) { var k = Math.abs(osc(u, 1.2)); return { eye: 'focus', mouth: 'grit', body: 2 + k * 3, arm: [-14, 4 + k * 2, 14, 4 + k * 2], legs: 'sit' }; },
+    balance: function (c, u) { return { eye: 'wide', mouth: 'o', tilt: osc(u, 0.5) * 0.3, arm: [-18, -10, 18, -10], legs: 'tap' }; },
+    drum: function (c, u) { var a = Math.abs(osc(u, 4)), b = Math.abs(osc(u + 0.125, 4)); return { eye: 'happy', mouth: 'grin', prop: 'note', arm: [-12, 2 - a * 6, 12, 2 - b * 6] }; },
+    lookUp: function (c, u) { return { eye: 'wide', mouth: 'o', look: { x: 0, y: -1.3 }, tilt: -c.dir * 0.05 }; },
+    // more moods
+    nervous: function (c, u) { return { eye: 'wide', mouth: 'wavy', sweat: true, dx: osc(u, 10) * 0.5, arm: [-6, -3, 6, -3] }; },
+    smug: function (c, u) { return { eye: 'closed', mouth: 'grin', tilt: -0.08 * c.dir, body: -1, arm: [-12, -8, 12, -8] }; },
+    curious: function (c, u) { return { eye: 'wide', mouth: 'o', tilt: c.dir * 0.12, look: { x: c.dir, y: -0.5 } }; },
+    sulk: function (c, u) { return { eye: 'sad', mouth: 'frown', tilt: -c.dir * 0.1, arm: [5, 1, -5, 1] }; },
+    facepalm: function (c, u) { return { eye: 'closed', mouth: 'flat', tilt: c.dir * 0.12, arm: c.dir > 0 ? [-15, -2, 3, -12] : [-3, -12, 15, -2] }; },
+    cheerUp: function (c, u) { return { eye: 'happy', mouth: 'open', dy: -Math.abs(osc(u, 3)) * 2, arm: [-13, -12, 13, -12] }; }
   };
   var ANIM_NAMES = Object.keys(ANIMS).concat(['rave']);
-  var DUETS = ['sway', 'salsa', 'dosido', 'cheek', 'conga', 'highFive', 'floss', 'disco', 'moonwalk', 'robot', 'shimmy', 'headbang'];
+  var DUETS = ['sway', 'salsa', 'dosido', 'cheek', 'conga', 'highFive', 'floss', 'disco', 'moonwalk', 'robot', 'shimmy', 'headbang',
+    'swing', 'mirror', 'seesaw', 'pattyCake', 'tango', 'bump', 'twoStep', 'lineDance', 'spinPair', 'waltz', 'highTen', 'twirlDuet', 'chaCha', 'grapevine', 'sideStep', 'canCan', 'charleston', 'bodyRoll'];
+  var CHEERS = ['bop', 'nodAlong', 'tapAlong', 'snap', 'clawClick', 'wiggle'];
+  function helped(c) { return c.helper && c.helper.held && c.helper.helping === c; }   // a friend has it by the claw
   function anyOf(a) { return a[Math.floor(Math.random() * a.length)]; }
   function play(c, names, dur) {         // start an animation on a crab: one name, or a random one of several
     if (!c || c.state === 'sleep' || c.alt > 0) return;
@@ -1778,6 +1841,9 @@
   function moodFor(c) {                  // ongoing states pick a looping animation; u counts from when it began
     var u = T - (c.vmoodT || T), idle = c.vidle || 0;
     if (c.dance && c.dance.state !== 'sleep') return ANIMS[DUETS[(c.id + c.dance.id) % DUETS.length]](c, T);
+    if (c.state === 'help' && c.held) return c.moving ? ANIMS.handHold(c, T + c.vph) : ANIMS.cheerOn(c, T + c.vph);   // claw in claw with the friend it helps
+    if (helped(c) && c.moving) return ANIMS.helpedWalk(c, T + c.vph);
+    if (c.cheer > S.t && !c.moving && !c.working) return ANIMS[CHEERS[c.id % CHEERS.length]](c, T + c.vph);   // a dance nearby: everyone bops along
     if (S.si && S.si.night && c.role !== 'scout' && S.t - c.lastRest > K.REST_WINDOW * K.DAY / 24 && (c.moving || c.working))
       return { eye: 'sleepy', mouth: 'flat', tilt: Math.sin(T * 1.5 + c.vph) * 0.06 };   // dragging through the night, half speed
     if (c.role === 'energy' && c.broken) return ANIMS.dizzy(c, T);
@@ -1788,7 +1854,7 @@
     if (S.oc && (c.moving || c.working)) return ANIMS.determined(c, T);
     if (c.wear > K.WEAR_FREE && !c.moving && !c.working) return ANIMS[Math.sin(T * 0.3 + c.vph) > 0 ? 'sigh' : 'slump'](c, T % 3);
     if (!c.moving && !c.working && idle > 0.6) {               // the longer the wait, the sillier it gets
-      var ladder = idle < 3 ? ['lookAround'] : idle < 6 ? ['tap', 'lookAround'] : idle < 10 ? ['crossArms', 'eyeRoll', 'tap'] : idle < 16 ? ['whistle', 'juggle', 'blowBubbles', 'sideStretch'] : ['sit', 'peekaboo', 'sneeze', 'whistle', 'juggle'];
+      var ladder = idle < 3 ? ['lookAround', 'curious'] : idle < 6 ? ['tap', 'lookAround', 'scratchHead', 'lookUp'] : idle < 10 ? ['crossArms', 'eyeRoll', 'tap', 'stretchUp', 'daydream'] : idle < 16 ? ['whistle', 'juggle', 'blowBubbles', 'sideStretch', 'balance', 'drum', 'shakeOff'] : ['sit', 'peekaboo', 'sneeze', 'whistle', 'juggle', 'pushups', 'airGuitar', 'armWave'];
       var name = ladder[Math.floor((idle / 4 + c.id) % ladder.length)];
       return ANIMS[name](c, idle % 4);
     }
@@ -1799,9 +1865,25 @@
   // A face is two eyes on stalks and a mouth on the shell. Events set a short-lived mood;
   // otherwise the face follows the task: tongue out to drill, teeth gritted to crush, sweat at the lava.
   function face(c) {
+    var f = faceFor(c), g, k;
+    if (c.cheer > S.t && !f.sleep && !f.party && (f.eye === 'normal' || f.eye === 'bored' || f.eye === 'squint' || f.eye === 'focus')) {   // a dance nearby: a smile at work
+      g = {}; for (k in f) g[k] = f[k];
+      g.eye = 'happy'; if (g.mouth === 'flat' || g.mouth === 'grit') g.mouth = 'smile';
+      return g;
+    }
+    return f;
+  }
+  function faceFor(c) {
     var waiting = !c.moving && !c.working, m = c.vx && T < c.vx.until ? c.vx.name : null;
     if (c.vfall > 0) return { eye: 'wide', mouth: 'o', arms: 'up' };
-    if (c.state === 'sleep') return { eye: 'closed', mouth: 'o', glyph: 'z', sleep: true, tilt: 0.12 };
+    if (c.state === 'sleep') {
+      var sf = c.vsleep || (c.vsleep = sleepForm(c, T - DIG_T)), dug = T - sf.t;
+      if (sf.burrow && dug < DIG_T) {                   // dig, dig, dig: claws scooping, sinking as it goes
+        var sc = Math.abs(Math.sin(dug * 9));
+        return { eye: 'squint', mouth: 'flat', dy: dug / DIG_T * 7, legs: 'step', arm: dug * 9 % TAU < Math.PI ? [-12 - sc * 4, 4 - sc * 6, 12, 2] : [-12, 2, 12 + sc * 4, 4 - sc * 6] };
+      }
+      return { eye: 'closed', mouth: 'o', glyph: 'z', sleep: true, tilt: 0.12 };
+    }
     if (c.turtle) return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 3 + c.vph) * 0.12 };   // riding the turtle
     if (c.air && c.air.phase === 'rise') return { eye: 'happy', mouth: 'open', arms: 'up', tilt: Math.sin(T * 4 + c.vph) * 0.25 };
     if (c.air && c.air.phase === 'glide') return { eye: 'wide', mouth: 'open', swim: true, tilt: -0.35 };
@@ -1995,7 +2077,45 @@
       ctx.restore();
     }
   }
+  // Sleeping: some crabs tuck their legs in where they stand, and some dig themselves into the sand until only
+  // their eyes stick up. A crab that is tired when it goes off shift always digs in.
+  var DIG_T = 2.6;
+  function sleepForm(c, t) {
+    var tired = c.wear > K.WEAR_FREE || S.t - c.lastRest > K.REST_WINDOW * K.DAY / 24;
+    return { t: t, burrow: tired || ((c.id * 7 + (S.si ? S.si.day : 0) * 3) % 10) < 4 };
+  }
+  function burrowed(c) { return c.state === 'sleep' && c.vsleep && c.vsleep.burrow && T - c.vsleep.t >= DIG_T && !(c.alt > 0); }
+  function drawBurrow(c) {
+    var s = scaleAt(c.d) * (c.role === 'energy' ? 0.86 : 1), px = crabX(c), gy = groundY(px, c.d), sand = pal[SAND[c.d < 1 / 3 ? 0 : c.d < 2 / 3 ? 1 : 2]];
+    var breathe = Math.sin(T * 1.6 + c.vph) * 0.4 * s, side, ex, ey, peek = ((T + c.vph * 5) % 7) < 0.5;
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.beginPath(); ctx.ellipse(px + 2 * s, gy + 0.5 * s, 15 * s, 2.6 * s, 0, 0, TAU); ctx.fill();   // its shadow
+    ctx.fillStyle = sand; ctx.strokeStyle = pal.sandLine; ctx.lineWidth = 1.6 * s;
+    ctx.beginPath(); ctx.ellipse(px, gy - 1 * s, 13 * s, 6 * s + breathe, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();   // the mound
+    ctx.lineWidth = 0.8 * s; ctx.globalAlpha = 0.6;
+    for (var g = -1; g <= 1; g++) { ctx.beginPath(); ctx.arc(px + g * 5 * s, gy - 2 * s, 2.2 * s, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }   // grains heaped over it
+    ctx.globalAlpha = 1;
+    ctx.globalAlpha = 0.35; ctx.fillStyle = c.vbody || pal.sandLine;
+    ctx.beginPath(); ctx.ellipse(px, gy - 2 * s, 7 * s, 2.4 * s + breathe, 0, Math.PI, 0); ctx.fill();                 // a hint of shell through the sand
+    ctx.globalAlpha = 1;
+    for (side = -1; side <= 1; side += 2) {                // the eyes stick up out of the sand
+      ex = px + side * 3 * s; ey = gy - 12 * s + breathe;
+      ctx.strokeStyle = STYLE[c.role]()[1]; ctx.lineWidth = 1.4 * s;
+      ctx.beginPath(); ctx.moveTo(px + side * 2 * s, gy - 4 * s); ctx.lineTo(ex, ey + 2 * s); ctx.stroke();
+      drawEye(ex, ey, s, { eye: peek ? 'sleepy' : 'closed' }, { x: 0, y: 0 }, c, side);
+    }
+    ctx.restore();
+    if (c.say && T < c.say.until) drawBubble(px + 12 * s, gy - 26 * s, c.say.text, s, clamp((c.say.until - T) / 0.3, 0, 1), true, c.say.start !== undefined ? c.say : null);
+    else drawBubble(px + 10 * s, gy - 20 * s, ['z', 'zz', 'zzz'][Math.floor(T * 1.2 + c.vph) % 3], s, 1);
+    if (selected === c && T < selectedUntil) drawInfo(c, px, gy - 30 * s, s);
+  }
+  // a crab holding claws with the one it helps, or with its helper: which side the partner is on, or 0
+  function holdSide(c) {
+    var p = c.state === 'help' && c.held ? c.helping : (c.helper && c.helper.held && c.helper.helping === c ? c.helper : null);
+    return p && !p.gone ? (crabX(p) >= crabX(c) ? 1 : -1) : 0;
+  }
   function drawCrab(c) {
+    if (burrowed(c)) { drawBurrow(c); return; }
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
     var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1);
     var px = crabX(c), gy = groundY(px, c.d), moving = c.moving, f = face(c), airborne = c.alt > 0, ap;
@@ -2074,7 +2194,7 @@
     }
 
     // claws
-    var giver = sim.heldBy(c), reach = giver ? passSide(c, giver) : 0, carried;   // a crab being handed something reaches for it
+    var giver = sim.heldBy(c), reach = giver ? passSide(c, giver) : holdSide(c), carried;   // a crab being handed something reaches for it, and partners hold claws
     for (side = -1; side <= 1; side += 2) {
       ax = side * 17 * s; ay = by - 3 * s; w = 2.9; carried = null;
       if (side === reach) { ax = side * 19 * s; ay = by - 7 * s; }
@@ -2299,9 +2419,10 @@
     if (!W || !H || !S) return;
     var i, k, list, o, px, layers = [[], [], []];
     ctx.clearRect(0, 0, W, H);
-    drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawCargo(); drawWhale(); drawSnow();
+    drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawCargo(); drawWhale(); drawEcoSurface(); drawSnow();
     // the far dune, a faint sheet behind everything
     sheet(3, farPath, pal.sandFar, farY, function (x) { return crestY(0, x); }, 0.75);
+    drawEcoWater();
     drawWeeds(-1);
     // sort everything on the sand into its dune
     for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
@@ -2314,6 +2435,8 @@
     if (S.trader) layers[2].push({ y: traderPos().y, kind: 3, f: drawTrader });
     layers[2].push({ y: groundY(X(S.pos.ORE), 0.8), kind: 3, f: drawOrePile });
     layers[2].push({ y: groundY(X(S.pos.BAR), 0.78), kind: 3, f: drawBarStack });
+    layers[2].push({ y: groundY(X(S.pos.CRUSH), 0.78) - 1, kind: 3, f: drawRollers });
+    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; if (o.role === 'crush') { var st = sim.crushSpot(o); px = X(st.x); layers[2].push({ y: groundY(px, st.d) - 0.5, kind: 3, f: drawPress.bind(null, o) }); } }
     layers[2].push({ y: groundY(X(S.pos.STOCK), 0.84), kind: 3, f: drawStockpile });
     layers[2].push({ y: groundY(X(S.pos.COLLECTOR), 0.7), kind: 3, f: drawCollector });
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
@@ -2322,7 +2445,7 @@
     layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
       sheet(k, dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); }, k < 2 ? function (x) { return crestY(k + 1, x); } : null, 1);
-      drawRipples(k);
+      drawRipples(k); drawEcoFloor(k);
       if (k === 0) { drawWeeds(0); drawRidge(); }
       if (k === 2) { drawCavern(); drawVent(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }
       if (k > 0) drawLocked(k);
@@ -2707,6 +2830,25 @@
           '<td><div class="cap" aria-hidden="true"><i style="width:' + (max ? n / max * 100 : 0).toFixed(1) + '%"></i></div></td><td class="n">' + n.toLocaleString('en-US') + '</td></tr>';
       }).join('') + '</tbody></table>';
   }
+  // The lab report: the sea's food web as eco.js keeps it, with the fisherman's book and the latest observations.
+  var ECO_LEVEL = { 1: 'Grazers and small fry', 2: 'Hunters', 3: 'Top of the chain', bird: 'Above the water' };
+  function ledgerLab() {
+    if (!eco) return '';
+    var r = eco.report(), lastLevel = null, html, f = r.fisherman, eaten = 0, born = 0, i;
+    for (i = 0; i < r.species.length; i++) { eaten += r.species[i].eaten || 0; born += r.species[i].born || 0; }
+    html = '<h3>Lab report: the food web</h3><p class="note">A closed ecosystem, decoration only. Every animal eaten is replaced by a birth, so the pyramid keeps its shape: many small fry, a few hunters, one or two sharks. ' +
+      born.toLocaleString('en-US') + ' born and ' + eaten.toLocaleString('en-US') + ' eaten so far.</p>' +
+      '<table class="ltable lab"><thead><tr><th scope="col">Species</th><th scope="col" class="n">Now</th><th scope="col" class="n">Born</th><th scope="col" class="n">Eaten</th><th scope="col" class="n">Landed</th></tr></thead><tbody>';
+    r.species.forEach(function (sp) {
+      if (sp.level !== lastLevel) { lastLevel = sp.level; html += '<tr class="group"><th scope="row" colspan="5">' + (ECO_LEVEL[sp.level] || sp.level) + '</th></tr>'; }
+      var by = Object.keys(sp.eatenBy || {}).sort(function (a, b) { return sp.eatenBy[b] - sp.eatenBy[a]; }).slice(0, 2).map(function (k) { return sp.eatenBy[k] + ' by ' + k; }).join(', ');
+      html += '<tr><th scope="row">' + (emojiOK ? sp.emoji + ' ' : '') + sp.plural + (by ? '<span class="says">' + by + '</span>' : '') + '</th><td class="n">' + sp.count + ' / ' + sp.target + '</td><td class="n">' + sp.born + '</td><td class="n">' + sp.eaten + '</td><td class="n">' + (sp.caught || 0) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    if (f) html += '<p class="note">The fisherman: ' + f.casts + ' casts with jellyfish for bait, ' + f.bites + ' bites, ' + f.hooked + ' landed and ' + f.escaped + ' got away fed. ' + f.bucket + ' in the bait bucket; now ' + f.state + '.</p>';
+    if (r.log && r.log.length) html += '<h3>Observations, latest first</h3><ul class="lab-log">' + r.log.slice(-10).reverse().map(function (l) { return '<li><span class="when">' + fmtTime(l.t) + '</span> ' + l.text + '</li>'; }).join('') + '</ul>';
+    return html;
+  }
   function renderLedger() {
     var r = sim.rates(60), c = sim.capacity(), b = sim.bottleneck(), flows = sim.FLOW, maxc = 0, i, k, html, broken = 0, limping = 0, cr, avgPrice, bat = sim.avgBattery();
     for (i = 0; i < flows.length; i++) maxc = Math.max(maxc, c[flows[i]]);
@@ -2727,7 +2869,7 @@
       '<tr class="total"><td>Metal that reached the surface</td><td></td><td class="n">' + share + '%</td></tr>' +
       '</tbody></table>' +
       '<p class="note">Earned in total: ' + money(S.earned) + ' · spent on crabs and upgrades: ' + money(S.stat.spent) + ' · repairs: ' + S.stat.repairs + ' · crab time ' + fmtTime(S.t) + '</p>';
-    html += '<p class="share-row"><button type="button" class="mini wide" data-share>Copy a summary of this run</button></p>' + ledgerCharts() + ledgerTotals() + ledgerTalk();
+    html += '<p class="share-row"><button type="button" class="mini wide" data-share>Copy a summary of this run</button></p>' + ledgerCharts() + ledgerTotals() + ledgerTalk() + ledgerLab();
     html += '<h3>Metal price, last five minutes</h3><div class="spark-wrap" id="spark-wrap">' + sparkline() + '</div>';
     html += '<h3>The line: what each stage could do, ingots a minute</h3><table class="ltable"><thead><tr><th scope="col">Stage</th><th scope="col">Capacity</th><th scope="col" class="n">Doing now</th></tr></thead><tbody>';
     for (i = 0; i < flows.length; i++) {
@@ -3183,7 +3325,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

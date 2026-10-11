@@ -12,7 +12,9 @@ the hermit-crab trader, the sea turtle, save and load, named crabs with veteran 
 the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
 cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, plankton
 light that lets tired crabs work at full speed at night, sunken chests on the back dune,
-and the moray eel.
+the moray eel, lending a claw, the closed food web with the fisherman and the gulls (`eco.js`)
+and its lab report, the crushing line of press stations, the two-storey den, and a repertoire
+of 119 animations with dances that cheer up the crabs around them.
 
 ## Visitors and the sea
 
@@ -35,6 +37,9 @@ and the moray eel.
   breakdowns; happy crabs dance more, grumpy ones grumble and drop a little speed.
 - **Crab pets.** A sea slug or a baby octopus that adopts the den; pure charm, earned from a
   rank or a trader good.
+- **A hungrier web.** Let the food web touch the game: a shark that scares the octopus off, a
+  gull that steals a nodule from a hauler on the crest, or the fisherman's catch sold at the
+  surface. All decoration now (`eco.js` never reads `S`).
 
 ## Economy and progression
 

@@ -7,7 +7,7 @@ Paste this into a new session to pick up the work.
 **Resume: Crabminer (`/home/user/code/crabminer`, remote `git@github.com:crabminer/crabminer.git`, live at crabminer.com via GitHub Pages)**
 
 **What the game is.** Crabminer is a crab mining game: a small city builder on a layered
-paper-dune sea floor: a static page (`index.html` plus `sim.js`, `game.js` and `reader.js`) with no build step or dependencies. You run a
+paper-dune sea floor: a static page (`index.html` plus `sim.js`, `eco.js`, `game.js` and `reader.js`) with no build step or dependencies. You run a
 crew of robot crabs that turns buried metal into money:
 - Scouts flag deposits.
 - Drills dig them up; holes can come up dry.
@@ -32,7 +32,9 @@ the line, which the advisor and the Ledger tab point out.
   night unless rested; scouts prefer the dark. Wear and rest, dancing neighbours, a morning bonus,
   and a den that fills with crab-made decorations.
 - **Breakdowns:** broken bits, worn energy bots, and lost legs, all fixed by forging parts in the
-  lava. Every crab takes a hauling backup job when its own work is stuck, and each kind walks at
+  lava. A crab whose own work is stuck lends a claw to another (holding a drill steady, carrying
+  beside a hauler, running hand in hand with an energy bot), or else takes the hauling backup
+  job; tired crabs dig themselves into the sand to sleep. Each kind walks at
   its own speed.
 - **Progression:** upgrades, 5 technologies unlocking 20 worker upgrades (including night
   scouting), and movable building plots.
@@ -41,10 +43,15 @@ the line, which the advisor and the Ledger tab point out.
   races you for every order, with a rubber-band drive.
 - **The sea:** tides (which also push the refuel post around), storms, lava surges, an octopus
   thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, sunken chests on the back dune,
-  sea life in the deep shadows, and a plankton cycle that glows at night after ship wakes and storms. Three patches of
+  sea life in the deep shadows, a plankton cycle that glows at night after ship wakes and storms, and a closed
+  food web (`eco.js`, view-only): shoals, shrimp, jellies and crawlers, their hunters, a shark or two, gulls on
+  the ships, and a fisherman whose jellyfish bait feeds more fish than it catches, with a lab report in the Ledger. Three patches of
   plankton drift over the sand with the tide; at night a tired crab inside one works at full speed.
 - **Crabs:** names and personal records, veteran stars (up to three, +5% each at their own
-  job), emoji crab-talk grammar, 52 animations, and a crab rave on rank-up.
+  job), emoji crab-talk grammar, 119 animations (acrobatics, 30 dances for two, the claw-in-claw
+  walk, bopping along to a dance nearby, which also sheds wear for everyone within 60 units),
+  and a crab rave on rank-up. The crushing yard is a line of press stations, one a crusher, and
+  haulers and smelters queue up to the piles in lines; the den is a big two-storey crab house.
 - **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the
   page hides, and a reload resumes it exactly (the seed is saved too). New game is under ?.
 - **Interface:** starts straight into play on the big field, with a phone layout for small screens
@@ -58,9 +65,10 @@ the line, which the advisor and the Ledger tab point out.
 
 **How the code works:** `sim.js` (`CrabSim()`) is a deterministic, seeded simulation that
 runs headless in Node. The view, `game.js`, reads its state and receives its events, and changes
-the game only through its API. `reader.js` reads the intro and the paper aloud. Before
+the game only through its API. `eco.js` (`CrabEco()`) is the food web, view-only and driven by
+`game.js`. `reader.js` reads the intro and the paper aloud. Before
 committing a change:
-1. `node tests/fuzz.js` and `node tests/save.js` (random play with invariants; save round trips).
+1. `node tests/fuzz.js`, `node tests/save.js` and `node tests/eco.js` (random play with invariants; save round trips; the food web).
 2. `node tests/browser.js` (headless Chromium: console errors, controls, reload, screenshots).
 3. `node tests/balance.js` before and after any change to the economy, and compare.
 4. Update the game, `RULES.md`, `ARCHITECTURE.md` and the paper together.

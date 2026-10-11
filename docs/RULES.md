@@ -15,7 +15,7 @@ change it here too. [ARCHITECTURE.md](ARCHITECTURE.md) explains how the code is 
 - [8. Breakdowns, parts, and the forge](#8-breakdowns-parts-and-the-forge)
 - [9. Wear and rest](#9-wear-and-rest)
 - [10. The workday](#10-the-workday)
-- [11. The backup job](#11-the-backup-job)
+- [11. Helping, and the backup job](#11-helping-and-the-backup-job)
 - [12. Friends: dancing, mornings, and the den](#12-friends-dancing-mornings-and-the-den)
 - [13. Money](#13-money)
 - [14. Upgrades (Build tab)](#14-upgrades-build-tab)
@@ -167,6 +167,15 @@ scout ─flag─▶ drill ─nodule─▶ hauler ─▶ ORE PILE ─▶ crusher 
 **Crusher.**
 - When the ore pile holds 2 nodules, it presses them into a bar in 4.5 s.
 - It waits if the bar stack is full: 10, 16 or 24.
+- Each crusher has its own press station in the crushing yard: a row of up to four, 10 units
+  apart across the yard at depth 0.78, with a second row behind it from the fifth crusher on.
+  The stations shift as the crew changes, and crushers shuffle along to their new spot.
+
+**The line.** The crabs at the piles stand in lines along the flow of the metal, not in a
+huddle: haulers queue up to the ore pile from the field side, one behind the other, 9 units
+apart (crabs on the backup job in a second queue in front of them), smelters line up to the
+bar stack and again at the stockpile, and the repair crews and energy bots wait loosely
+about the anvil and the post rather than in a row.
 
 **Smelter.**
 - Takes a bar (two with Twin tongs), holds it in the lava for 3.0 s, and carries the ingot to the stockpile.
@@ -267,14 +276,47 @@ blue is daytime work, red is night work, and the outlined cell is now.
 
 - **Groups.** Crabs are split into groups by their number within their kind (0, 1, 2…).
 - **Scouts take the night.** Under the 8-hour, two-8s and custom patterns, scouts work the night hours by default. Untick "Scouts work the night" to keep them with their group.
-- **Going off and coming back.** A crab going off duty finishes the task in hand, then sleeps where it stands. A sleeping crab wakes and resumes its job when its hours come round.
+- **Going off and coming back.** A crab going off duty finishes the task in hand, then sleeps where it stands: tucked up, or dug into the sand with only its eyes sticking out. A tired crab always digs in. A sleeping crab wakes and resumes its job when its hours come round.
 - **Coverage.** If some job has nobody on duty while the rest of the line is working, that stage stops. The Ledger's coverage table shows crabs on duty for each part of the day, and the advisor names the first gap.
 
-## 11. The backup job
+## 11. Helping, and the backup job
 
-When its own job is stuck, a crab carries nodules to the ore pile instead, at its own
-walking pace. It returns to its job as soon as there is one, after delivering what it holds.
-Crabs that switch to the backup job:
+When its own job is stuck, a crab first looks for someone to help. It walks over, takes
+that crab's claw, and goes where it goes:
+
+| Helping a | What the help does | How it looks |
+| --- | --- | --- |
+| Drill | Holds it steady: drilling is 30% faster. Offered only while fewer than half the field's 24 nodules lie on the sand | Stands beside it |
+| Hauler | Takes another nodule each time the hauler bends for one, up to a full load, and stacks them with it | Walks beside it, claw in claw |
+| Crusher | Handles for it: pressing is 30% faster | Stands beside it |
+| Energy bot | Both run 25% faster | They run hand in hand |
+| Repair or maintenance bot | Fetching, forging and fitting are 25% faster | They walk together, claw in claw |
+
+Each kind has its own order of preference. Fast crabs like to help haulers, slow crabs
+like to help drills:
+
+| Kind | Helps, in order |
+| --- | --- |
+| Scout | hauler, drill, energy bot, crusher |
+| Hauler | drill, crusher, energy bot |
+| Energy bot | hauler, energy bot, drill |
+| Maintenance bot | repair bot, hauler, drill |
+| Repair bot | maintenance bot, drill, crusher |
+| Drill | drill, crusher, hauler |
+| Smelter | drill, crusher, hauler |
+| Crusher | drill, crusher, hauler |
+
+- A crab that helps goes back to its own job the moment it has work, after delivering any
+  nodules it is carrying. It gives up a partner it cannot catch within 20 s.
+- Now and then a stuck crab just waits about for 8 s instead (a 30% chance, at most every 30 s),
+  which is when idle neighbours find each other and dance.
+- If a crab with nodules finds the ore pile full while its own job has work, it sets them
+  down at the edge of the field for the haulers and goes back to work. (A crusher is the one
+  who empties the pile, so it must never wait there.)
+
+The backup job is every kind's fallback when nobody on its list needs a claw: a crab carries
+nodules to the ore pile, at its own walking pace. It returns to its job as soon as there is
+one, after delivering what it holds. Crabs that switch to the backup job:
 
 - a drill whose bit is broken, or when the sand is littered (24 nodules)
 - a scout when all its flags are standing
@@ -283,7 +325,8 @@ Crabs that switch to the backup job:
 - an energy bot with full charges and nobody to charge
 - a repair or maintenance bot with nothing to fix
 
-Haulers do this job all the time. Slow kinds are slow haulers.
+Haulers do this job all the time; a hauler with nothing to carry helps instead. Slow kinds
+are slow haulers.
 
 ## 12. Friends: dancing, mornings, and the den
 
@@ -291,8 +334,15 @@ Haulers do this job all the time. Slow kinds are slow haulers.
   - recharges 1.2% a second, plus 5% of that per den decoration
   - sheds 2 s of wear a second
   - counts as rested for night work
+- **Cheering up.** A dance lifts the crabs around it. Every awake crab within 60 units (and
+  0.2 in depth) of a dancing crab, working or not, sheds 0.5 s of wear a second while the
+  dance lasts, and bops, nods or snaps along if it is idle. The Ledger counts the crab-seconds.
+- **Lending a claw.** A crab that walks claw in claw with the friend it helps high-fives it when
+  they meet; the helped crab does a little dance, and the two part with a patty-cake, a high
+  ten or a bow. This is cosmetic; the help itself is in section 13.
 - **The morning bonus.** At each dawn, every crab that slept or danced at least 20 s in the previous day starts fresh: 25% faster for 90 s. Each den decoration adds 1 point and 3 s to the bonus.
-- **The den.** A round house on the first plot.
+- **The den.** A big round crab house on the first plot, drawn at twice the crabs' scale
+  (four times the house it was): two floors of lit windows, a porch, a chimney and a flag.
   - Every 300 crab-seconds of idle time, counted across the crew, the idle crab nearest the den makes a decoration for it.
   - The den holds 4 decorations, plus 2 per Crab den upgrade.
   - Everyday pieces: shell garland, sea-glass mosaic, pebble cairn, kelp wreath, coral sculpture, sand castle, nodule totem.
@@ -417,6 +467,13 @@ Everything costs 4,450 in total.
   2. While the eel is out, haulers leave nodules within its reach alone, and pick them up once it has gone back in. Nothing is lost, only time.
   3. Click it, or press **Shoo the eel** over the field (the S key, once the octopus is dealt with), to send it back into its crack early.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
+- **The food web.** The water and the seabed hold a closed ecosystem, decoration only, that never touches the crabs or the economy.
+  - A bottom-heavy pyramid, with counts scaled to the screen's width (these at 1,200 px): 36 minnows in schools, 14 shrimp by the rocks, 8 jellyfish, and 24 tiny crawlers a tenth of a crab's size on the sand; above them 3 seahorses, 5 piranha, 2 squid, 2 eels, 2 sea snakes, 2 frogs, 2 small turtles, 3 lobsters and 5 gulls; at the top 1 shark, 2 on screens wider than 1,400 px.
+  - Who eats whom: seahorses and lobsters eat shrimp and crawlers; piranha, eels, snakes, frogs and gulls eat minnows (eels and squid take shrimp too); turtles eat jellyfish; sharks eat piranha, squid, frogs, snakes and minnows.
+  - A hunter turns slowly toward the nearest prey it eats within sight and gives up after 12 to 15 s. Prey flee when a hunter comes close. A meal leaves the hunter full for 20 to 40 s.
+  - Whatever is eaten is born again: a species below its target count schedules a birth 4 to 12 s later at its nursery (minnows among the weeds, shrimp and crawlers under the rocks, jellies near the surface, hunters from off screen). Each species is capped at one and a half times its target.
+  - Gulls fly above the water, dive at minnows within 30 px of the surface (55% succeed), and land on the ships and the rowboat for 5 to 15 s at a time, leaving when a ship sails.
+- **The fisherman.** A rowboat sits on the surface. Its fisherman nets a jellyfish near the surface for bait (the bucket holds 3), casts, and waits 15 to 30 s. Species that eat jellyfish, and the curious kinds, come to the bait, and the first to reach it eats it and swims off fed. The hook holds a piranha one time in two, a squid 40%, a turtle 35%, a frog or a snake 30%, a shark 15%, and a minnow never. A landed fish is reeled up into the boat and replaced by a birth like any other. The Ledger's lab report lists every species by count, births, deaths by predator and catches, the fisherman's casts, bites, catches and escapes, and the latest observations; the first bite raises a toast.
 - **The deep and the plankton.** Far behind the dunes, mantas, a shark, a school of fish, an anglerfish and now and then a squid move in the shadows. Plankton sink deep by day and rise at night, when they glow blue-green wherever they are stirred: in a ship's wake, around the whale, through a storm, and under the feet of crabs walking the sand. Storms and passing ships leave a bloom that glows brighter for a few minutes. Apart from the patches below, all of this is decoration only.
 - **Plankton light.** Three patches of glowing plankton lie on the sand, on the front, middle and back dunes. They wander slowly to the right (2 units a second) and the tide sweeps them back and forth (up to 5 units a second, three times that in a storm), all the way along the track and round again. At night a tired crab inside a patch sees its way and works at full speed. A patch reaches 40 units across the track (or across the dunes, at 300 units a dune's depth) times 0.5 plus the bloom, so 30 units at the quietest and 60 at full bloom. The bloom runs from 0.25 to 1: a storm adds 0.08 a second, every ship that comes or goes adds 0.2, and it ebbs back over a few minutes. The Ledger counts the seconds of night work the plankton have lit.
 - **The hermit-crab trader.** The first comes at 240 s, then 240 to 360 s after each one leaves.
@@ -457,9 +514,11 @@ tilt, thanks pulse, alarms jump and sad ones droop. The Ledger counts everything
 
 On devices without emoji, crabs spell the words instead.
 
-The crabs have 52 animations across about 60 triggers: celebrations, dances with
-neighbours, idle routines that get sillier the longer a crab waits, and moods for every
-kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
+The crabs have 119 animations across about 70 triggers: celebrations, acrobatics
+(twirls, backflips, cartwheels), side-steps and shuffles, dances on the spot, 21 moves for
+two crabs, the claw-in-claw walk and the thanks after a helping hand, bopping along to a dance
+nearby, idle routines that get sillier the longer a crab waits, and moods for every kind of
+trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 
 ## 19. Controls
 
@@ -476,7 +535,7 @@ kind of trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Crew tab | Panel | Hire (+), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
 | Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods |
 | Tech tab | Panel | Research and worker upgrades |
-| Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, prices, stage capacities, overheads, coverage, the sea, bonuses |
+| Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, the food web's lab report, prices, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away and scroll the field |
 | [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |

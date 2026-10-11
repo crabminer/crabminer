@@ -26,6 +26,14 @@ function CrabSim() {
     TIDE_DRIFT: 3, STORM_DRIFT: 3, POST_SLIP: 40,
     // friends: idle crabs side by side dance together, which recharges them and clears their heads
     DANCE_RANGE: 42, DANCE_CHARGE: 0.012, DANCE_RECOVER: 2,
+    // a dance lifts everyone around it: crabs within reach of a dancing pair shed wear a little, dancing or not
+    CHEER_RANGE: 60, CHEER_RECOVER: 0.5,
+    // the crushing line: each crusher has its own press station, in rows of four along the yard
+    CRUSH_GAP: 10, CRUSH_ROW: 4,
+    // helping: a crab whose own job is stuck follows another and lends a claw (see HELPS for who helps whom)
+    HELP_BONUS: { drill: 1.3, crush: 1.3, energy: 1.25, repair: 1.25, mech: 1.25 },   // the helped crab works (and walks) this much faster
+    HELP_REACH: 12, HELP_CATCH: 20,   // beside within 12 units; a partner not caught up with in 20 s is given up
+    HELP_LOITER_P: 0.3, HELP_LOITER: 8, HELP_REROLL: 30,   // now and then a stuck crab waits about instead (and may dance)
     // a crab that slept or danced enough in a day starts the next one fresh: faster for the first minute
     REST_FOR_BONUS: 20, MORNING_BONUS: 1.25, MORNING_TIME: 90,
     // the sea: a four-minute tide that washes nodules up at high water and buries flags at low water,
@@ -154,9 +162,17 @@ function CrabSim() {
   var STATS = ['scans', 'finds', 'holes', 'strikes', 'stacked', 'bars', 'ingots', 'sold', 'revenue', 'metalUsed', 'barsUsed',
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
-    'backup', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed'];
+    'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed'];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
   var BACK = { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 };    // the backup job: carrying nodules to the ore pile
+  // Who a stuck crab helps, in order of preference: fast crabs like to help haulers, slow ones drillers.
+  // The backup job is every kind's fallback when nobody on its list needs a claw.
+  var HELPS = { scout: ['haul', 'drill', 'energy', 'crush'], haul: ['drill', 'crush', 'energy'], energy: ['haul', 'energy', 'drill'],
+    mech: ['repair', 'haul', 'drill'], repair: ['mech', 'drill', 'crush'], drill: ['drill', 'crush', 'haul'],
+    smelt: ['drill', 'crush', 'haul'], crush: ['drill', 'crush', 'haul'] };
+  var FIX_STATES = { toMat: 1, fetch: 1, toForge: 1, forge: 1, toJob: 1, fix: 1 };
+  var HELP_STATES = { drill: { drill: 1 }, crush: { crush: 1 }, haul: { seek: 1, pick: 1, haul: 1, stack: 1 },
+    energy: { go: 1, charge: 1, toEngine: 1, toPost: 1, dragPost: 1 }, repair: FIX_STATES, mech: FIX_STATES };
 
   var seed = K.SEED, S = null, events = [], dt = K.STEP;
   function sr() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
@@ -192,7 +208,8 @@ function CrabSim() {
   function pace(c) {
     return (BACK[c.state] ? 1 : 1 + K.VET_BONUS * c.stars) * (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
       (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) * nightSlow(c) *
-      (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1);   // the night crew
+      (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1) *   // the night crew
+      (c.helper && c.helper.helping === c && c.helper.held ? K.HELP_BONUS[c.role] || 1 : 1);                       // a claw from a friend
   }
   function has(id) { return !!S.wu[id]; }
   function carry() { return has('bigHopper') ? 5 : K.CARRY; }
@@ -277,7 +294,7 @@ function CrabSim() {
       for (i = 0; i < L.length; i++) { j = L[(c.id * 7 + i) % L.length]; if (!used[j]) { c.name = j; break; } }
       if (!c.name) c.name = L[c.id % L.length] + ' ' + (Math.floor(c.id / L.length) + 1);
     }
-    c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0, chests: 0 };
+    c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0, chests: 0, assists: 0 };
     c.stars = c.stars || 0;
   }
   var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1, chest: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
@@ -309,6 +326,8 @@ function CrabSim() {
     if (S.post.carrier === c) { S.post.carrier = null; S.post.moved = S.t; }
     if (c.dance) { if (c.dance.dance === c) c.dance.dance = null; c.dance = null; }
     if (c.turtle) { c.turtle.rider = null; c.turtle = null; }
+    if (c.helping) { if (c.helping.helper === c) c.helping.helper = null; c.helping = null; c.held = false; }
+    if (c.helper) c.helper = null;                          // its helper notices and goes back to its own work
   }
   function removeCrab(role) {
     var i, c = null, j;
@@ -563,7 +582,7 @@ function CrabSim() {
         if (go(c, c.target.x, c.target.d, spd(c))) { c.state = 'pick'; c.timer = K.T_PICK; }
       } else if (c.load > 0) {
         c.state = 'haul';
-      }
+      } else tryBackup(c);                                   // nothing lying about: lend a claw elsewhere
     } else if (c.state === 'pick') {
       c.timer -= work(c);
       if (c.timer <= 0) {
@@ -576,7 +595,8 @@ function CrabSim() {
         c.target = null; c.state = 'seek';
       }
     } else if (c.state === 'haul') {
-      if (moveTo(c, S.pos.HAUL_STAND, 0.72 + 0.07 * (c.k % 4), spd(c))) { c.state = 'stack'; c.timer = K.T_STACK; }
+      var hs = haulSpot(c, false);
+      if (moveTo(c, hs.x, hs.d, spd(c))) { c.state = 'stack'; c.timer = K.T_STACK; }
     } else if (c.state === 'stack') {
       if (S.ore >= oreCap()) return;                         // the ore pile is full: wait
       c.timer -= work(c);
@@ -587,12 +607,27 @@ function CrabSim() {
       }
     }
   }
+  // The line is laid out like a factory floor. Crushers stand at press stations in a row across the yard (a second
+  // row behind the first once there are more than four), and haulers queue up to the ore pile from the field side,
+  // one behind the other, so the metal moves along a line of crabs rather than into a huddle.
+  function crushSpot(c) {
+    var n = count('crush'), row = Math.floor(c.k / K.CRUSH_ROW), ncol = Math.min(K.CRUSH_ROW, n - row * K.CRUSH_ROW), col = c.k % K.CRUSH_ROW;
+    return { x: S.pos.CRUSH + (col - (ncol - 1) / 2) * K.CRUSH_GAP, d: 0.78 - row * 0.07 };
+  }
+  function haulSpot(c, back) {              // the queue to the ore pile: a slot behind the one before, on the field side
+    var k = back ? c.id % 4 : c.k % 4;
+    return { x: S.pos.HAUL_STAND - 9 * k, d: (back ? 0.87 : 0.78) + 0.03 * (k % 2) };
+  }
   function crush(c) {
+    var st;
     if (c.state === 'init') c.state = 'home';
     if (c.state === 'home') {
-      if (moveTo(c, S.pos.CRUSH - (c.k >= 3 ? 16 : 0), 0.72 + 0.09 * (c.k % 3), spd(c))) c.state = 'wait';
+      st = crushSpot(c);
+      if (moveTo(c, st.x, st.d, spd(c))) c.state = 'wait';
     } else if (c.state === 'wait') {
       if (offShift(c)) return;
+      st = crushSpot(c);
+      if (far(c, st.x, st.d) > 2) { moveTo(c, st.x, st.d, spd(c)); return; }   // the stations shift as the crew changes: shuffle along
       if (S.ore < K.NOD_PER_BAR && tryBackup(c)) return;     // nothing to press: fetch some ore
       if (S.ore >= K.NOD_PER_BAR) { S.ore -= K.NOD_PER_BAR; emit('feed', c); c.state = 'crush'; c.timer = c.crushT = K.T_CRUSH * (has('hydraulicClaws') ? 0.65 : 1); }
     } else if (c.state === 'crush') {
@@ -606,7 +641,7 @@ function CrabSim() {
     if (c.state === 'init') c.state = 'toBar';
     if (c.state === 'toBar') {
       if (offShift(c)) return;
-      if (moveTo(c, S.pos.GRAB, 0.72 + 0.08 * (c.k % 3), spd(c))) { c.state = 'grab'; c.timer = K.T_GRAB; }
+      if (moveTo(c, S.pos.GRAB - 8 * (c.k % 3), 0.8 + 0.03 * (c.k % 2), spd(c))) { c.state = 'grab'; c.timer = K.T_GRAB; }   // a line up to the bar stack
     } else if (c.state === 'grab') {
       if (c.carry !== 'bar') {
         if (S.bars <= 0) { tryBackup(c); return; }            // nothing to smelt: carry nodules meanwhile, or wait
@@ -622,7 +657,7 @@ function CrabSim() {
       c.heat = clamp(1 - c.timer / c.smeltT, 0, 1);
       if (c.timer <= 0) { c.carry = 'ingot'; S.stat.ingots += c.n; emit('ingot', c); c.state = 'toStock'; }
     } else if (c.state === 'toStock') {
-      if (moveTo(c, S.pos.STOCK + 8, 0.86 + 0.04 * (c.k % 3), spd(c))) { c.state = 'drop'; c.timer = K.T_DROP; }
+      if (moveTo(c, S.pos.STOCK + 8 + 8 * (c.k % 3), 0.88 + 0.03 * (c.k % 2), spd(c))) { c.state = 'drop'; c.timer = K.T_DROP; }   // a line up to the stockpile
     } else if (c.state === 'drop') {
       if (S.stock + c.n > K.STOCK_CAP) return;               // the stockpile is full: wait
       c.timer -= work(c);
@@ -645,7 +680,7 @@ function CrabSim() {
       else if (c.charges < charges()) c.state = 'toEngine';        // nobody needs charge: top up
       else if (postWanted(c)) { S.post.carrier = c; c.state = 'toPost'; }
       else if (tryBackup(c)) return;
-      else moveTo(c, S.post.x - 30 - 16 * (c.k % 4), clamp(S.post.d + 0.04 - 0.05 * (c.k % 2), 0.72, 0.97), sp);
+      else moveTo(c, S.post.x - 26 - 14 * (c.k % 3) - (c.id * 5) % 7, clamp(S.post.d + 0.05 - 0.04 * ((c.id * 3) % 3), 0.72, 0.97), sp);   // loosely about the post
     } else if (c.state === 'go' || c.state === 'charge') {
       w = c.target;
       if (!w || w.gone || w.state === 'sleep') { if (w) w.claimedBy = null; c.target = null; c.state = 'idle'; return; }
@@ -703,6 +738,7 @@ function CrabSim() {
   function needsCharge() { for (var i = 0; i < S.crabs.length; i++) { var w = S.crabs[i]; if (w.role !== 'energy' && !w.claimedBy && w.state !== 'sleep' && w.bat < K.CHARGE_BELOW) return true; } return false; }
   function primaryReady(c) {
     switch (c.role) {
+      case 'haul': return c.load > 0 || freeNodule();
       case 'drill': return c.bitOk && S.nodules.length < K.FIELD_CAP;
       case 'scout': return S.flags.length < flagCap();
       case 'crush': return S.ore >= K.NOD_PER_BAR;
@@ -715,11 +751,80 @@ function CrabSim() {
     return true;
   }
   function tryBackup(c) {
-    if (c.role === 'haul' || c.air || !onDuty(c) || primaryReady(c) || !freeNodule()) return false;
+    if (c.air || !onDuty(c) || primaryReady(c)) return false;
+    if (S.t < (c.loiter || 0)) return false;                 // waiting about for a bit
+    if (S.t - (c.lroll === undefined ? -1e9 : c.lroll) > K.HELP_REROLL) {
+      c.lroll = S.t;
+      if (sr() < K.HELP_LOITER_P) { c.loiter = S.t + K.HELP_LOITER; return false; }
+    }
+    if (tryHelp(c)) return true;
+    if (c.role === 'haul' || !freeNodule()) return false;
     release(c);
     c.state = 'bseek'; c.bload = 0; S.stat.backup++;
     emit('backup', c);
     return true;
+  }
+  // ----- helping: follow a crab of another (or the same) kind and lend it a claw -----
+  function helpable(w, c) {
+    if (w === c || w.gone || w.helper || w.helping || w.air || w.turtle || w.state === 'sleep' || !HELP_STATES[w.role][w.state]) return false;
+    if (w.role === 'haul') return (!!w.target || w.load > 0) && freeNodule();
+    if (w.role === 'drill') return S.nodules.length < K.FIELD_CAP / 2;   // holding a drill steady only pays while the sand is not littered
+    return true;
+  }
+  function tryHelp(c) {
+    var list = HELPS[c.role], i, j, w, best, bd, d;
+    for (i = 0; i < list.length; i++) {
+      best = null; bd = 1e9;
+      for (j = 0; j < S.crabs.length; j++) {
+        w = S.crabs[j];
+        if (w.role !== list[i] || !helpable(w, c)) continue;
+        d = far(c, w.x, w.d);
+        if (d < bd) { bd = d; best = w; }
+      }
+      if (best) {
+        release(c);
+        c.helping = best; best.helper = c; c.held = false; c.hsince = S.t; c.bload = 0;
+        c.state = 'help'; S.stat.helps++; c.rec.assists = (c.rec.assists || 0) + 1;
+        emit('help', c, best);
+        return true;
+      }
+    }
+    return false;
+  }
+  function endHelp(c) {
+    var w = c.helping;
+    if (w && w.helper === c) w.helper = null;
+    c.helping = null; c.held = false;
+    if (c.bload > 0) c.state = 'bhaul';                     // a nodule in the claw: deliver it on the way back
+    else c.state = RESUME[c.role];
+    emit('helpEnd', c, w);
+  }
+  function help(c) {
+    var w = c.helping, n, tx, td;
+    if (!w || w.gone || w.helper !== c || w.state === 'sleep' || w.air || !onDuty(c) || !HELP_STATES[w.role][w.state] ||
+        (c.bload === 0 && primaryReady(c)) || (!c.held && S.t - c.hsince > K.HELP_CATCH)) { endHelp(c); return; }
+    if (c.bload > 0 && primaryReady(c) && S.ore >= oreCap()) { setDown(c); endHelp(c); return; }
+    tx = w.x - 10 * (w.dir || 1); td = w.d;
+    if (!c.held) {
+      if (go(c, tx, td, spd(c) * 1.2) || far(c, tx, td) < K.HELP_REACH) { if (!c.air) { c.held = true; emit('holdClaw', c, w); } }
+      return;
+    }
+    c.x = tx; c.d = td; c.dir = w.dir || c.dir;             // claw in claw: where it goes, the helper goes
+    c.moving = w.moving;
+    if (w.working) work(c);
+    if (w.role !== 'haul') return;
+    if (w.state === 'pick' && c.bload < carry() && c.picked !== w.target) {   // each time the hauler bends for one, the helper takes another
+      c.picked = w.target;
+      n = nearestNodule(c);
+      if (n && far(c, n.x, n.d) < 60) { n.taken = true; S.nodules.splice(S.nodules.indexOf(n), 1); c.bload++; emit('take', c); }
+    } else if (c.bload > 0 && w.state === 'stack' && S.ore < oreCap()) {
+      S.ore++; c.bload--; S.stat.stacked++; c.rec.helped++; emit('stack', c);
+    }
+  }
+  // set what it carries down at the edge of the field, for the haulers: a crab never waits at a full pile
+  // while its own work is ready, since the crusher it may be is the only one who empties it
+  function setDown(c) {
+    for (; c.bload > 0; c.bload--) S.nodules.push({ x: K.FIELD1 - srr(0, 20), d: clamp(0.8 + srr(-0.06, 0.06), 0.7, 0.97), alive: true, eddy: -1, by: null });
   }
   function endBackup(c) {
     if (c.target) { c.target.by = null; c.target = null; }
@@ -744,9 +849,10 @@ function CrabSim() {
         c.target = null; c.state = 'bseek';
       }
     } else if (c.state === 'bhaul') {
-      if (moveTo(c, S.pos.HAUL_STAND + 6, 0.74 + 0.05 * (c.id % 4), spd(c))) { c.state = 'bstack'; c.timer = K.T_STACK; }
+      var bs = haulSpot(c, true);
+      if (moveTo(c, bs.x, bs.d, spd(c))) { c.state = 'bstack'; c.timer = K.T_STACK; }
     } else if (c.state === 'bstack') {
-      if (S.ore >= oreCap()) return;
+      if (S.ore >= oreCap()) { if (primaryReady(c)) { setDown(c); endBackup(c); } return; }   // the pile is full and its own work is waiting
       c.timer -= work(c);
       if (c.timer <= 0) {
         S.ore++; c.bload--; S.stat.stacked++; emit('stack', c); c.timer = K.T_STACK;
@@ -821,7 +927,7 @@ function CrabSim() {
         d = far(c, w.x, w.d) * (w.state === 'sleep' ? 0.6 : 1);   // sleeping crabs hold still: easy work
         if (d < bd) { bd = d; best = w; }
       }
-      if (!best) { if (!tryBackup(c)) moveTo(c, S.pos.WORKSHOP - 14 * (c.k % 4) - (c.role === 'mech' ? 8 : 0), 0.93, spd(c)); return; }
+      if (!best) { if (!tryBackup(c)) moveTo(c, S.pos.WORKSHOP - 12 - 11 * (c.k % 3) + (c.id * 7) % 6, 0.88 + 0.04 * ((c.id * 3 + (c.role === 'mech' ? 1 : 0)) % 3), spd(c)); return; }   // loosely about the anvil, not in a row
       best[F.claim] = c; c.target = best;
       var spare = c.role === 'repair' ? 'bit' : 'leg';
       if (c.carry === F.part) c.state = 'toJob';
@@ -951,7 +1057,7 @@ function CrabSim() {
         continue;
       }
       if (c.turtle) { c.floating = true; continue; }          // riding the turtle: nothing to do but enjoy it
-      if (!isHeld(c)) (BACK[c.state] ? backupHaul : RULES[c.role])(c);
+      if (!isHeld(c)) (BACK[c.state] ? backupHaul : c.state === 'help' ? help : RULES[c.role])(c);
       if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
         if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, spd(c));
       }
@@ -1002,6 +1108,11 @@ function CrabSim() {
         a.bat = Math.min(1, a.bat + K.DANCE_CHARGE * (1 + S.decor.length * K.DECOR_DANCE) * dt);
         a.wear = Math.max(0, a.wear - K.DANCE_RECOVER * dt);
         a.rested += dt; a.lastRest = S.t; S.stat.danced += dt;
+        for (j = 0; j < S.crabs.length; j++) {               // a dance lifts the crabs around it, at work or not
+          b = S.crabs[j];
+          if (b.dance || b.state === 'sleep' || b.air || Math.abs(b.x - a.x) > K.CHEER_RANGE || Math.abs(b.d - a.d) > 0.2) continue;
+          b.wear = Math.max(0, b.wear - K.CHEER_RECOVER * dt); b.cheer = S.t + 0.5; S.stat.cheered += dt;
+        }
       }
     }
   }
@@ -1515,7 +1626,7 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, decorMax: decorMax, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

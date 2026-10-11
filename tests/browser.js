@@ -114,6 +114,8 @@ async function check(b, size) {
       expect(await js('document.querySelectorAll("#ledger .ltable.bars").length') >= 3, 'the Ledger is missing its whole-game bars');
       expect(await js('!!document.querySelector("#ledger [data-share]") && /Crabminer, day \\d+/.test(crabminer.summary())'), 'no run summary to share');
       expect(await js('/Earned over the whole game/.test(document.getElementById("ledger").textContent)'), 'the Ledger is missing its whole-game charts');
+      expect(await js('document.querySelectorAll("#ledger .ltable.lab tbody tr:not(.group)").length') === await js('crabminer.eco().species.length'), 'the Ledger\'s lab report does not list every species');
+      expect(await js('crabminer.eco().species.every(s => s.count > 0)'), 'a species of the food web has died out');
     }
   }
   await js('document.getElementById("help").click(); true');

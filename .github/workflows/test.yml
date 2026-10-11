@@ -14,6 +14,8 @@ jobs:
         run: node tests/fuzz.js
       - name: Save and load
         run: node tests/save.js
+      - name: The food web
+        run: node tests/eco.js
       - name: Browser checks
         run: node tests/browser.js shots
         env:

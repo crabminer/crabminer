@@ -10,6 +10,7 @@ rules themselves.
 - [4. Script 1: the simulation (`CrabSim`)](#4-script-1-the-simulation-crabsim)
 - [5. Script 2: the view and the controls](#5-script-2-the-view-and-the-controls)
 - [6. Script 3: read aloud](#6-script-3-read-aloud)
+- [6a. Script 4: the food web (`CrabEco`)](#6a-script-4-the-food-web-crabeco)
 - [7. Styling and layout](#7-styling-and-layout)
 - [8. Determinism, testing, and balance work](#8-determinism-testing-and-balance-work)
 - [9. How to extend the game](#9-how-to-extend-the-game)
@@ -19,13 +20,14 @@ rules themselves.
 
 ## 1. Overview
 
-Crabminer is a static page with no build step and no dependencies: one HTML file and its three
+Crabminer is a static page with no build step and no dependencies: one HTML file and its four
 scripts. GitHub Pages serves them from the `main` branch of `crabminer/crabminer` at crabminer.com.
 
 ```
 crabminer/
 ├── index.html        the page: CSS, markup, and the paper
 ├── sim.js            Script 1: the simulation, CrabSim()
+├── eco.js            Script 4: the sea's food web, CrabEco() (view-only, like the plankton)
 ├── game.js           Script 2: drawing, animation, crab talk, and the controls
 ├── reader.js         Script 3: read aloud
 ├── CNAME             crabminer.com, for GitHub Pages
@@ -50,6 +52,7 @@ end of the body, so they run in order, and Script 2 finds `CrabSim` as a global.
 | `<section class="game">` | Top bar `.hud`, the stage `#stage` with the canvas `#scene`, toasts, the panel `.panel` with five tabs |
 | `<div class="below">` | The paper `<main class="paper">`: the rules and economy review as an IEEE-style article |
 | `sim.js` | **Script 1**: the simulation, `CrabSim()` |
+| `eco.js` | **Script 4**: the sea's food web, `CrabEco()`; loaded before Script 2, which drives it |
 | `game.js` | **Script 2**: drawing, animation, crab talk, and the controls |
 | `reader.js` | **Script 3**: read aloud (speech synthesis over the intro and the paper) |
 
@@ -244,6 +247,18 @@ pocket-forge and quick-hands upgrade keys, and what fixing does.
 - `driftPost()` applies the tide's push; `slipped()` measures distance from home.
 - `postWanted()` decides when a bot should fetch or move the post.
 
+**The line's stations.** `crushSpot(c)` gives a crusher its press station: rows of
+`K.CRUSH_ROW` stations `K.CRUSH_GAP` apart across the yard, a second row behind from the
+fifth crusher on; a crusher in `wait` shuffles to its station when the crew changes it.
+`haulSpot(c, back)` gives a hauler (or a crab on the backup job) its slot in the queue up to
+the ore pile, one behind the other on the field side. Smelters line up to the bar stack and
+the stockpile by `k`, and the repair crews and energy bots idle loosely about the anvil and
+the post, spread by `id`, so nobody stands in a grid.
+
+**Cheering up.** `dance()` also lifts the crabs around a dancing pair: every awake crab
+within `K.CHEER_RANGE` sheds `K.CHEER_RECOVER` wear a second and gets `cheer = t + 0.5`, which
+the view reads for the bopping-along moods; `stat.cheered` counts the crab-seconds.
+
 **Breakdowns and the forge.**
 - Bit breaks happen in `drill()`, worn bots in `energy()`, and lost legs in `step()`.
 - `needs(w, kind)` says what a crab needs fixed.
@@ -261,9 +276,18 @@ pocket-forge and quick-hands upgrade keys, and what fixing does.
 - `pace(c)` adds `K.VET_BONUS` per star, except in the backup states. `capacity()` scales
   each role by `veterans(role)`, its average star bonus.
 
-**Backup job.** `primaryReady(c)` says whether the crab's own job has work. `tryBackup(c)`
-starts carrying nodules when it does not; `backupHaul(c)` runs the job, and `endBackup(c)`
-resumes the role.
+**Helping and the backup job.** `primaryReady(c)` says whether the crab's own job has work.
+When it does not, `tryBackup(c)` first rolls for a short wait (`loiter`, which leaves the crab
+idle so `dance()` can pair it), then `tryHelp(c)` walks `HELPS[c.role]` in order and takes the
+nearest crab that `helpable()` allows (a working state from `HELP_STATES`, no helper yet).
+The pair is `c.helping` and `w.helper`; the state is `help`, run by `help(c)`. Once beside its
+partner (`c.held`) the helper is pinned to it, works when it works, and `pace(w)` multiplies by
+`K.HELP_BONUS[w.role]`. A hauler's helper takes a nodule each time the hauler picks one
+(`c.picked` remembers which) and stacks with it. `endHelp(c)` resumes the role, or delivers via
+`bhaul` if it holds nodules. Only when nobody needs help does `tryBackup` start carrying
+nodules: `backupHaul(c)` runs that job and `endBackup(c)` resumes the role. `setDown(c)` puts
+carried nodules back on the sand when the ore pile is full and the crab's own job has work,
+because a crusher waiting at a full pile is the only crab that could empty it.
 
 **Friends and the den.** `dance()` pairs idle neighbours. `craft(idle)` turns idle time into
 `decor`, and `inspire(kind)` themes the next piece. `morning()` grants fresh starts.
@@ -353,7 +377,7 @@ notifications only: the sim never depends on anyone reading them.
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
 | Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)` |
-| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `glowR()` |
+| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `glowR()`, `crushSpot(c)`, `haulSpot(c, back)` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
 `'done'`). They emit events the view can react to.
@@ -372,7 +396,7 @@ frame(now)                       requestAnimationFrame
  │   ├─ acc += dt × speed; up to 30 × sim.step() per frame (fixed 1/60 s)
  │   ├─ sim.drain().forEach(handle)   events → effects, faces, talk, toasts
  │   ├─ per-crab view state: gait, hops, idle clocks, needs talk, replies
- │   └─ particles, flights, lifts, rain, bombs, ink, fish, whale, night and weather fades
+ │   └─ particles, flights, lifts, rain, bombs, ink, the food web (eco.js), whale, night and weather fades
  ├─ draw()                       if the stage is on screen
  ├─ every 0.25 s: renderHUD(), renderPanel()
  └─ every 1 s on the Ledger tab: renderLedger()
@@ -399,16 +423,21 @@ The canvas is drawn in painter's order:
 
 1. Sea surface waves (tide and storm move them), the deep (`drawDeep()`: mantas, a shark, a
    swirling school, an anglerfish along the far dune, now and then a squid, all faint
-   silhouettes), fish, jellyfish, the cargo ship, the whale, and snow.
+   silhouettes, now in `eco.drawDeep`), the cargo ship, the whale, the ecosystem's surface
+   (the rowboat and the gulls), and snow. The far dune, then the ecosystem's open water
+   (`eco.drawWater`: section 6a).
 2. The far dune, then, for each dune k = 0, 1, 2 (back to front):
    1. The paper dune: a fill with a drop shadow, a paper-grain pattern, and a cut-edge
-      highlight. Then the ripples, which move, so they are drawn live.
+      highlight. Then the ripples, which move, so they are drawn live, and the seabed life
+      on that dune (`eco.drawFloor`).
    2. On k = 0: weeds and the basalt ridge.
    3. On k = 2: the cavern and lava, the thermal vent, the riser and lifts, plot tiles and
       foundations, and the extension cord.
    4. A roped-off overlay if the dune is unclaimed.
    5. Everything standing on that dune, sorted by screen y: nodules, flags, crabs,
-      buildings, the base, the post, the den, and debris.
+      buildings, the base, the post, the den, the crushing yard (`drawRollers()` for the roller
+      table and one `drawPress()` item a crusher, each just behind its crusher at
+      `sim.crushSpot(c)`), and debris.
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
 4. The sea turtle, then crabs in the air, riding the vent or the turtle.
@@ -464,7 +493,9 @@ returned by `face(c)`. `face` checks, in priority order:
 1. falling in (a new hire), asleep, or riding the vent
 2. the crab rave (rank-up), via `partyUntil`
 3. a timed animation: `c.anim`, set by `play()`
-4. a looping mood from `moodFor(c)`: a duet dance with its partner, dizzy, nodding off,
+4. a looping mood from `moodFor(c)`: a duet dance with its partner, the claw-in-claw walk
+   or the cheering-on of a helper (`c.held`) and the helped crab's bouncy walk (`helped(c)`),
+   bopping along to a dance nearby (`c.cheer`, set by the sim), dizzy, nodding off,
    struggling, thinking, determined, tired at night, worn, or the idle ladder, which gets
    sillier the longer it waits
 5. a short expression: `c.vx`, set by `express()`
@@ -480,8 +511,19 @@ returned by `face(c)`. `face` checks, in priority order:
 - `prop`: a pebble, note, sparkle or bubbles
 - `look`, `glyph`, `sweat`, `brows`
 
-`ANIMS` holds the 52 animations as functions `(crab, seconds) → pose`. `DUETS` lists the
-dances used by pairs.
+**Sleeping.** On `sleep` the view picks a form with `sleepForm(c, t)`: a tired crab, or 40% of
+the rest, burrows. For `DIG_T` seconds `face()` returns a scooping pose that sinks into the
+sand while sand flies behind it; after that `burrowed(c)` holds and `drawCrab` hands over to
+`drawBurrow(c)`: a sand-coloured mound with the eye stalks sticking up, eyes closed, peeking now
+and then. On `wake` it shakes the sand off. **Holding claws.** `holdSide(c)` gives the side of
+a helping partner, and the claw on that side reaches for it, the same reach as a hand-off.
+
+`ANIMS` holds the 118 animations as functions `(crab, seconds) → pose` (119 with the rave).
+`DUETS` lists the 30 dances used by pairs (the pose reads the partner's side from `c.vpd`),
+and `CHEERS` the moves a crab bops along with when a pair dances nearby. `face(c)` wraps
+`faceFor(c)`: while `c.cheer` is set, a working crab's plain or squinting eyes become happy ones.
+The `holdClaw` event plays a high-five on the helper and a dance on the helped crab, and
+`helpEnd` a short duet on both (patty-cake, high ten, twirl and clap, or a bow of thanks).
 
 **Hand-offs.** A helper hands things over claw to claw, like a relay baton. In the sim,
 `heldBy(w)` names the energy, repair or maintenance bot that is mid-hand-off with `w` (state
@@ -574,6 +616,8 @@ side are a third of a cycle apart, and the two sides half a cycle.
   - `at(crab)`, where a crab is on the canvas in CSS pixels, for tests that click it
   - `select(crab)`, which opens a crab's card as a click would
   - `summonWhale()`
+  - `eco()`, the food web's lab report (`CrabEco.report()`), `anims`, the size of the repertoire, and
+    `drawMs(n)`, the average cost of `n` draws, for the browser checks and profiling
 
   It is for the console and for automated browser tests.
 
@@ -589,6 +633,51 @@ and scrolling as it goes.
 - **Text clean-up:** `SAY` rewrites text for speech (Fig., Table numerals, °C, Node.js).
 - **Voices:** voice scoring prefers natural and premium voices and falls back to a local
   voice if an online one fails.
+
+## 6a. Script 4: the food web (`CrabEco`)
+
+`eco.js` is `CrabEco()`, a factory like `CrabSim`, and runs the sea's closed ecosystem. It is
+view-only, like the plankton and the whale: it uses `Math.random()`, never reads `S`, and
+the sim never knows it is there. Script 2 owns one instance (`eco`) and drives it from
+`drawDeep()` once a frame: `eco.update(dt, env)`, then the five draw calls in painter's order,
+each with the same `env` object (`ecoEnv()` rebuilds it every frame: size, time, palette,
+night, storm, tide and bloom, reduced motion, the whale, the cargo ship, the ship at the riser,
+deck spans birds can perch on, every crab's screen position, and a `geom` bag of the geometry
+functions). `eco.reset(env)` restocks it when the canvas width changes, and `eco.lures()`
+hands the anglerfish lures to `drawPlankton()` for their night glow.
+
+| Call | When, in `draw()` |
+| --- | --- |
+| `drawDeep(ctx, env)` | before the far dune: the mantas, the deep shark, the swirling school, the anglerfish, the jetting squid, all faint |
+| `drawWater(ctx, env)` | right after the far dune: the open water, from minnows to sharks, the fisherman's line and bait |
+| `drawFloor(ctx, env, k)` | after dune k's sand and ripples, before the crabs on it: rocks, shrimp, crawlers, lobsters, seahorses |
+| `drawSurface(ctx, env)` | after the ships: the rowboat and fisherman, and the gulls, flying, diving or perched |
+
+**The web.** `SPECIES` is the table: for each kind a target count (at 1200 px wide, scaled by
+the width), a cap of 1.5× that, a level (1 small fry, 2 hunters, 3 sharks, and the gulls), a
+diet, a sight and flee radius, a speed, a nursery, and the chance the fisherman's hook holds
+it. Level 1: minnows (schools that flock lightly and flee), shrimp (by the rocks, darting from
+crabs and lobsters), jellyfish (drifting, pulsing, carried by the tide) and crawlers (specks
+with legs, a tenth of a crab). Level 2: seahorses, piranha, squid, eels, sea snakes (which
+surface to breathe), frogs, small turtles, lobsters, and the gulls. Level 3: one shark, two on
+screens over 1400 px. A hunter picks the nearest prey of its diet within sight, turns toward
+it with a limited turn rate, gives up after 12 to 15 s, and is full for 20 to 40 s after a
+meal. Births: a species below its target schedules one 4 to 12 s later, grown in over a
+second at its nursery (weeds, rocks, the surface, or off-screen). Reduced motion freezes
+everything and stops births and casts.
+
+**The fisherman.** A state machine on the rowboat: `net` (the nearest jellyfish near the
+surface rises into the bucket, which holds 3), `cast` (the hook sinks into open water with
+a jelly on it), `wait` (15 to 30 s; curious species steer to the bait), then a bite: the
+fish is fed, and either hooked (reeled up the line, a splash, removed and later re-born) or
+escaped; or nothing was biting and the bait goes back in the bucket.
+
+**The lab report.** `report()` returns the species table with live counts, births, deaths by
+predator, catches and bait taken, the fisherman's book (casts, netted, bites, hooked,
+escaped, bucket, state), and the last 24 observations as sentences (`log`, births within 2 s
+coalesced). `ledgerLab()` in Script 2 renders it at the end of the Ledger, and `update()`
+raises one toast on the first bite. `tests/eco.js` runs 20 minutes of frames against a stub
+canvas and checks counts, re-births, the fisherman, the birds, the log and the cost.
 
 ## 7. Styling and layout
 
@@ -636,10 +725,11 @@ built-in `WebSocket`), with nothing to install. Each exits non-zero on failure.
 | --- | --- | --- |
 | `node tests/fuzz.js [runs] [minutes]` | ~10 s | Twelve 20-minute games of random play, invariants checked every second |
 | `node tests/save.js [runs] [minutes]` | ~5 s | Save and load round trips, bad saves, and older saves |
+| `node tests/eco.js` | ~10 s | The food web: 20 minutes of frames against a stub canvas, counts, re-births, the fisherman, the birds, reduced motion |
 | `node tests/browser.js [shot dir]` | ~35 s | The page in headless Chromium at three sizes, with screenshots |
 | `node tests/balance.js [seeds]` | ~80 s | A report, not a pass or fail: fixed crews and rank times |
 
-`.github/workflows/test.yml` runs the fuzzer, the save check and the browser checks on every
+`.github/workflows/test.yml` runs the fuzzer, the save check, the food web and the browser checks on every
 push and pull request, and keeps the screenshots as a build artifact. `tests/lib.js` holds what
 they share: loading the sim, stepping it, a seeded generator for the
 player's choices (separate from the sim's own), and `act()`, one random player action.

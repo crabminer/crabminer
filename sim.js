@@ -105,6 +105,14 @@ function CrabSim() {
     // the lighthouse lamp: a building at the field's edge (the Build tab's upgrade) that lights the sand around it at
     // night, so tired crabs there are not slowed by the dark
     LAMP_X: 548, LAMP_D: 0.74,
+    // the kelp forest: the left end of the field, roped off until claimed. Deposits flagged in it are richer and bigger,
+    // walking through the fronds is slow, and idle crabs make kelp pieces for the den from it.
+    KELP1: 130, KELP_Q: 0.1, KELP_SIZE: 1, KELP_WALK: 0.7, KELP_DECOR: ['kelpRope', 'kelpHammock', 'kelpLantern'],
+    // the ore conveyor: a belt from the field's edge to the ore pile. Haulers drop onto its head and walk no further;
+    // nodules ride it to the pile, and queue on it when the pile is full.
+    BELT_HEAD: 546, BELT_D: 0.8, BELT_SPEED: 60, BELT_GAP: 7, BELT_CAP: 14,
+    // the charging pad: a disc between the ore pile and the crushing yard; crabs on it (not energy bots) top up slowly
+    PAD_REACH: 40, PAD_D: 0.86,
     // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
     TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
@@ -177,7 +185,10 @@ function CrabSim() {
       engine: { costs: [140, 420], vals: [32, 56, 90] },   // charges the Stirling engine makes a minute
       riser: { costs: [100, 300], vals: [3, 1.8, 1] },
       yard: { costs: [90, 240], vals: [0, 1, 2] },
-      lamp: { costs: [220, 520], vals: [0, 120, 220] }   // how far the lighthouse lamp lights, in track units
+      lamp: { costs: [220, 520], vals: [0, 120, 220] },   // how far the lighthouse lamp lights, in track units
+      kelp: { costs: [350], vals: [0, 1] },               // the kelp forest claim
+      belt: { costs: [300], vals: [0, 1] },               // the ore conveyor
+      pad: { costs: [180, 420], vals: [0, 0.008, 0.016] } // the charging pad: battery a second for crabs on it
     },
     // research: each technology unlocks the worker upgrades for some roles
     TECH: {
@@ -207,7 +218,8 @@ function CrabSim() {
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
     'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
     'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights',
-    'apprentices', 'graduates', 'contracts', 'contractsFilled', 'contractsFailed', 'contractCredits', 'chimneys', 'chimneyRides', 'lampLit'];
+    'apprentices', 'graduates', 'contracts', 'contractsFilled', 'contractsFailed', 'contractCredits', 'chimneys', 'chimneyRides', 'lampLit',
+    'kelpFlags', 'belted', 'padCharge'];
   // achievements: checked once a second; each is won once, at the time kept in S.ach
   var ACH = [
     ['pearl', 'First pearl', 'Strike a pearl', function () { return S.stat.pearls >= 1; }],
@@ -233,6 +245,10 @@ function CrabSim() {
     ['contract', 'Under contract', 'Fill a contract from the surface', function () { return S.stat.contractsFilled >= 1; }],
     ['chimney', 'Hot shortcut', 'Ten rides up a hydrothermal chimney', function () { return S.stat.chimneyRides >= 10; }],
     ['lamp', 'Lamplighter', 'Ten minutes of night work under the lighthouse lamp', function () { return S.stat.lampLit >= 600; }],
+    ['kelp', 'Forester', 'Twenty deposits flagged in the kelp forest', function () { return S.stat.kelpFlags >= 20; }],
+    ['belt', 'Belt and braces', 'Two hundred nodules ridden to the pile on the conveyor', function () { return S.stat.belted >= 200; }],
+    ['pad', 'Self-service', 'Ten batteries\' worth of charge from the charging pad', function () { return S.stat.padCharge >= 10; }],
+    ['prestige', 'Second claim', 'Start a new dig site with a perk', function () { return S.site >= 2; }],
     ['tycoon', 'Crab Tycoon', 'Reach the top rank', function () { return S.rank >= K.RANKS.length - 1; }]
   ];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
@@ -255,10 +271,11 @@ function CrabSim() {
   function oreCap() { return K.ORE_CAP[up('yard')]; }
   function barCap() { return K.BAR_CAP[up('yard')]; }
   function zoneOf(d) { return d >= 0.66 ? 0 : (d >= 0.34 ? 1 : 2); }
-  function spot() {                       // a random place in the dunes the crew has claimed
+  function spot() {                       // a random place in the dunes the crew has claimed (the kelp forest only once it is)
     var z = K.ZONES[Math.floor(sr() * up('field'))];
-    return { x: srr(K.FIELD0 + 10, K.FIELD1 - 10), d: srr(z.d0, z.d1) };
+    return { x: srr((S.lv.kelp ? K.FIELD0 : K.KELP1) + 10, K.FIELD1 - 10), d: srr(z.d0, z.d1) };
   }
+  function inKelp(x) { return x < K.KELP1; }
   // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
   function spd(c) { return K.SPEEDS[c.role] * (c.role === 'haul' && has('springLegs') ? 1.3 : 1); }
   function flagCap() { return has('flagBundle') ? 14 : K.FLAG_CAP; }
@@ -292,7 +309,7 @@ function CrabSim() {
   function layoutPos() {                  // where each building stands, and the spots crabs work at beside it
     var x = function (b) { return K.PLOTS[S.layout[b]]; };
     S.pos = { DEN: x('den'), WORKSHOP: x('workshop'), ORE: x('ore'), HAUL_STAND: x('ore') - 24, CRUSH: x('crush'), BAR: x('bar'), GRAB: x('bar') + 16,
-      STOCK: x('stock'), COLLECTOR: x('collector') };
+      STOCK: x('stock'), COLLECTOR: x('collector'), BELT_END: x('ore') - 10, PAD: (x('ore') + x('crush')) / 2 };
   }
   function wearMult(c) { return 1 + Math.min(K.WEAR_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.WEAR_SCALE); }
 
@@ -313,7 +330,8 @@ function CrabSim() {
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST,
       quake: null, nextQuake: K.QUAKE_FIRST, news: null, nextNews: K.NEWS_FIRST, ach: {}, nightBreaks: 0, nightWork: 0,
-      contract: null, nextContract: K.CONTRACT_FIRST, chimney: null, nextChimney: K.CHIMNEY_FIRST,
+      contract: null, nextContract: K.CONTRACT_FIRST, chimney: null, nextChimney: K.CHIMNEY_FIRST, belt: [],
+      site: opts.site || 1, perks: opts.perks || [], career: opts.career || { sites: 0, earned: 0, sold: 0, time: 0 },
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -507,7 +525,7 @@ function CrabSim() {
     if (!c.goal) c.goal = {};
     c.goal.x = tx; c.goal.d = td; c.goal.t = S.t;            // where it is heading this step
     var crest = Math.abs(c.d - 1 / 3) < K.CREST || Math.abs(c.d - 2 / 3) < K.CREST;
-    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1) * (S.storm ? K.STORM_WALK : 1) * (S.quake ? K.QUAKE_WALK : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
+    var k = pace(c) * (c.limp ? K.LIMP : 1) * (crest ? K.CREST_SLOW : 1) * (S.storm ? K.STORM_WALK : 1) * (S.quake ? K.QUAKE_WALK : 1) * (inKelp(c.x) ? K.KELP_WALK : 1), dx = tx - c.x, dd = td - c.d, mv = speed * k * dt, md = mv / K.DEPTH, there = true;
     if (Math.abs(dx) > 0.5) {
       c.dir = dx > 0 ? 1 : -1;
       c.x += Math.abs(dx) <= mv ? dx : c.dir * mv;
@@ -609,6 +627,7 @@ function CrabSim() {
           z = zoneOf(c.d); if (S.si.night) S.stat.nightFlags++;
           f = { id: S.nextId++, x: c.x, d: c.d, q: clamp(srr(0.45, 0.85) + K.ZONES[z].q + sc[1] + (has('deepSonar') ? 0.08 : 0), 0.3, 0.97),
             size: 2 + Math.floor(sr() * 3) + K.ZONES[z].size + (has('deepSonar') ? 1 : 0), by: null, zone: z, born: S.t };
+          if (inKelp(c.x)) { f.q = Math.min(0.97, f.q + K.KELP_Q); f.size += K.KELP_SIZE; f.kelp = true; S.stat.kelpFlags++; }   // the kelp forest: richer, bigger
           if (z === 2 && sr() < K.CHEST_CHANCE) { f.chest = true; f.q = 1; f.size = 1; }   // a sunken chest: drills go for it first
           S.flags.push(f); S.stat.finds++; emit('flag', c, f);
         } else emit('miss', c);
@@ -700,14 +719,26 @@ function CrabSim() {
       var hs = haulSpot(c, false);
       if (moveTo(c, hs.x, hs.d, spd(c))) { c.state = 'stack'; c.timer = K.T_STACK; }
     } else if (c.state === 'stack') {
-      if (S.ore >= oreCap()) return;                         // the ore pile is full: wait
+      if (!dropRoom()) return;                               // the ore pile (or the conveyor) is full: wait
       c.timer -= work(c);
       if (c.timer <= 0) {
-        S.ore++; c.load--; S.stat.stacked++; emit('stack', c);
+        c.load--; S.stat.stacked++; dropNodule(c);
         c.timer = K.T_STACK;
         if (c.load <= 0) c.state = 'seek';
       }
     }
+  }
+  // Nodules go onto the ore pile, or, with the conveyor built, onto the belt's head to ride to the pile.
+  function dropRoom() { return S.lv.belt ? S.belt.length < K.BELT_CAP && (!S.belt.length || S.belt[S.belt.length - 1].x > K.BELT_HEAD + K.BELT_GAP) : S.ore < oreCap(); }
+  function dropNodule(c) {
+    if (S.lv.belt) { S.belt.push({ x: K.BELT_HEAD }); emit('stack', c, 'belt'); }
+    else { S.ore++; emit('stack', c); }
+  }
+  function belt() {                        // the conveyor: each nodule rides toward the pile, no closer than a gap behind the one ahead
+    var i, n, lim = S.pos.BELT_END;
+    if (!S.belt.length) return;
+    for (i = 0; i < S.belt.length; i++) { n = S.belt[i]; n.x = Math.min(lim, n.x + K.BELT_SPEED * dt); lim = n.x - K.BELT_GAP; }
+    if (S.belt[0].x >= S.pos.BELT_END && S.ore < oreCap()) { S.belt.shift(); S.ore++; S.stat.belted++; emit('belted'); }
   }
   // The line is laid out like a factory floor. Crushers stand at press stations in a row across the yard (a second
   // row behind the first once there are more than four), and haulers queue up to the ore pile from the field side,
@@ -716,9 +747,9 @@ function CrabSim() {
     var n = count('crush'), row = Math.floor(c.k / K.CRUSH_ROW), ncol = Math.min(K.CRUSH_ROW, n - row * K.CRUSH_ROW), col = c.k % K.CRUSH_ROW;
     return { x: S.pos.CRUSH + (col - (ncol - 1) / 2) * K.CRUSH_GAP, d: 0.78 - row * 0.07 };
   }
-  function haulSpot(c, back) {              // the queue to the ore pile: a slot behind the one before, on the field side
+  function haulSpot(c, back) {              // the queue to the ore pile (or the conveyor's head): a slot behind the one before, on the field side
     var k = back ? c.id % 4 : c.k % 4;
-    return { x: S.pos.HAUL_STAND - 9 * k, d: (back ? 0.87 : 0.78) + 0.03 * (k % 2) };
+    return { x: (S.lv.belt ? K.BELT_HEAD - 12 : S.pos.HAUL_STAND) - 9 * k, d: (back ? 0.87 : 0.78) + 0.03 * (k % 2) };
   }
   function crush(c) {
     var st;
@@ -954,10 +985,10 @@ function CrabSim() {
       var bs = haulSpot(c, true);
       if (moveTo(c, bs.x, bs.d, spd(c))) { c.state = 'bstack'; c.timer = K.T_STACK; }
     } else if (c.state === 'bstack') {
-      if (S.ore >= oreCap()) { if (primaryReady(c)) { setDown(c); endBackup(c); } return; }   // the pile is full and its own work is waiting
+      if (!dropRoom()) { if (primaryReady(c)) { setDown(c); endBackup(c); } return; }   // the pile is full and its own work is waiting
       c.timer -= work(c);
       if (c.timer <= 0) {
-        S.ore++; c.bload--; S.stat.stacked++; emit('stack', c); c.timer = K.T_STACK;
+        c.bload--; S.stat.stacked++; dropNodule(c); c.timer = K.T_STACK;
         if (c.bload <= 0) c.state = 'bseek';
       }
     }
@@ -1181,6 +1212,11 @@ function CrabSim() {
       if (c.air && c.air.used !== S.t) {                     // the trip was dropped mid-ride: float on and land anyway
         if (c.air.phase === 'walk') c.air = null; else go(c, c.air.tx, c.air.td, spd(c));
       }
+      if (S.lv.pad && c.role !== 'energy' && !c.air && far(c, S.pos.PAD, K.PAD_D) < K.PAD_REACH) {   // on the charging pad: a slow top-up
+        var g = Math.min(1 - c.bat, up('pad') * dt);
+        c.bat += g; S.stat.padCharge += g;
+        if (!c.onPad) { c.onPad = true; emit('padOn', c); }
+      } else c.onPad = false;
       active = c.moving || c.working;
       if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); mood(c, false); continue; }
       if (S.si.night) S.nightWork += dt;
@@ -1198,6 +1234,7 @@ function CrabSim() {
       if (!c.limp && sr() < K.LEG_RATE * (has('toughJoints') ? 0.5 : 1) * wearMult(c) * dt) { c.limp = true; S.stat.legsLost++; emit('legOff', c); }
     }
     dance();
+    belt();
     sea();
     driftPost();
     octopus();
@@ -1667,7 +1704,8 @@ function CrabSim() {
     if (S.decorWork < K.DECOR_WORK || !idle.length) return;
     S.decorWork -= K.DECOR_WORK;
     for (i = 0; i < idle.length; i++) if (!best || Math.abs(idle[i].x - S.pos.DEN) < Math.abs(best.x - S.pos.DEN)) best = idle[i];
-    kind = S.decorTheme || K.DECOR_KINDS[Math.floor(sr() * K.DECOR_KINDS.length)];
+    var kinds = S.lv.kelp ? K.DECOR_KINDS.concat(K.KELP_DECOR) : K.DECOR_KINDS;   // the kelp forest gives new material
+    kind = S.decorTheme || kinds[Math.floor(sr() * kinds.length)];
     S.decorTheme = null;
     S.decor.push({ kind: kind, at: S.t }); S.stat.decorations++;
     emit('decor', best, kind);
@@ -1716,7 +1754,7 @@ function CrabSim() {
     return {
       scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]) * (has('wideSonar') ? 1.35 : 1) * (has('deepSonar') ? 1.2 : 1),
       drill: d('drill') * (n.scout ? PER.drill : PER.wildcat) * (has('diamondTips') ? 1.2 : 1) * (has('twinAugers') ? 1.2 : 1),
-      haul: d('haul') * PER.haul * (has('bigHopper') ? 1.4 : 1) * (has('springLegs') ? 1.25 : 1),
+      haul: d('haul') * PER.haul * (has('bigHopper') ? 1.4 : 1) * (has('springLegs') ? 1.25 : 1) * (S.lv.belt ? 1.3 : 1),
       crush: d('crush') * PER.crush * (has('hydraulicClaws') ? 1.5 : 1),
       smelt: d('smelt') * PER.smelt * (has('heatTongs') ? 1.25 : 1) * (has('twinTongs') ? 1.6 : 1),
       sell: 60 / up('riser'),
@@ -1835,6 +1873,34 @@ function CrabSim() {
     if (S.shift !== 'custom') { S.shift = 'custom'; emit('shiftMode', 'custom'); }
   }
   function setScoutsNight(on) { S.scoutsNight = !!on; }
+  // A new dig site: after Crab Tycoon, start over on fresh dunes with one perk carried across. The perk is a technology
+  // (`{kind: 'tech', id}`), the den's decorations (`{kind: 'decor'}`) or one crab with its name, record and stars
+  // (`{kind: 'crab', id}`). Earlier sites' totals go on in `career`, and `perks` lists what came along.
+  function newSite(perk) {
+    var old = S, c = null, i, opts, desc, oldSeed = seed;
+    if (S.rank < K.RANKS.length - 1) return 'rank';
+    if (!perk || !perk.kind) return 'perk';
+    if (perk.kind === 'tech') { if (!K.TECH[perk.id] || !S.tech[perk.id]) return 'perk'; desc = { kind: 'tech', id: perk.id, site: S.site }; }
+    else if (perk.kind === 'decor') { if (!S.decor.length) return 'perk'; desc = { kind: 'decor', n: S.decor.length, site: S.site }; }
+    else if (perk.kind === 'crab') {
+      for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].id === perk.id) c = S.crabs[i];
+      if (!c) return 'perk';
+      desc = { kind: 'crab', name: c.name, role: c.role, stars: c.stars, site: S.site };
+    } else return 'perk';
+    opts = { seed: ((oldSeed ^ (old.site * 2654435761)) >>> 0) || 7, site: old.site + 1, perks: old.perks.concat([desc]), shift: old.shift,
+      career: { sites: old.career.sites + 1, earned: old.career.earned + old.earned, sold: old.career.sold + old.stat.sold, time: old.career.time + old.t } };
+    if (desc.kind === 'tech') { opts.tech = {}; opts.tech[perk.id] = true; }
+    reset(opts);
+    if (desc.kind === 'decor') for (i = 0; i < old.decor.length; i++) S.decor.push({ kind: old.decor[i].kind, at: 0 });
+    if (desc.kind === 'crab') {
+      var nc = addCrab(c.role), j;
+      for (j = 0; j < S.crabs.length; j++) if (S.crabs[j] !== nc && S.crabs[j].name === c.name) S.crabs[j].name = S.crabs[j].name + ' II';   // the name is the veteran's
+      nc.name = c.name; nc.stars = c.stars; nc.mood = c.mood; nc.moodZone = c.moodZone;
+      nc.rec = { jobs: c.rec.jobs, helped: c.rec.helped, rides: c.rec.rides, legs: c.rec.legs, dances: c.rec.dances, pearls: c.rec.pearls, chests: c.rec.chests || 0, assists: c.rec.assists || 0 };
+    }
+    emit('newSite', S.site, desc);
+    return true;
+  }
   function overclock(on) {
     if (on && S.ocBank >= 1 && !S.oc) { S.oc = true; emit('ocStart'); }
     else if (!on && S.oc) { S.oc = false; emit('ocEnd'); }
@@ -1909,7 +1975,7 @@ function CrabSim() {
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
     flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, achievements: function () { return ACH.map(function (a) { return { id: a[0], name: a[1], what: a[2] }; }); }, placePost: placePost, lit: lit, lampLit: lampLit, glowR: glowR, setPostAuto: setPostAuto,
-    acceptContract: acceptContract, declineContract: declineContract, strength: strength, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    acceptContract: acceptContract, declineContract: declineContract, strength: strength, newSite: newSite, inKelp: inKelp, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

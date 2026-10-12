@@ -14,7 +14,7 @@
   var W = 0, H = 0, Z = 1, DPR = 1, T = 0, last = 0, raf = 0, running = false, acc = 0, speed = 1, uiTick = 0, ledgerTick = 0;
   var CS = 1, surfH = 0, F = 0, lavaL = 0, base = [0, 0, 0], farBase = 0, dunePaths = [], farPath = null, grain = null;
   var pal = {};
-  var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
+  var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], kelp = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
   var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0, chimneyToast = false, lampToast = false, chimneyA = 0;
@@ -126,7 +126,11 @@
   }
   function decorate() {
     var i, j, n;
-    weeds = [];
+    weeds = []; kelp = [];
+    for (i = 0; i < 3; i++) {                                  // the kelp forest: a stand of fronds on each dune at the field's left end
+      n = Math.round(clamp(W / 90, 8, 16));
+      for (j = 0; j < n; j++) kelp.push({ x: rr(K.FIELD0 + 4, K.KELP1 - 6), d: rr(K.ZONES[2 - i].d0, K.ZONES[2 - i].d1), k: i, front: Math.random() < 0.4, h: rr(38, 80), ph: rr(0, TAU), amp: rr(5, 11), sw: 1 });
+    }
     n = clamp(Math.round(W / 200), 3, 9);
     for (i = 0; i < n; i++) {
       var bx = rr(20, lavaL - 80), stalks = 2 + Math.floor(Math.random() * 3), k = Math.random() < 0.5 ? -1 : 0;
@@ -189,7 +193,8 @@
     happy: ['🎶😊', '😄✨', '🦀😊🎶'], grumpy: ['😤💢', '😒💢', '🦀😤'], boom: ['📰📈🤩', '🪙📈😎'], glut: ['📰📉😩', '🪙📉😒'], rumour: ['📰🤷', '📰👀❓'],
     quake: ['😱🌊💥', '😵💫', '💥🦀😨'], achievement: ['🏆✨🎉', '🏆😎'],
     apprentice: ['🎓❓🦀', '🎓👀😅'], graduate: ['🎓✅🎉', '🎓💪😎'], contractOffer: ['📜🪙❓', '📜👀🪙'], contractDone: ['📜✅🎉', '📜🪙🥳'], contractFail: ['📜❌😩', '📜💔😤'],
-    chimney: ['♨️⬆️😆', '♨️💨🤩'], lamp: ['🔦👀😊', '🔦🦀👍']
+    chimney: ['♨️⬆️😆', '♨️💨🤩'], lamp: ['🔦👀😊', '🔦🦀👍'],
+    kelp: ['🌿🌿😅', '🌿🦀💨', '🌿👀✨'], belt: ['🪨🛤️👍', '🛤️🪨😎'], pad: ['🔌⚡😊', '⚡🦀👍'], newSite: ['🏕️🦀❗', '🏕️✨🤩', '🏕️💪']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -209,7 +214,8 @@
     festival: 'Festival day', mantaPick: 'Swept up by the manta', mantaDrop: 'Thanking the manta', pet: 'A pet moving in', petPat: "Petting the den's pet",
     happy: 'In a good mood', grumpy: 'In a bad mood', boom: 'A copper boom', glut: 'A glut at the surface', rumour: 'A rumour from the surface', quake: 'An earthquake', achievement: 'An achievement won',
     apprentice: 'An apprentice starting', graduate: 'An apprentice graduating', contractOffer: 'A contract offered', contractDone: 'A contract filled', contractFail: 'A contract run out',
-    chimney: 'Riding the hydrothermal chimney', lamp: 'Seeing by the lighthouse lamp'
+    chimney: 'Riding the hydrothermal chimney', lamp: 'Seeing by the lighthouse lamp',
+    kelp: 'Pushing through the kelp forest', belt: 'Dropping ore on the conveyor', pad: 'Topping up on the charging pad', newSite: 'A new dig site'
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
   Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
@@ -221,7 +227,7 @@
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
     '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel',
     '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet', '💢': 'grr', '📰': 'news', '📈': 'up', '📉': 'down', '💫': 'dizzy',
-    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp' };
+    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp', '🌿': 'kelp', '🛤': 'belt', '🏕': 'site' };
   var NEWS_HEADLINES = {   // three headlines a kind; the sim picks which (S.news.n)
     boom: ['Copper boom at the surface!', 'Shipyards bid up every ingot!', 'Metal shortage on land: prices soar!'],
     glut: ['Glut at the docks: ingots pile up unsold', 'A rival port floods the market', 'Smelters on land undercut the sea'],
@@ -353,7 +359,18 @@
         break;
       case 'miss': express(a, 'shrug', 1.4); say(a, TALK.miss, 1.4); play(a, ['shrug', 'think', 'sigh'], 1.5); break;
       case 'flagDone': p = X(a.x); poof(p, groundY(p, a.d) - 6, 5, 0.5); near(a.x, 40).forEach(function (n) { if (n.role === 'drill') play(n, ['bow', 'wave'], 1.4); }); break;
-      case 'stack': fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore' }); if (a.load === 0) { express(a, 'phew', 1); if (Math.random() < 0.4) play(a, ['flex', 'sigh'], 1.2); } break;
+      case 'stack':
+        if (e.b === 'belt') { fly('nod', clawPos(a, 1), beltPoint(K.BELT_HEAD), 0.3, { tag: 'belt' }); if (Math.random() < 0.15) say(a, TALK.belt, 1.4); }
+        else fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore' });
+        if (a.load === 0) { express(a, 'phew', 1); if (Math.random() < 0.4) play(a, ['flex', 'sigh'], 1.2); }
+        break;
+      case 'belted': fly('nod', beltPoint(S.pos.BELT_END), oreSlot(Math.max(0, S.ore - 1)), 0.3, { tag: 'ore' }); break;
+      case 'padOn': p = clawPos(a, 0); spark(p.x, p.y + 6 * CS, 4, pal.light); if (Math.random() < 0.25) say(a, TALK.pad, 1.4); break;
+      case 'newSite':
+        S = sim.state(); freshView(); won = false;
+        toast('Dig site ' + a + ': fresh dunes', (e.b.kind === 'tech' ? TECH_INFO[e.b.id].name + ' came along, researched already.' : e.b.kind === 'decor' ? 'The den\'s ' + e.b.n + ' decorations came along.' : e.b.name + ' the ' + ROLE_NOUN[e.b.role] + ' came along, stars and all.') + ' Your career record is in the Ledger.');
+        S.crabs.forEach(function (n, j2) { play(n, ['salute', 'pointUp', 'lookAround'], 2); if (j2 % 2 === 0) say(n, TALK.newSite, 2.2); });
+        break;
       case 'feed': fly('nod', oreSlot(S.ore + 1), clawPos(a, -1), 0.3); fly('nod', oreSlot(S.ore), clawPos(a, -1), 0.36); break;
       case 'bar': p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars' }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); if (Math.random() < 0.35) play(a, ['clap', 'flex'], 1.2); break;
       case 'grab': fly('bar', barSlot(S.bars), clawPos(a, -1), 0.26); break;
@@ -629,6 +646,9 @@
         break;
       case 'build': p = buildSpot(a); if (p) { poof(p.x, p.y, 14, 1, pal.sandLine); spark(p.x, p.y - 10, 10, pal.hat); }
         S.crabs.forEach(function (n) {
+          if (a === 'kelp' && (n.role === 'scout' || n.role === 'drill')) play(n, ['sparkleEyes', 'pointUp', 'jazz'], 2);
+          if (a === 'belt' && n.role === 'haul') play(n, ['cheer', 'backflip', 'jazz'], 2);
+          if (a === 'pad' && n.role !== 'energy') play(n, ['sparkleEyes', 'clap'], 1.6);
           if (a === 'den' || a === 'lamp' || (a === 'field' && (n.role === 'scout' || n.role === 'drill')) || (a === 'engine' && n.role === 'energy') || (a === 'riser' && n.role === 'smelt') || (a === 'bits' && n.role === 'drill') || (a === 'yard' && (n.role === 'haul' || n.role === 'crush')) || (a === 'scanner' && n.role === 'scout')) play(n, a === 'engine' ? 'disco' : a === 'lamp' ? ['sparkleEyes', 'pointUp', 'clap'] : ['cheer', 'jazz', 'clap'], 2);
         });
         break;
@@ -642,6 +662,9 @@
     if (id === 'field') { px = X(300); return { x: px, y: groundY(px, S.lv.field === 1 ? 0.5 : 0.18) }; }
     if (id === 'den') { px = X(S.pos.WORKSHOP); return { x: px, y: groundY(px, 0.93) }; }
     if (id === 'lamp') { px = lampPos(); return { x: px.x, y: px.y - 20 * CS }; }
+    if (id === 'kelp') { px = X(75); return { x: px, y: groundY(px, 0.85) - 20 * CS }; }
+    if (id === 'belt') { px = beltPoint((K.BELT_HEAD + S.pos.BELT_END) / 2); return { x: px.x, y: px.y }; }
+    if (id === 'pad') { px = padPos(); return { x: px.x, y: px.y - 6 * CS }; }
     return null;
   }
 
@@ -1094,7 +1117,8 @@
   var DECOR_NAMES = { shellGarland: 'shell garland', seaGlass: 'sea-glass mosaic', cairn: 'pebble cairn', kelpWreath: 'kelp wreath',
     coral: 'coral sculpture', sandCastle: 'sand castle', noduleTotem: 'nodule totem', trophy: 'rank trophy', pearlLamp: 'pearl lamp',
     inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp', lanterns: 'string of festival lanterns',
-    brassBell: 'brass ship\'s bell', goldAnchor: 'golden anchor', contractPlaque: 'contract plaque', shipWheel: 'ship\'s wheel' };
+    brassBell: 'brass ship\'s bell', goldAnchor: 'golden anchor', contractPlaque: 'contract plaque', shipWheel: 'ship\'s wheel',
+    kelpRope: 'kelp-rope garland', kelpHammock: 'kelp hammock', kelpLantern: 'kelp lantern' };
   var PET_NAMES = { slug: 'sea slug', babyOcto: 'baby octopus', starfish: 'starfish', snail: 'sea snail' };
   var DEN_S = 2;                         // the den is drawn at twice the scale of the crabs: four times the house
   function decorSlot(i) {                // decorations ring the den on the sand, nearest first
@@ -1188,6 +1212,22 @@
         ctx.fillStyle = '#8a6a4a'; ctx.fillRect(-9, -15, 18, 12); ctx.fillStyle = pal.ingot; ctx.fillRect(-7.5, -13.5, 15, 9);
         ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.7; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-5.5, -11.5 + i * 2.6); ctx.lineTo(5.5, -11.5 + i * 2.6); ctx.stroke(); }
         ctx.fillStyle = pal.crab; ctx.beginPath(); ctx.arc(4.5, -6.5, 1.3, 0, TAU); ctx.fill();
+        break;
+      case 'kelpRope':                   // the kelp forest's pieces: a twisted rope swag, a hammock between posts, a lantern in a kelp cage
+        ctx.strokeStyle = pal.weed; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-9, -13); ctx.quadraticCurveTo(0, -3, 9, -13); ctx.stroke();
+        ctx.strokeStyle = pal.weed2; ctx.lineWidth = 0.8; for (i = 0; i < 6; i++) { var rx = -7.5 + i * 3, ry = -12.2 + 8 * (1 - Math.pow((rx) / 9, 2)) * 0.95; ctx.beginPath(); ctx.moveTo(rx - 1, ry - 1.5); ctx.lineTo(rx + 1, ry + 1.5); ctx.stroke(); }
+        ctx.fillStyle = '#ffd1dc'; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(-6 + i * 6, -11 + (i === 1 ? 4 : 1.5), 1.6, 0, TAU); ctx.fill(); }
+        break;
+      case 'kelpHammock':
+        ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-10, -12); ctx.moveTo(10, 0); ctx.lineTo(10, -12); ctx.stroke();
+        ctx.strokeStyle = pal.weed; ctx.lineWidth = 1.2; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-10, -11); ctx.quadraticCurveTo(0, -4 + i * 1.6, 10, -11); ctx.stroke(); }
+        ctx.strokeStyle = pal.weed2; ctx.lineWidth = 0.8; for (i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-6 + i * 4, -9.6 + Math.abs(i - 1.5) * -1.2 + 3); ctx.lineTo(-6 + i * 4, -9.6 + Math.abs(i - 1.5) * -1.2 + 6.2); ctx.stroke(); }
+        break;
+      case 'kelpLantern':
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -16); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,230,150,' + (0.15 + 0.45 * nightA).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(0, -11, 5.5, 0, TAU); ctx.fill();
+        ctx.strokeStyle = pal.weed; ctx.lineWidth = 1.1; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.ellipse(0, -11, 1.2 + i * 1.4, 4.2, 0, 0, TAU); ctx.stroke(); }
+        ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.arc(0, -11, 1.4, 0, TAU); ctx.fill();
         break;
       case 'shipWheel':
         ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -6); ctx.stroke();
@@ -1473,6 +1513,80 @@
     ctx.globalAlpha = a; ctx.fillStyle = pal.lavaHot; ctx.beginPath(); ctx.ellipse(p.x, p.y - 16 * s, 4.5 * s, 1.6 * s, 0, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(255,200,120,' + (0.25 + 0.15 * Math.sin(T * 3)).toFixed(2) + ')'; ctx.beginPath(); ctx.ellipse(p.x, p.y - 17 * s, 7 * s, 3 * s, 0, 0, TAU); ctx.fill();
     ctx.restore();
+  }
+  function beltPoint(lx) { var px = X(lx); return { x: px, y: groundY(px, K.BELT_D) - 5 * scaleAt(K.BELT_D) }; }   // a point on the conveyor's band
+  function drawBelt() {                // the ore conveyor: a band on rollers from the field's edge to the ore pile, nodules riding it
+    if (!S.lv.belt) return;
+    var s = scaleAt(K.BELT_D), x0 = X(K.BELT_HEAD), x1 = X(S.pos.BELT_END), y = groundY(X(K.BELT_HEAD), K.BELT_D), i, px, off = (T * K.BELT_SPEED * (X(1) - X(0))) % (8 * s);
+    ctx.save(); ctx.lineCap = 'round';
+    for (px = x0 + 6 * s; px < x1; px += 22 * s) { ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.4 * s; ctx.beginPath(); ctx.moveTo(px, y - 3 * s); ctx.lineTo(px, y + 1 * s); ctx.stroke(); }   // legs
+    ctx.fillStyle = pal.mechDark; roundRect(x0 - 4 * s, y - 8 * s, x1 - x0 + 8 * s, 5 * s, 2.5 * s); ctx.fill();   // the band
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 2 * s, y - 8 * s, x1 - x0 + 4 * s, 5 * s); ctx.clip();                   // ridges moving along it
+    ctx.strokeStyle = pal.metal; ctx.lineWidth = 1; ctx.globalAlpha = 0.6;
+    for (px = x0 - 8 * s + off; px < x1 + 8 * s; px += 8 * s) { ctx.beginPath(); ctx.moveTo(px, y - 8 * s); ctx.lineTo(px - 2 * s, y - 3 * s); ctx.stroke(); }
+    ctx.restore();
+    ctx.fillStyle = pal.metal; ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1;                                 // the end rollers
+    ctx.beginPath(); ctx.arc(x0 - 4 * s, y - 5.5 * s, 3 * s, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x1 + 4 * s, y - 5.5 * s, 3 * s, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.arc(x0 - 4 * s + Math.cos(T * 4) * 1.2 * s, y - 5.5 * s + Math.sin(T * 4) * 1.2 * s, 0.8 * s, 0, TAU); ctx.fill();
+    for (i = 0; i < S.belt.length; i++) drawNod(X(S.belt[i].x), y - 9.5 * s, 3.4 * s, 1, i * 0.7 + S.belt[i].x * 0.05);   // the nodules riding it
+    ctx.restore();
+  }
+  function padPos() { var px = X(S.pos.PAD); return { x: px, y: groundY(px, K.PAD_D), s: scaleAt(K.PAD_D) }; }
+  function drawPad() {                 // the charging pad: a disc with rings and a bolt, glowing while a crab stands on it
+    if (!S.lv.pad) return;
+    var p = padPos(), s = p.s, on = false, i, lv = S.lv.pad, pulse = 0.5 + 0.5 * Math.sin(T * 3);
+    for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].onPad) { on = true; break; }
+    ctx.save(); ctx.translate(p.x, p.y);
+    if (on) { ctx.fillStyle = pal.light; ctx.globalAlpha = 0.18 + 0.12 * pulse; ctx.beginPath(); ctx.ellipse(0, 0, 26 * s, 9 * s, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; }
+    ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.ellipse(0, 0, 19 * s, 6.5 * s, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = pal.metal; ctx.beginPath(); ctx.ellipse(0, -0.8 * s, 17 * s, 5.5 * s, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = on ? pal.light : pal.energy; ctx.lineWidth = 1.2 * s; ctx.globalAlpha = on ? 0.6 + 0.4 * pulse : 0.7;
+    for (i = 1; i <= lv + 1; i++) { ctx.beginPath(); ctx.ellipse(0, -0.8 * s, (5 + i * 4.5) * s, (1.6 + i * 1.4) * s, 0, 0, TAU); ctx.stroke(); }
+    ctx.globalAlpha = 1; ctx.fillStyle = on ? pal.light : pal.energy;                                                   // the bolt
+    ctx.beginPath(); ctx.moveTo(1 * s, -4.5 * s); ctx.lineTo(-2 * s, -0.5 * s); ctx.lineTo(0.3 * s, -0.5 * s); ctx.lineTo(-1 * s, 3 * s); ctx.lineTo(2.2 * s, -1.2 * s); ctx.lineTo(0, -1.2 * s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // The kelp forest at the field's left end: tall fronds on every dune, behind and in front of whoever walks through,
+  // swaying with the water and parting round a crab. Roped off with a paper tag until it is claimed.
+  function drawKelp(k, front) {
+    var i, w, by, px, h, sway, near2, j, c, seg, f, x, y;
+    for (i = 0; i < kelp.length; i++) {
+      w = kelp[i]; if (w.k !== k || w.front !== front) continue;
+      px = X(w.x); by = groundY(px, w.d); h = w.h * CS; near2 = 0;
+      for (j = 0; j < S.crabs.length; j++) { c = S.crabs[j]; if (Math.abs(c.x - w.x) < 14 && Math.abs(c.d - w.d) < 0.08 && c.moving) { near2 = 1; break; } }
+      w.sw += ((near2 ? 2.2 : 1) - w.sw) * 0.08;
+      sway = w.amp * w.sw * CS;
+      ctx.strokeStyle = pal.weed; ctx.lineWidth = 2.2 * CS; ctx.lineCap = 'round'; ctx.globalAlpha = front ? 0.85 : 0.95;
+      ctx.beginPath(); ctx.moveTo(px, by);
+      for (seg = 1; seg <= 7; seg++) { f = seg / 7; x = px + Math.sin(T * 0.9 * w.sw + w.ph + f * 2.2) * sway * f * f; y = by - h * f; ctx.lineTo(x, y); }
+      ctx.stroke();
+      ctx.fillStyle = pal.weed2; ctx.globalAlpha = front ? 0.7 : 0.8;                       // the blades
+      for (seg = 2; seg <= 7; seg++) {
+        f = seg / 7; x = px + Math.sin(T * 0.9 * w.sw + w.ph + f * 2.2) * sway * f * f; y = by - h * f;
+        ctx.save(); ctx.translate(x, y); ctx.rotate((seg % 2 ? 1 : -1) * (0.7 + 0.3 * Math.sin(T * 1.3 + w.ph + seg)));
+        ctx.beginPath(); ctx.ellipse(0, -5 * CS, 2.2 * CS, 6 * CS, 0, 0, TAU); ctx.fill(); ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawKelpTag() {             // the rope and tag while the kelp forest is unclaimed
+    if (sim.up('kelp')) { delete lockHit.kelp; return; }
+    var x1 = X(K.KELP1), px, cost = sim.upgradeCost('kelp'), tag = 'Kelp forest: claim for $' + cost, ty, tw, gy, d;
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.8;        // a rope down the forest's edge on the front dune
+    ctx.beginPath();
+    for (d = 0.7; d <= 0.97; d += 0.054) { gy = groundY(x1, d); if (d === 0.7) ctx.moveTo(x1, gy - 9 * CS); else ctx.quadraticCurveTo(x1 + 5 * CS, gy - 2 * CS, x1, gy - 9 * CS); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    px = X(75); ty = groundY(px, 0.86);
+    ctx.font = '700 ' + Math.round(11 * CS + 1) + 'px ' + cssFont; tw = ctx.measureText(tag).width + 14 * CS;
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px, ty + 14 * CS); ctx.lineTo(px, ty - 6 * CS); ctx.stroke();
+    ctx.save(); ctx.translate(px, ty - 14 * CS); ctx.rotate(0.03);
+    ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+    ctx.fillStyle = pal.paper || '#f5fafa'; ctx.fillRect(-tw / 2, -10 * CS, tw, 18 * CS);
+    ctx.shadowColor = 'transparent'; ctx.fillStyle = pal.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(tag, 0, -1 * CS);
+    ctx.restore();
+    lockHit.kelp = { x0: px - tw / 2, x1: px + tw / 2, y0: ty - 26 * CS, y1: ty + 16 * CS };
   }
   function lampPos() { var px = X(K.LAMP_X); return { x: px, y: groundY(px, K.LAMP_D), s: scaleAt(K.LAMP_D) }; }
   function drawLamp() {                // the lighthouse lamp: a little striped tower at the field's edge with a lantern room on top
@@ -2727,7 +2841,7 @@
     var t = {
       scout: { go: 'heading out to scan', scan: 'scanning for metal', rest: 'resting: plenty of flags already' },
       drill: { go: c.flag ? 'walking to a flag' : 'no flags, so drilling blind', drill: 'drilling', rest: 'resting: the sand is littered' },
-      haul: { seek: c.target ? 'fetching a nodule' : 'looking for nodules', pick: 'picking up a nodule', haul: 'carrying nodules to the ore pile', stack: S.ore >= sim.oreCap() ? 'waiting: the ore pile is full' : 'stacking the ore pile' },
+      haul: { seek: c.target ? 'fetching a nodule' : 'looking for nodules', pick: 'picking up a nodule', haul: S.lv.belt ? 'carrying nodules to the conveyor' : 'carrying nodules to the ore pile', stack: S.lv.belt ? (S.belt.length >= K.BELT_CAP ? 'waiting: the conveyor is full' : 'dropping nodules on the conveyor') : S.ore >= sim.oreCap() ? 'waiting: the ore pile is full' : 'stacking the ore pile' },
       crush: { home: 'walking to the press', wait: 'waiting for two nodules', crush: 'crushing nodules into a bar', hold: 'waiting: the bar stack is full' },
       smelt: { toBar: 'walking to the bar stack', grab: S.bars ? 'grabbing a bar' : 'waiting for bars', toLava: 'carrying a bar to the lava', smelt: 'smelting in the lava', toStock: 'carrying an ingot to the stockpile', drop: 'stacking an ingot' },
       energy: { idle: 'standing by', go: 'running to recharge a crab', charge: 'recharging a crab', toEngine: 'heading to the Stirling engine', queue: 'queuing at the engine', refill: S.heat < 1 ? 'waiting: the engine is out of charge' : 'charging up at the engine' },
@@ -2741,6 +2855,8 @@
       c.air.phase === 'walk' ? 'heading for the thermal vent' : (c.air.phase === 'rise' ? 'floating up the thermal vent' : 'swimming down the current');
     if (sim.isHeld(c)) t = 'being repaired';
     if (c.apprentice) t += ' · apprentice, half pace, graduates in ' + fmtTime(c.apprentice.until - S.t);
+    if (c.onPad) t += ' · on the charging pad';
+    if (sim.inKelp(c.x)) t += ' · in the kelp';
     if (c.limp) t += ' (lost a leg)';
     if (c.role === 'drill' && !c.bitOk) t += ' (bit broken)';
     if (c.role === 'energy' && c.broken) t += ' (worn out)';
@@ -2794,6 +2910,8 @@
     layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
     layers[2].push({ y: groundY(X(S.pos.DEN), 0.82), kind: 3, f: drawDen });
     if (S.lv.lamp) layers[2].push({ y: lampPos().y, kind: 3, f: drawLamp });
+    if (S.lv.belt) layers[2].push({ y: groundY(X(K.BELT_HEAD), K.BELT_D) - 0.5, kind: 3, f: drawBelt });
+    if (S.lv.pad) layers[2].push({ y: padPos().y - 6 * CS, kind: 3, f: drawPad });
     for (i = 0; i < S.pets.length; i++) layers[2].push({ y: petY(S.pets[i]) + 0.02, kind: 3, f: drawPet.bind(null, S.pets[i]) });
     layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
@@ -2802,6 +2920,7 @@
       if (k === 0) { drawWeeds(0); drawRidge(); }
       if (k === 2) { drawCavern(); drawVent(); drawChimney(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }
       if (k > 0) drawLocked(k);
+      drawKelp(k, false);
       list = layers[k];
       list.sort(function (a, b) { return a.y - b.y; });
       for (i = 0; i < list.length; i++) {
@@ -2811,7 +2930,8 @@
         else if (o.kind === 2) drawCrab(o.o);
         else o.f();
       }
-      if (k === 2) { drawWires(); drawOcto(); }
+      drawKelp(k, true);
+      if (k === 2) { drawKelpTag(); drawWires(); drawOcto(); }
     }
     drawPasses(); drawTideCurrents(); drawWhaleShadow(); drawInk();
     drawRings(); drawFlights();
@@ -2848,13 +2968,16 @@
     engine: { name: 'Stirling engine', fx: function (v) { return v + ' charges a minute from the lava'; } },
     riser: { name: 'Riser pump', fx: function (v) { return 'Sends an ingot up every ' + v + ' s (up to ' + Math.round(60 / v) + ' a minute)'; } },
     yard: { name: 'Bigger yard', fx: function (v) { return 'Ore pile holds ' + K.ORE_CAP[v] + ', bar stack ' + K.BAR_CAP[v]; } },
-    lamp: { name: 'Lighthouse lamp', fx: function (v) { return v ? 'Lights ' + v + ' units around the field\'s edge at night: tired crabs there are not slowed by the dark' : 'No lamp: tired crabs work at half speed in the dark'; } }
+    lamp: { name: 'Lighthouse lamp', fx: function (v) { return v ? 'Lights ' + v + ' units around the field\'s edge at night: tired crabs there are not slowed by the dark' : 'No lamp: tired crabs work at half speed in the dark'; } },
+    kelp: { name: 'Kelp forest claim', fx: function (v) { return v ? 'The kelp at the field\'s left end is yours: deposits there are richer (+0.1) and bigger (+1 nodule), walking through the fronds is slow, and idle crabs weave kelp pieces for the den' : 'The kelp forest at the field\'s left end is roped off'; } },
+    belt: { name: 'Ore conveyor', fx: function (v) { return v ? 'A belt from the field\'s edge to the ore pile: haulers drop nodules on it and turn straight back' : 'Haulers walk every nodule all the way to the ore pile'; } },
+    pad: { name: 'Charging pad', fx: function (v) { return v ? 'Crabs standing on it (between the ore pile and the crushing yard) charge ' + (v * 100).toFixed(1) + '% a second by themselves' : 'Only energy bots charge crabs'; } }
   };
   var STAGE_NAME = { scout: 'Scouting', drill: 'Drilling', haul: 'Hauling', crush: 'Crushing', smelt: 'Smelting', sell: 'Selling' };
   var ui = {
     aOcto: $('a-octo'), aEel: $('a-eel'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), aContract: $('a-contract'), aContractLabel: $('a-contract-label'),
     contract: $('h-contract'), contractN: $('h-contract-n'), contractT: $('h-contract-t'), contractBar: $('h-contract-bar'),
-    contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
+    contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), siteTech: $('site-tech'), siteTechBtn: $('site-tech-btn'), siteDecorBtn: $('site-decor-btn'), siteCrabBtn: $('site-crab-btn'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
@@ -3174,7 +3297,7 @@
     ui.rMinus.disabled = S.reserve <= 0; ui.rPlus.disabled = S.reserve >= 12;
     ui.advice.innerHTML = advice();
     var si = sim.shiftInfo();
-    ui.shift.textContent = 'Day ' + si.day + (S.festival ? ' festival' : '') + ' · ' + clock(si.hour) + (si.night ? ' night' : '') + (si.periods > 1 ? ' · ' + si.name : '');
+    ui.shift.textContent = (S.site > 1 ? 'Site ' + S.site + ' · ' : '') + 'Day ' + si.day + (S.festival ? ' festival' : '') + ' · ' + clock(si.hour) + (si.night ? ' night' : '') + (si.periods > 1 ? ' · ' + si.name : '');
     ui.shiftLeft.textContent = (si.periods > 1 ? SHIFT_INFO[S.shift].short + ' · ' + Math.ceil(si.left / (K.DAY / 24)) + ' h to change' : SHIFT_INFO[S.shift].name) + ' · ' + (S.storm ? 'storm!' : S.lavaSurge ? 'lava surge!' : S.tide > 0.75 ? 'high tide' : S.tide < -0.75 ? 'low tide' : S.tide > 0 ? 'tide rising' : 'tide falling');
     ui.flow.textContent = '×' + sim.flowMult().toFixed(2);
     ui.flowNote.textContent = (S.festival ? 'festival: bonus doubled · ' : '') + (S.streak ? S.streak + ' deliveries in a row' : 'deliver steadily');
@@ -3294,6 +3417,8 @@
       '<tr><th scope="row">Thermal vent</th><td class="n">' + r.rides.toFixed(1) + ' rides a minute</td></tr>' +
       '<tr><th scope="row">Lighthouse lamp</th><td class="n">' + (S.lv.lamp ? 'lights ' + sim.up('lamp') + ' units; ' + Math.round(S.stat.lampLit) + ' s of tired crabs working at full speed in its light' : 'not built (Build tab)') + '</td></tr>' +
       '<tr><th scope="row">Apprentices</th><td class="n">' + S.stat.apprentices + ' hired, ' + S.stat.graduates + ' graduated, ' + S.crabs.filter(function (c2) { return c2.apprentice; }).length + ' learning now</td></tr>' +
+      '<tr><th scope="row">Ore conveyor</th><td class="n">' + (S.lv.belt ? S.stat.belted + ' nodules ridden to the pile, ' + S.belt.length + ' on the belt now' : 'not built (Build tab)') + '</td></tr>' +
+      '<tr><th scope="row">Charging pad</th><td class="n">' + (S.lv.pad ? S.stat.padCharge.toFixed(1) + ' batteries\' worth given, ' + S.crabs.filter(function (c2) { return c2.onPad; }).length + ' crab' + (S.crabs.filter(function (c2) { return c2.onPad; }).length === 1 ? '' : 's') + ' on it now' : 'not built (Build tab)') + '</td></tr>' +
       '</tbody></table>';
     var cov = sim.coverage(), ri, si2, cell;
     html += '<h3>Shifts: crabs on duty in each part of the day</h3><table class="ltable"><thead><tr><th scope="col">Role</th>';
@@ -3338,7 +3463,13 @@
       '<tr><th scope="row">Surface news</th><td class="n">' + S.stat.news + ' headlines, ' + (S.stat.newsCredits < 0 ? '−' : '+') + money(Math.abs(S.stat.newsCredits)) + ' from booms and gluts' + (S.news ? ' (' + S.news.kind + ' now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Contracts</th><td class="n">' + S.stat.contractsFilled + ' filled, ' + S.stat.contractsFailed + ' run out, ' + (S.stat.contracts - S.stat.contractsFilled - S.stat.contractsFailed - (S.contract ? 1 : 0)) + ' let lapse; ' + money(S.stat.contractCredits) + ' earned' + (S.contract ? (S.contract.state === 'offer' ? ' (one on offer now)' : ' (' + S.contract.got + ' of ' + S.contract.need + ' under way)') : '') + '</td></tr>' +
       '<tr><th scope="row">Hydrothermal chimney</th><td class="n">' + S.stat.chimneys + ' opened, ' + S.stat.chimneyRides + ' rides' + (S.chimney ? ' (open now at ' + S.chimney.x + ', ' + fmtTime(S.chimney.until - S.t) + ' left)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Kelp forest</th><td class="n">' + (S.lv.kelp ? S.stat.kelpFlags + ' deposits flagged in it (richer by 0.1, a nodule bigger)' : 'roped off; claim it in the Build tab') + '</td></tr>' +
       '</tbody></table>';
+    if (S.site > 1 || S.rank >= K.RANKS.length - 1) {
+      html += '<h3>Career</h3><p class="note">' + (S.site > 1 ? 'Dig site ' + S.site + '. Before it: ' + S.career.sites + ' site' + (S.career.sites === 1 ? '' : 's') + ', ' + money(S.career.earned) + ' earned and ' + S.career.sold.toLocaleString('en-US') + ' ingots sold in ' + fmtTime(S.career.time) + ' of crab time. Carried over: ' +
+        S.perks.map(function (p2) { return p2.kind === 'tech' ? TECH_INFO[p2.id].name : p2.kind === 'decor' ? p2.n + ' decorations' : p2.name + ' the ' + ROLE_NOUN[p2.role] + ' ' + '★'.repeat(p2.stars); }).join(', ') + '.' : 'Crab Tycoon on the first site.') +
+        (S.rank >= K.RANKS.length - 1 ? ' <button type="button" class="mini wide" data-site>Start a new dig site…</button>' : '') + '</p>';
+    }
     html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Flow</th><td class="n">×' + sim.flowMult().toFixed(2) + ' on sales, ' + S.streak + ' in a row' + (S.festival ? ' (festival day: doubled)' : '') + '</td></tr>' +
       '<tr><th scope="row">Festival days</th><td class="n">' + S.stat.festivals + ' so far' + (S.festival ? ', today!' : '; the next is day ' + (Math.floor(S.day / K.FESTIVAL_EVERY) + 1) * K.FESTIVAL_EVERY) + '</td></tr>' +
@@ -3427,7 +3558,7 @@
     }
     K.ROLES.forEach(function (k) { if (n[k]) crew.push(n[k] + ' ' + (n[k] === 1 ? NAMES[k] : NAMES[k] + 's').toLowerCase()); });
     g.rate.forEach(function (p) { bestRate = Math.max(bestRate, p.v); });
-    return ['🦀 Crabminer, day ' + S.day + ': ' + K.RANKS[S.rank][1],
+    return ['🦀 Crabminer, ' + (S.site > 1 ? 'dig site ' + S.site + ', ' : '') + 'day ' + S.day + ': ' + K.RANKS[S.rank][1],
       money(S.earned) + ' earned in ' + fmtTime(S.t) + ' of crab time',
       ranks.length ? 'Ranks: ' + ranks.join(' · ') : 'No rank-ups yet',
       'Crew of ' + S.crabs.length + ': ' + crew.join(', '),
@@ -3512,9 +3643,32 @@
   function showWin() {
     var secs = S.t;
     if (!best || secs < best) { best = secs; try { localStorage.setItem('crabminer-best', String(best)); } catch (e) { /* storage may be unavailable */ } }
-    ui.winText.textContent = 'You earned ' + money(K.RANKS[K.RANKS.length - 1][0]) + ' in ' + fmtTime(secs) + ' of crab time, with ' + S.crabs.length + ' crabs and ' + S.stat.sold + ' ingot' + (S.stat.sold === 1 ? '' : 's') + ' sold. Your best time is ' + fmtTime(best) + '. Crab profit!';
+    ui.winText.textContent = (S.site > 1 ? 'Dig site ' + S.site + ': you' : 'You') + ' earned ' + money(K.RANKS[K.RANKS.length - 1][0]) + ' in ' + fmtTime(secs) + ' of crab time, with ' + S.crabs.length + ' crabs and ' + S.stat.sold + ' ingot' + (S.stat.sold === 1 ? '' : 's') + ' sold. Your best time is ' + fmtTime(best) + '. Crab profit!';
+    renderSiteOptions();
     ui.win.hidden = false;
     $('win-keep').focus();
+  }
+  function bestCrab() {                 // the crab worth carrying to a new site: most stars, then most jobs
+    return S.crabs.slice().sort(function (a, b) { return b.stars - a.stars || b.rec.jobs - a.rec.jobs; })[0] || null;
+  }
+  function renderSiteOptions() {        // the new-site perks on the win card: one technology, the den's decorations, or the best crab
+    var techs = Object.keys(K.TECH).filter(function (id) { return S.tech[id]; }), c = bestCrab();
+    ui.siteTech.innerHTML = techs.length ? techs.map(function (id) { return '<option value="' + id + '">' + TECH_INFO[id].name + '</option>'; }).join('') : '<option value="">No technology researched</option>';
+    ui.siteTech.disabled = ui.siteTechBtn.disabled = !techs.length;
+    ui.siteDecorBtn.disabled = !S.decor.length;
+    ui.siteDecorBtn.textContent = S.decor.length ? 'Keep the den\'s ' + S.decor.length + ' decoration' + (S.decor.length === 1 ? '' : 's') : 'No decorations to keep';
+    ui.siteCrabBtn.disabled = !c;
+    ui.siteCrabBtn.textContent = c ? 'Keep ' + c.name + ' the ' + ROLE_NOUN[c.role] + (c.stars ? ' ' + '★'.repeat(c.stars) : '') : 'No crab to keep';
+  }
+  function startSite(perk) {            // start a new dig site with the perk, and show it
+    var r = sim.newSite(perk);
+    if (r !== true) { toast('No new site yet', r === 'rank' ? 'Reach Crab Tycoon first.' : 'That perk is not available.'); return; }
+    S = sim.state(); talkCount = {}; freshView(); selected = null;
+    sim.drain().forEach(handle);
+    ui.win.hidden = true;
+    renderPanel(); renderHUD(); renderRoster(); if (!$('p-ledger').hidden) renderLedger();
+    if (stage.scrollWidth > stage.clientWidth) stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * 0.55;
+    saveGame();
   }
   function setSpeed(v) { speed = v; renderHUD(); }
   function setBig(on) {                 // big playfield: the stage fills the screen and the sand fills its lower half
@@ -3622,7 +3776,13 @@
     $('readmore').addEventListener('click', function () { ui.intro.hidden = true; if (!started) { started = true; newGame(); setSpeed(0); } });
     $('win-keep').addEventListener('click', function () { ui.win.hidden = true; });
     $('win-share').addEventListener('click', copySummary);
-    ui.ledger.addEventListener('click', function (e) { if (e.target.closest('[data-share]')) copySummary(); });
+    ui.siteTechBtn.addEventListener('click', function () { startSite({ kind: 'tech', id: ui.siteTech.value }); });
+    ui.siteDecorBtn.addEventListener('click', function () { startSite({ kind: 'decor' }); });
+    ui.siteCrabBtn.addEventListener('click', function () { var c = bestCrab(); if (c) startSite({ kind: 'crab', id: c.id }); });
+    ui.ledger.addEventListener('click', function (e) {
+      if (e.target.closest('[data-share]')) copySummary();
+      if (e.target.closest('[data-site]')) { setSpeed(0); showWin(); }
+    });
     $('win-new').addEventListener('click', function () { ui.win.hidden = true; newGame(); });
     document.addEventListener('keydown', function (e) {
       if (e.target.closest && e.target.closest('input, select, textarea')) return;
@@ -3687,9 +3847,9 @@
       if (bestC && bd < 26 * CS) { selected = bestC; selectedUntil = T + 5; return; }
       for (z in lockHit) {
         c = lockHit[z];
-        if (z >= sim.up('field') && x >= c.x0 && x <= c.x1 && y >= c.y0 && y <= c.y1) {
+        if ((z === 'kelp' || z >= sim.up('field')) && x >= c.x0 && x <= c.x1 && y >= c.y0 && y <= c.y1) {
           selectTab('t-build');
-          var card = ui.cards.querySelector('[data-up="field"]');
+          var card = ui.cards.querySelector('[data-up="' + (z === 'kelp' ? 'kelp' : 'field') + '"]');
           card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
           card.scrollIntoView({ block: 'nearest' });
           return;

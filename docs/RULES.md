@@ -216,6 +216,7 @@ about the anvil and the post rather than in a row.
   | Climbing a dune lip | ×0.5 |
   | Storm | ×0.85 |
   | Night, unrested, outside the plankton light and the lighthouse lamp's light | ×0.5 |
+  | In the kelp forest (x under 130) | ×0.7 |
 
 - They speed up with:
 
@@ -386,6 +387,8 @@ are slow haulers.
     | Festival day | String of festival lanterns (not inspired: given outright, even to a full den) |
     | Contract filled | A brass ship's bell, then a golden anchor, a contract plaque and a ship's wheel, in turn (given outright, like the lanterns) |
 
+  - With the kelp forest claimed (section 14), the everyday pieces also include a kelp-rope garland, a kelp hammock and a kelp lantern.
+
 ## 13. Money
 
 - **Metal price.** It centres on 12 credits per ingot and moves within 6.6 to 18. A slow swell (±18% over 150 s), a faster ripple (±7% over 43 s), and a seeded random walk (up to ±15%) set it.
@@ -395,7 +398,8 @@ are slow haulers.
   - **Filling it** pays 5 credits an ingot, plus 10% per reputation star at the time of the offer (a 40-ingot contract with two stars pays 240), counting toward rank, and the den gets a unique decoration (section 12).
   - **Running out** costs a reputation star, like a missed order.
   - **Letting it lapse** (the button, or the 90 s passing) costs nothing. The Ledger counts contracts filled, run out and let lapse, and the credits earned.
-- **Achievements.** Twenty-four, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), and Crab Tycoon.
+- **A new dig site.** Once you are Crab Tycoon, the win card (and a button in the Ledger's Career note) offers a new dig site: fresh dunes with a new random stream, the starting crew, the same workday, and **one perk** carried over: a technology you researched (chosen from a list), the den's decorations (all of them, beyond the den's room if need be), or your best crab (most stars, then most jobs) with its name, record, stars and mood. Everything else starts over, achievements included. The site number shows in the top bar and the run summary, and the Ledger's Career note keeps the sites, credits, ingots and crab time before this one and what came along. New game under ? starts site 1 again.
+- **Achievements.** Twenty-eight, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), forester (20 deposits flagged in the kelp forest), belt and braces (200 nodules ridden on the conveyor), self-service (10 batteries' worth from the charging pad), second claim (a new dig site), and Crab Tycoon.
 - **Flow bonus.** An ingot sold within 6 s of the last keeps the flow going. Each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow.
 - **Overclock.**
   - Every sale banks 0.6 s of overclock, multiplied by (1 + streak / 10), up to 30 s.
@@ -434,8 +438,14 @@ are slow haulers.
 | Riser pump | One ingot every 3.0, 1.8, 1.0 s | 100, 300 |
 | Bigger yard | Ore pile 15/24/36, bar stack 10/16/24 | 90, 240 |
 | Lighthouse lamp | Lights 120, then 220 units around the field's edge at night | 220, 520 |
+| Kelp forest claim | The field's left end (x 20 to 130) opens for mining | 350 |
+| Ore conveyor | A belt from the field's edge to the ore pile | 300 |
+| Charging pad | Crabs on it charge 0.8%, then 1.6% a second | 180, 420 |
 
 - **The lighthouse lamp.** A striped tower at the field's edge (x = 548, depth 0.74), between the den and the near field. At night it lights the sand within its reach (120 units along the track, or across the dunes at 300 units a dune's depth; 220 at the second level): a tired crab in its light works and walks at full speed, as in the plankton light (section 17), and its light shows warm rather than blue-green. The Ledger counts the crab-seconds of night work it lit.
+- **The kelp forest claim.** The field's left end, from 20 to 130 along the track on every dune, is a stand of kelp, roped off with a paper tag (click it to jump to the card). Scouts do not scan there until it is claimed, so the open field is 400 units wide until then. Claimed, it is part of every claimed dune: a deposit flagged in it is richer by 0.1 (up to 0.97) and one nodule bigger, walking through the fronds is at 70% speed (section 6), and idle crabs weave kelp pieces for the den (section 12). The Ledger counts the deposits flagged in it.
+- **The ore conveyor.** A belt from the field's edge (x = 546) to 10 units short of the ore pile, wherever that stands. Haulers (and crabs on the backup job) queue at its head instead of the pile and drop each nodule on it; the belt carries nodules at 60 units a second, 7 units apart, and puts each one on the pile as it arrives. When the pile is full the nodules queue on the belt, up to 14; when the belt is full, or backed up to its head, haulers wait as they would at a full pile. The capacity estimate counts haulers 30% stronger with it.
+- **The charging pad.** A disc halfway between the ore pile and the crushing yard, at depth 0.86. Every crab but an energy bot within 40 units of it (across the dunes at 300 units a depth) charges 0.8% of its battery a second, 1.6% at the second level, working, waiting or idle. Energy bots still come when a battery drops below 60%. The Ledger counts the batteries' worth given.
 ## 15. Research and worker upgrades (Tech tab)
 
 Research a technology to unlock its worker upgrades. A worker upgrade is bought once and
@@ -591,3 +601,5 @@ trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Click the eel | Field | Send it back into its crack |
 | Click the trader | Field | Jump to its goods |
 | Click a locked dune | Field | Jump to the Dune claims upgrade |
+| Click the kelp forest's tag | Field | Jump to the Kelp forest claim |
+| Keep that technology / the den's decorations / your best crab | Win card, or the Ledger's Career note after Crab Tycoon | Start a new dig site with that perk (section 13) |

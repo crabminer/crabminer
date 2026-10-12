@@ -36,10 +36,12 @@ the line, which the advisor and the Ledger tab point out.
   beside a hauler, running hand in hand with an energy bot), or else takes the hauling backup
   job; tired crabs dig themselves into the sand to sleep. Each kind walks at
   its own speed.
-- **Progression:** upgrades (including a lighthouse lamp that lights the field's edge at night), 5 technologies unlocking 20 worker upgrades (including night
-  scouting), movable building plots, and apprentices: half-price crabs at half pace that graduate after a day.
+- **Progression:** upgrades (including a lighthouse lamp that lights the field's edge at night, a kelp forest claim at the
+  field's left end with richer deposits and slow walking, an ore conveyor haulers drop onto, and a charging pad), 5 technologies unlocking 20 worker upgrades (including night
+  scouting), movable building plots, apprentices: half-price crabs at half pace that graduate after a day, and after Crab Tycoon a
+  new dig site with one perk carried over (a technology, the decorations or the best crab) and a career record.
 - **Money and bonuses:** overclock and a flow bonus, a drifting market price with surface news
-  (booms, gluts and rumours that move it for a minute), twenty-four achievements listed in the Ledger, cargo-ship
+  (booms, gluts and rumours that move it for a minute), twenty-eight achievements listed in the Ledger, cargo-ship
   orders with reputation stars, and contracts from the surface (so many ingots in three days, accepted or let lapse,
   paying credits and a unique decoration). From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.

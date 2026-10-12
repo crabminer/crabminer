@@ -36,6 +36,7 @@ function act(sim, r) {
   if (x < 0.94) return sim.overclock(r() < 0.7);
   if (x < 0.95) return sim.shoo();
   if (x < 0.965) return S.contract ? (r() < 0.7 ? sim.acceptContract() : sim.declineContract()) : sim.shooEel();
+  if (x < 0.97) { const c = S.crabs[0]; return sim.newSite([{ kind: 'decor' }, { kind: 'tech', id: 'sonar' }, c ? { kind: 'crab', id: c.id } : { kind: 'decor' }][Math.floor(r() * 3)]); }   // only after Crab Tycoon
   if (S.trader && S.trader.offers) return sim.trade(pick(S.trader.offers));
 }
 

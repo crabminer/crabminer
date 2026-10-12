@@ -44,6 +44,10 @@ function check(sim) {
   // a contract is an offer or under way, never overfilled; the chimney has a spot
   if (S.contract) ok((S.contract.state === 'offer' || S.contract.state === 'on') && S.contract.got <= S.contract.need, 'bad contract: ' + JSON.stringify(S.contract));
   if (S.chimney) ok(K.CHIMNEY_SPOTS.indexOf(S.chimney.x) >= 0 && S.chimney.until > S.chimney.born, 'bad chimney: ' + JSON.stringify(S.chimney));
+  // the conveyor: nodules in order, a gap apart, between its head and the pile, and only when it is built
+  ok(S.belt.length <= K.BELT_CAP && (!S.belt.length || S.lv.belt), 'belt overfull or unbuilt: ' + S.belt.length);
+  for (let i = 0; i < S.belt.length; i++) ok(S.belt[i].x >= K.BELT_HEAD - 1e-6 && S.belt[i].x <= S.pos.BELT_END + 1e-6 && (!i || S.belt[i].x <= S.belt[i - 1].x - K.BELT_GAP + 1e-6), 'belt out of order at ' + i + ': ' + JSON.stringify(S.belt));
+  ok(S.site >= 1 && S.perks.length === S.site - 1, 'site and perks disagree: ' + S.site + ' ' + S.perks.length);
 
   for (const c of S.crabs) {
     ok(!c.gone, 'retired crab still in the crew: ' + who(c));
@@ -71,7 +75,8 @@ function check(sim) {
   const cases = [
     S => { S.ore = -1; }, S => { S.nodules[0].by = ghost; }, S => { S.docks.push(ghost); },
     S => { S.crabs[0].dance = S.crabs[1]; }, S => { S.layout.den = S.layout.ore; }, S => { S.crabs[0].x = NaN; },
-    S => { S.crabs[0].manta = { riders: [] }; }, S => { S.crabs[0].air = { phase: 'rise' }; }, S => { S.contract = { state: 'on', need: 5, got: 6 }; }
+    S => { S.crabs[0].manta = { riders: [] }; }, S => { S.crabs[0].air = { phase: 'rise' }; }, S => { S.contract = { state: 'on', need: 5, got: 6 }; },
+    S => { S.belt.push({ x: 10 }); }, S => { S.site = 3; }
   ];
   cases.forEach((corrupt, i) => {
     sim.load(clean); corrupt(sim.state());

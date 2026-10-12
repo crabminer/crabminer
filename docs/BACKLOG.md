@@ -16,12 +16,8 @@ the moray eel, lending a claw, the closed food web with the fisherman and the gu
 and its lab report, the crushing line of press stations, the two-storey den, a repertoire
 of 119 animations with dances that cheer up the crabs around them, the manta-ray glide, the crab
 festival every tenth day, the den's pets, crab moods, earthquakes, surface news, achievements,
-apprentices, contracts, the hydrothermal chimney and the lighthouse lamp.
-
-## Visitors and the sea
-
-- **Kelp forest claim.** A fourth claimable area on the left that slows walking but grows
-  kelp, a new material for den decorations or a "kelp rope" upgrade.
+apprentices, contracts, the hydrothermal chimney, the lighthouse lamp, the kelp forest claim, the ore
+conveyor, the charging pad and the new dig site after Crab Tycoon.
 
 ## Crew and characters
 
@@ -33,8 +29,6 @@ apprentices, contracts, the hydrothermal chimney and the lighthouse lamp.
 
 - **Metal grades.** Rich flags make "fine" ingots worth 50% more; the smelter keeps them on
   a separate shelf of the stockpile, and the reserve can be set per grade.
-- **Prestige / new dig site.** After Crab Tycoon, start a new site with one permanent perk
-  carried over (a tech, a decoration, a veteran crab). Replay value.
 - **Insurance.** Pay credits up front to have storms and octopus losses refunded; an
   economic choice rather than a reflex.
 
@@ -42,12 +36,8 @@ apprentices, contracts, the hydrothermal chimney and the lighthouse lamp.
 
 - **Second smelting rim.** A buildable lava rim further along the cavern so smelters do not
   queue; a plot-like slot on the cavern side.
-- **Ore conveyor.** A built belt from the field edge to the ore pile that haulers drop onto
-  instead of walking the last stretch.
 - **More plots.** A den upgrade or claim that adds plots on the middle dune for a second
   ore pile near the deep deposits.
-- **Charging pad.** A cheap building next to a busy spot where crabs top up themselves,
-  slowly, without an energy bot.
 
 ## Interface and accessibility
 

@@ -210,6 +210,26 @@ async function check(b, size) {
   await wait(1500);
   await shot('chimney');
 
+  // the kelp claim, the conveyor and the charging pad from the Build tab, and a new dig site from the win card
+  await js('crabminer.state().credits = 5000; crabminer.sim.buy("kelp"); crabminer.sim.buy("belt"); crabminer.sim.buy("pad"); crabminer.sim.drain().forEach(() => 0); const S3 = crabminer.state(); for (let i = 0; i < 8; i++) S3.nodules.push({ x: 500 + i * 4, d: 0.8, alive: true, eddy: -1, by: null }); document.querySelector(\'[data-speed="4"]\').click(); true');
+  for (let i = 0; i < 400 && !(await js('crabminer.state().stat.belted > 0')); i++) await wait(100);   // haulers drop onto the belt and it carries the ore; headless frames can be slow
+  await key('1');
+  expect(await js('crabminer.state().lv.kelp === 1 && crabminer.state().lv.belt === 1 && crabminer.state().lv.pad === 1'), 'the Build tab did not build the kelp claim, the conveyor and the pad');
+  expect(await js('crabminer.state().stat.belted > 0'), 'no nodule rode the conveyor to the pile');
+  await shot('belt');
+  await js('document.getElementById("t-ledger").click(); true'); await wait(600);
+  expect(await js('/Ore conveyor/.test(document.getElementById("ledger").textContent) && /Kelp forest/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no conveyor or kelp rows');
+  await js('const S2 = crabminer.state(); S2.rank = 5; S2.earned = 7000; S2.tech.sonar = true; document.getElementById("t-ledger").click(); true'); await wait(1200);
+  await js('document.querySelector("#ledger [data-site]").click(); true');
+  expect(await js('!document.getElementById("win").hidden && !document.getElementById("site-tech-btn").disabled'), 'the Ledger did not open the new-site card with a technology to keep');
+  const site1 = await js('crabminer.state().site');
+  await js('document.getElementById("site-tech-btn").click(); true');
+  expect(await js('crabminer.state().site') === site1 + 1 && await js('crabminer.state().tech.sonar === true && crabminer.state().t < 1 && document.getElementById("win").hidden'), 'Keep that technology did not start a new site with the Sonar lab');
+  await wait(800);
+  expect(await js('/Site 2/.test(document.getElementById("h-shift").textContent)'), 'the top bar does not show the new site');
+  await shot('site2');
+  await js('document.getElementById("t-crew").click(); true');
+
   // the save: a reload picks up where the game was
   const saved = await js('(dispatchEvent(new Event("pagehide")), { t: crabminer.state().t, n: crabminer.state().crabs.length })');
   await load();

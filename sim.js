@@ -90,6 +90,21 @@ function CrabSim() {
     // a glut (x0.65), or a rumour that comes to nothing
     NEWS_FIRST: 420, NEWS_EVERY: [300, 540], NEWS_TIME: 60, NEWS_KINDS: ['boom', 'glut', 'rumour'], NEWS_MULT: { boom: 1.4, glut: 0.65, rumour: 1 },
     QUIET_NIGHT_WORK: 60,   // a quiet night (the achievement) needs at least this much crab-work in the dark with no breakdown
+    // apprentices: a trainee of any kind for half the price. It works and walks at half pace and becomes a full crab of
+    // its kind after a day on the job. An early-game option when money is tight.
+    APPRENTICE_COST: 0.5, APPRENTICE_PACE: 0.5, APPRENTICE_DAYS: 1,
+    // contracts: now and then the surface offers a longer goal beside the ship orders: so many ingots within three days,
+    // for a reward per ingot and a unique decoration for the den. The player has 90 s to accept; a contract taken and
+    // not filled costs a reputation star, and one left to lapse costs nothing.
+    CONTRACT_FIRST: 480, CONTRACT_EVERY: [540, 840], CONTRACT_OFFER: 90, CONTRACT_DAYS: 3, CONTRACT_PAY: 5, CONTRACT_MIN: 25, CONTRACT_MAX: 999,
+    CONTRACT_DECOR: ['brassBell', 'goldAnchor', 'contractPlaque', 'shipWheel'],
+    // the hydrothermal chimney: a second, smaller vent that opens behind the plots now and then and fades out after two
+    // days. A crab near it with a long way to go rides its column up and swims down either way, and its heat feeds the
+    // Stirling engine while it lasts.
+    CHIMNEY_FIRST: 300, CHIMNEY_EVERY: [360, 600], CHIMNEY_LIFE: 360, CHIMNEY_SPOTS: [600, 690, 780], CHIMNEY_D: 0.72, CHIMNEY_RISE: 1.2, CHIMNEY_HEAT: 0.5, CHIMNEY_MIN_TRIP: 120,
+    // the lighthouse lamp: a building at the field's edge (the Build tab's upgrade) that lights the sand around it at
+    // night, so tired crabs there are not slowed by the dark
+    LAMP_X: 548, LAMP_D: 0.74,
     // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
     TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
@@ -161,7 +176,8 @@ function CrabSim() {
       scanner: { costs: [140, 360], vals: [[0.5, 0], [0.62, 0.07], [0.74, 0.13]] },
       engine: { costs: [140, 420], vals: [32, 56, 90] },   // charges the Stirling engine makes a minute
       riser: { costs: [100, 300], vals: [3, 1.8, 1] },
-      yard: { costs: [90, 240], vals: [0, 1, 2] }
+      yard: { costs: [90, 240], vals: [0, 1, 2] },
+      lamp: { costs: [220, 520], vals: [0, 120, 220] }   // how far the lighthouse lamp lights, in track units
     },
     // research: each technology unlocks the worker upgrades for some roles
     TECH: {
@@ -190,7 +206,8 @@ function CrabSim() {
     'bitsBroken', 'ebotsBroken', 'legsLost', 'repairs', 'mends', 'charges', 'rides', 'spent', 'flowBonus', 'danced', 'mornings',
     'washed', 'buried', 'stolen', 'octopi', 'shooed', 'pearls', 'pearlCredits', 'storms', 'surges', 'orders', 'ordersFilled', 'ordersLost', 'orderCredits', 'decorations',
     'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
-    'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights'];
+    'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights',
+    'apprentices', 'graduates', 'contracts', 'contractsFilled', 'contractsFailed', 'contractCredits', 'chimneys', 'chimneyRides', 'lampLit'];
   // achievements: checked once a second; each is won once, at the time kept in S.ach
   var ACH = [
     ['pearl', 'First pearl', 'Strike a pearl', function () { return S.stat.pearls >= 1; }],
@@ -212,6 +229,10 @@ function CrabSim() {
     ['menagerie', 'Menagerie', 'All four pets by the den', function () { return S.pets.length >= 4; }],
     ['happy', 'Happy crew', 'Eight or more crabs, and four in five of them happy', function () { var n = 0, i; if (S.crabs.length < 8) return false; for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].mood >= K.MOOD_HAPPY) n++; return n >= S.crabs.length * 0.8; }],
     ['quake', 'Shaken, not stirred', 'Live through an earthquake', function () { return S.stat.quakes >= 1; }],
+    ['graduate', 'Teacher', 'Five apprentices graduate', function () { return S.stat.graduates >= 5; }],
+    ['contract', 'Under contract', 'Fill a contract from the surface', function () { return S.stat.contractsFilled >= 1; }],
+    ['chimney', 'Hot shortcut', 'Ten rides up a hydrothermal chimney', function () { return S.stat.chimneyRides >= 10; }],
+    ['lamp', 'Lamplighter', 'Ten minutes of night work under the lighthouse lamp', function () { return S.stat.lampLit >= 600; }],
     ['tycoon', 'Crab Tycoon', 'Reach the top rank', function () { return S.rank >= K.RANKS.length - 1; }]
   ];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
@@ -255,9 +276,11 @@ function CrabSim() {
     }
     return false;
   }
-  function nightSlow(c) { return tired(c) && !lit(c.x, c.d) ? K.NIGHT_SLOW : 1; }
+  function lampLit(x, d) { return S.lv.lamp > 0 && Math.abs(x - K.LAMP_X) + Math.abs(d - K.LAMP_D) * K.DEPTH < up('lamp'); }   // under the lighthouse lamp
+  function bright(x, d) { return lit(x, d) || lampLit(x, d); }
+  function nightSlow(c) { return tired(c) && !bright(c.x, c.d) ? K.NIGHT_SLOW : 1; }
   function pace(c) {
-    return (BACK[c.state] ? 1 : 1 + K.VET_BONUS * c.stars) * (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) *
+    return (BACK[c.state] ? 1 : 1 + K.VET_BONUS * c.stars) * (c.bat < K.LOW ? K.SLOW : 1) * (1 - Math.min(K.TIRE_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.TIRE)) * (S.oc ? K.OC_SPEED : 1) * (c.apprentice ? K.APPRENTICE_PACE : 1) *
       (c.fresh > 0 ? K.MORNING_BONUS + S.decor.length * K.DECOR_MORNING : 1) * nightSlow(c) *
       (S.shift === 'ab' && S.si && S.si.night && (c.role === 'repair' || c.role === 'mech') ? K.NIGHT_FIX : 1) *   // the night crew
       (c.helper && c.helper.helping === c && c.helper.held ? K.HELP_BONUS[c.role] || 1 : 1) *                       // a claw from a friend
@@ -290,6 +313,7 @@ function CrabSim() {
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
       festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST,
       quake: null, nextQuake: K.QUAKE_FIRST, news: null, nextNews: K.NEWS_FIRST, ach: {}, nightBreaks: 0, nightWork: 0,
+      contract: null, nextContract: K.CONTRACT_FIRST, chimney: null, nextChimney: K.CHIMNEY_FIRST,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -351,6 +375,7 @@ function CrabSim() {
     c.rec = c.rec || { jobs: 0, helped: 0, rides: 0, legs: 0, dances: 0, pearls: 0, chests: 0, assists: 0 };
     c.stars = c.stars || 0;
     if (c.mood === undefined) { c.mood = K.MOOD_START; c.moodZone = 'ok'; }
+    if (c.air && !c.air.vent) { c.air.vent = 'main'; c.air.inX = K.VENT_IN; c.air.inD = 0.8; c.air.col = K.VENT_X; c.air.rise = K.T_RISE; }   // a ride saved before the chimney
   }
   var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1, chest: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
   function tally(type, a, b) {             // each crab's personal record, kept from the events it takes part in
@@ -368,6 +393,11 @@ function CrabSim() {
     else if (type === 'pearl') r.pearls++;
     if (type === 'chest') r.chests = (r.chests || 0) + 1;   // older saves have no count yet
     else if (type === 'dance') { r.dances++; if (b && b.rec) b.rec.dances++; }
+  }
+  function strength(role) {                // crabs of a role, an apprentice counting for half, for the capacity estimate
+    var s = 0, i, c;
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role === role) s += c.apprentice ? K.APPRENTICE_PACE : 1; }
+    return s;
   }
   function veterans(role) {                // stars across a role, for the capacity estimate
     var n = 0, v = 0, i, c;
@@ -492,34 +522,47 @@ function CrabSim() {
     return there;
   }
   // Long trips from the lava side may take the thermal vent: walk to it, float up with the bubbles,
-  // then swim down and sideways to the target. A crab only does it when that beats walking.
+  // then swim down and sideways to the target. A crab only does it when that beats walking. While a
+  // hydrothermal chimney is open behind the plots, a crab near it with a long way to go either way rides that instead.
   function go(c, tx, td, speed) {
-    var a = c.air, f, walk, ride, k;
-    if (!a && c.x > 760 && tx < c.x - 200) {
+    var a = c.air, f, walk, ride, k, ch = S.chimney, dir;
+    if (!a) {
       k = pace(c) * (c.limp ? K.LIMP : 1) * speed;
       walk = (Math.abs(tx - c.x) + Math.abs(td - c.d) * K.DEPTH) / k;
-      ride = (Math.abs(K.VENT_IN - c.x) + Math.abs(0.8 - c.d) * K.DEPTH) / k + K.T_RISE + (K.VENT_X - tx) / K.GLIDE;
-      if (ride < walk * 0.9) { a = c.air = { phase: 'walk' }; c.alt = 0; }
+      if (c.x > 760 && tx < c.x - 200) {
+        ride = (Math.abs(K.VENT_IN - c.x) + Math.abs(0.8 - c.d) * K.DEPTH) / k + K.T_RISE + (K.VENT_X - tx) / K.GLIDE;
+        if (ride < walk * 0.9) { a = c.air = { phase: 'walk', vent: 'main', inX: K.VENT_IN, inD: 0.8, col: K.VENT_X, rise: K.T_RISE }; c.alt = 0; }
+      }
+      if (!a && ch && S.t < ch.until && Math.abs(tx - ch.x) >= K.CHIMNEY_MIN_TRIP) {
+        ride = far(c, ch.x, ch.d) / k + K.CHIMNEY_RISE + Math.abs(ch.x - tx) / K.GLIDE;
+        if (ride < walk * 0.9) { a = c.air = { phase: 'walk', vent: 'chimney', inX: ch.x, inD: ch.d, col: ch.x, rise: K.CHIMNEY_RISE }; c.alt = 0; }
+      }
     }
     if (!a) return moveTo(c, tx, td, speed);
     a.tx = tx; a.td = td; a.used = S.t;
     if (a.phase === 'walk') {
-      if (moveTo(c, K.VENT_IN, 0.8, speed)) { a.phase = 'rise'; a.x0 = c.x; S.stat.rides++; emit('ride', c); }
+      if (a.vent === 'chimney' && !ch) { c.air = null; return moveTo(c, tx, td, speed); }   // it faded before the crab got there
+      if (moveTo(c, a.inX, a.inD, speed)) {
+        a.phase = 'rise'; a.x0 = c.x;
+        if (a.vent === 'chimney') { S.stat.chimneyRides++; if (ch) ch.rides++; } else S.stat.rides++;
+        emit('ride', c, a.vent);
+      }
       return false;
     }
     c.moving = false; c.floating = true;                    // floating is free: no power, no wear
     if (a.phase === 'rise') {
-      c.alt = Math.min(1, c.alt + dt / K.T_RISE * (S.lavaSurge ? 1.7 : 1));   // a surging vent lifts faster
-      c.x = a.x0 + (K.VENT_X - a.x0) * Math.min(1, c.alt * 2);
-      c.dir = -1;
+      c.alt = Math.min(1, c.alt + dt / a.rise * (S.lavaSurge ? 1.7 : 1));   // a surging vent lifts faster
+      c.x = a.x0 + (a.col - a.x0) * Math.min(1, c.alt * 2);
+      c.dir = tx < a.col ? -1 : 1;
       if (c.alt >= 1) { a.phase = 'glide'; a.gx = c.x; a.gd = c.d; }
       return false;
     }
     // glide: fast and sideways, falling as it goes; it lands on the target, wherever that has moved to
-    c.x = Math.max(tx, c.x - K.GLIDE * dt);
-    f = a.gx - tx > 1 ? clamp((a.gx - c.x) / (a.gx - tx), 0, 1) : 1;
-    c.alt = 1 - f; c.d = a.gd + (td - a.gd) * f; c.dir = -1;
-    if (f >= 1 || c.x <= tx) { c.x = tx; c.d = td; c.alt = 0; c.air = null; c.floating = false; emit('land', c); return true; }
+    dir = tx < a.gx ? -1 : 1;
+    c.x = dir < 0 ? Math.max(tx, c.x - K.GLIDE * dt) : Math.min(tx, c.x + K.GLIDE * dt);
+    f = Math.abs(a.gx - tx) > 1 ? clamp((a.gx - c.x) / (a.gx - tx), 0, 1) : 1;
+    c.alt = 1 - f; c.d = a.gd + (td - a.gd) * f; c.dir = dir;
+    if (f >= 1 || (dir < 0 ? c.x <= tx : c.x >= tx)) { c.x = tx; c.d = td; c.alt = 0; c.air = null; c.floating = false; emit('land', c); return true; }
     return false;
   }
   function far(a, x, d) { return Math.abs(a.x - x) + Math.abs(a.d - d) * K.DEPTH; }
@@ -1055,6 +1098,17 @@ function CrabSim() {
         S.stat.orderCredits += pv - v; v = pv; o.got++;
       }
       if (S.news && S.news.mult !== 1) { S.stat.newsCredits += v - Math.round(v / S.news.mult); S.news.sold++; }
+      var co = S.contract;
+      if (co && co.state === 'on') {                         // every ingot up the riser counts toward the contract
+        co.got++;
+        if (co.got >= co.need) {
+          var cb = Math.round(co.need * co.pay);
+          S.credits += cb; S.earned += cb; S.stat.contractCredits += cb; S.stat.contractsFilled++;
+          S.decor.push({ kind: co.decor, at: S.t }); S.stat.decorations++;
+          emit('contractDone', co, cb); stir();
+          S.contract = null; S.nextContract = S.t + srr(K.CONTRACT_EVERY[0], K.CONTRACT_EVERY[1]);
+        }
+      }
       S.stock--; S.credits += v; S.earned += v; S.stat.sold++; S.stat.revenue += v;
       S.ocBank = Math.min(K.OC_MAX, S.ocBank + K.OC_PER_SALE * (1 + S.streak / 10));
       S.liftT = up('riser') * (S.storm ? K.STORM_RISER : 1);   // in a storm the ship rocks and the riser slows
@@ -1113,6 +1167,7 @@ function CrabSim() {
       c = S.crabs[i];
       c.moving = false; c.working = false; c.floating = false;
       if (c.fresh > 0) c.fresh -= dt;
+      if (c.apprentice && S.t >= c.apprentice.until) { c.apprentice = null; S.stat.graduates++; emit('graduate', c); }   // a day done: a full crab
       if (c.state === 'sleep') {                             // off shift: rest, recharge, and shake off the wear
         c.rested += dt; c.lastRest = S.t;
         c.bat = Math.min(1, c.bat + K.REST_CHARGE * dt);
@@ -1129,8 +1184,10 @@ function CrabSim() {
       active = c.moving || c.working;
       if (!active) { if (!c.floating) c.wear = Math.max(0, c.wear - K.IDLE_RECOVER * dt); mood(c, false); continue; }
       if (S.si.night) S.nightWork += dt;
-      if (S.si.night && tired(c) && !c.air) {                // a tired crab at night: glowing plankton light its way
-        if (lit(c.x, c.d)) { S.stat.glowLit += dt; if (!c.glow) { c.glow = true; emit('glow', c); } } else c.glow = false;
+      if (S.si.night && tired(c) && !c.air) {                // a tired crab at night: glowing plankton, or the lighthouse lamp, light its way
+        if (lit(c.x, c.d)) { S.stat.glowLit += dt; if (!c.glow) { c.glow = true; emit('glow', c); } }
+        else if (lampLit(c.x, c.d)) { S.stat.lampLit += dt; if (!c.glow) { c.glow = true; emit('glow', c, 'lamp'); } }
+        else c.glow = false;
       } else c.glow = false;
       mood(c, true);
       c.wear += dt * (S.oc ? K.OC_WEAR : 1) * (c.role === 'crush' && has('shockPads') ? 0.5 : 1);
@@ -1150,8 +1207,10 @@ function CrabSim() {
     trader();
     quake();
     news();
+    chimney();
+    contract();
     if (S.si.day !== S.day) morning();
-    S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * dt / 60);   // lava heat drives the Stirling engine
+    S.heat = Math.min(K.HEAT_CAP, S.heat + up('engine') * (S.lavaSurge ? K.SURGE_SPEED : 1) * (S.chimney ? 1 + K.CHIMNEY_HEAT : 1) * dt / 60);   // lava heat drives the Stirling engine; a chimney adds its own
     weather();
     sell();
     if (S.t >= S.tick + 1 - 1e-9) { S.tick += 1; market(); snapshot(); achievements(); }
@@ -1485,6 +1544,48 @@ function CrabSim() {
     }
     if (S.t >= S.news.until) { emit('newsEnd', S.news); S.news = null; S.nextNews = S.t + srr(K.NEWS_EVERY[0], K.NEWS_EVERY[1]); }
   }
+  // A hydrothermal chimney opens on one of three spots behind the plots and fades out after two days. While it is
+  // open, go() lets crabs near it ride its column (see there), and the engine draws extra heat from it.
+  function chimney() {
+    var ch = S.chimney;
+    if (!ch) {
+      if (S.t < S.nextChimney) return;
+      S.chimney = { x: K.CHIMNEY_SPOTS[Math.floor(sr() * K.CHIMNEY_SPOTS.length)], d: K.CHIMNEY_D, born: S.t, until: S.t + K.CHIMNEY_LIFE, rides: 0 };
+      S.stat.chimneys++; emit('chimneyOpen', S.chimney);
+      return;
+    }
+    if (S.t >= ch.until) { emit('chimneyFade', ch); S.chimney = null; S.nextChimney = S.t + srr(K.CHIMNEY_EVERY[0], K.CHIMNEY_EVERY[1]); }
+  }
+  // Contracts from the surface: an offer of so many ingots within three days, sized to the last five minutes' sales,
+  // stands for 90 s. Accepted, every ingot up the riser counts; filled, it pays per ingot (10% more a reputation star)
+  // and gives the den a unique decoration; run out, it costs a star. Left to lapse, nothing happens.
+  function contractNext() { S.contract = null; S.nextContract = S.t + srr(K.CONTRACT_EVERY[0], K.CONTRACT_EVERY[1]); }
+  function contract() {
+    var co = S.contract, need;
+    if (!co) {
+      if (S.t < S.nextContract) return;
+      need = clamp(Math.round(Math.max(rates(300).sold, 3) * K.CONTRACT_DAYS * K.DAY / 60 * 0.8), K.CONTRACT_MIN, K.CONTRACT_MAX);
+      S.contract = { state: 'offer', need: need, got: 0, pay: K.CONTRACT_PAY * (1 + S.rep * 0.1), acceptBy: S.t + K.CONTRACT_OFFER, until: 0, at: 0,
+        decor: K.CONTRACT_DECOR[S.stat.contractsFilled % K.CONTRACT_DECOR.length], n: S.stat.contracts };
+      S.stat.contracts++; emit('contractOffer', S.contract);
+      return;
+    }
+    if (co.state === 'offer') { if (S.t >= co.acceptBy) { emit('contractLapse', co, false); contractNext(); } return; }
+    if (S.t >= co.until) { S.rep = Math.max(0, S.rep - 1); S.stat.contractsFailed++; emit('contractFail', co); contractNext(); }
+  }
+  function acceptContract() {
+    var co = S.contract;
+    if (!co || co.state !== 'offer') return false;
+    co.state = 'on'; co.at = S.t; co.until = S.t + K.CONTRACT_DAYS * K.DAY;
+    emit('contractStart', co);
+    return true;
+  }
+  function declineContract() {
+    var co = S.contract;
+    if (!co || co.state !== 'offer') return false;
+    emit('contractLapse', co, true); contractNext();
+    return true;
+  }
   // The hermit-crab trader walks in from the left, keeps shop beside the den for a minute with three goods
   // out of seven (the pet only while the den lacks a kind), and walks off again.
   function trader() {
@@ -1611,7 +1712,7 @@ function CrabSim() {
   function capacity() {
     var n = counts(), z = up('field'), workers = S.crabs.length - n.energy, wm = 1 + Math.min(K.WEAR_MAX, Math.max(0, avgWear() - K.WEAR_FREE) / K.WEAR_SCALE);
     var breaks = (n.drill * PER.holes * up('bits') + n.energy * 10 * K.EBOT_WEAR) * wm, legs = S.crabs.length * K.LEG_RATE * 60 * wm;
-    var d = function (r) { return n[r] * dutyShare(r) * veterans(r); };
+    var d = function (r) { return strength(r) * dutyShare(r) * veterans(r); };
     return {
       scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]) * (has('wideSonar') ? 1.35 : 1) * (has('deepSonar') ? 1.2 : 1),
       drill: d('drill') * (n.scout ? PER.drill : PER.wildcat) * (has('diamondTips') ? 1.2 : 1) * (has('twinAugers') ? 1.2 : 1),
@@ -1648,15 +1749,21 @@ function CrabSim() {
   }
 
   // ----- the player's levers -----
-  function hireCost(role) { return Math.round(K.HIRE[role] * (1 + K.HIRE_STEP * count(role))); }
-  function refund(role) { var n = count(role); return n ? Math.round(K.HIRE[role] * (1 + K.HIRE_STEP * (n - 1)) * K.REFUND) : 0; }
+  function hireCost(role, app) { var c = K.HIRE[role] * (1 + K.HIRE_STEP * count(role)); return Math.round(app ? c * K.APPRENTICE_COST : c); }
+  function refund(role) {                  // half of what the newest crab of the kind cost (an apprentice cost half)
+    var n = count(role), i, c = null;
+    if (!n) return 0;
+    for (i = S.crabs.length - 1; i >= 0 && !c; i--) if (S.crabs[i].role === role) c = S.crabs[i];
+    return Math.round(K.HIRE[role] * (1 + K.HIRE_STEP * (n - 1)) * K.REFUND * (c.apprentice ? K.APPRENTICE_COST : 1));
+  }
   function crewCap() { return up('den'); }
-  function hire(role) {
-    var cost = hireCost(role);
+  function hire(role, app) {               // a crab of the kind, or with `app` an apprentice: half the price, half the pace, a full crab after a day
+    var cost = hireCost(role, app), c;
     if (S.crabs.length >= crewCap()) return 'den';
     if (S.credits < cost) return 'credits';
     S.credits -= cost; S.stat.spent += cost;
-    addCrab(role);
+    c = addCrab(role);
+    if (app) { c.apprentice = { until: S.t + K.APPRENTICE_DAYS * K.DAY }; S.stat.apprentices++; emit('apprentice', c); }
     return true;
   }
   function retire(role) {
@@ -1801,7 +1908,8 @@ function CrabSim() {
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
-    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, achievements: function () { return ACH.map(function (a) { return { id: a[0], name: a[1], what: a[2] }; }); }, placePost: placePost, lit: lit, glowR: glowR, setPostAuto: setPostAuto, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, achievements: function () { return ACH.map(function (a) { return { id: a[0], name: a[1], what: a[2] }; }); }, placePost: placePost, lit: lit, lampLit: lampLit, glowR: glowR, setPostAuto: setPostAuto,
+    acceptContract: acceptContract, declineContract: declineContract, strength: strength, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

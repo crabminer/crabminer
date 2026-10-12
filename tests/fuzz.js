@@ -41,8 +41,15 @@ function check(sim) {
   if (S.manta) for (const c of S.manta.riders) ok(live.has(c) && c.manta === S.manta, 'ghost manta rider ' + who(c));
   for (const c of S.crabs) if (c.manta) ok(c.manta === S.manta && S.manta.riders.indexOf(c) >= 0, 'one-sided manta ride: ' + who(c));
 
+  // a contract is an offer or under way, never overfilled; the chimney has a spot
+  if (S.contract) ok((S.contract.state === 'offer' || S.contract.state === 'on') && S.contract.got <= S.contract.need, 'bad contract: ' + JSON.stringify(S.contract));
+  if (S.chimney) ok(K.CHIMNEY_SPOTS.indexOf(S.chimney.x) >= 0 && S.chimney.until > S.chimney.born, 'bad chimney: ' + JSON.stringify(S.chimney));
+
   for (const c of S.crabs) {
     ok(!c.gone, 'retired crab still in the crew: ' + who(c));
+    // a vent ride knows which vent, and where its column is; an apprentice knows when it graduates
+    if (c.air) ok((c.air.vent === 'main' || c.air.vent === 'chimney') && Number.isFinite(c.air.col) && Number.isFinite(c.air.inX), 'bad ride on ' + who(c) + ': ' + JSON.stringify(c.air));
+    if (c.apprentice) ok(Number.isFinite(c.apprentice.until) && c.apprentice.until > S.t - 1, 'bad apprentice ' + who(c));
     // dance pairs symmetric
     if (c.dance) ok(c.dance.dance === c && live.has(c.dance), 'one-sided dance: ' + who(c));
     // no sleeping in the air, no claims held while asleep
@@ -64,7 +71,7 @@ function check(sim) {
   const cases = [
     S => { S.ore = -1; }, S => { S.nodules[0].by = ghost; }, S => { S.docks.push(ghost); },
     S => { S.crabs[0].dance = S.crabs[1]; }, S => { S.layout.den = S.layout.ore; }, S => { S.crabs[0].x = NaN; },
-    S => { S.crabs[0].manta = { riders: [] }; }
+    S => { S.crabs[0].manta = { riders: [] }; }, S => { S.crabs[0].air = { phase: 'rise' }; }, S => { S.contract = { state: 'on', need: 5, got: 6 }; }
   ];
   cases.forEach((corrupt, i) => {
     sim.load(clean); corrupt(sim.state());

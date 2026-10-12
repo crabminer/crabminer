@@ -15,27 +15,22 @@ light that lets tired crabs work at full speed at night, sunken chests on the ba
 the moray eel, lending a claw, the closed food web with the fisherman and the gulls (`eco.js`)
 and its lab report, the crushing line of press stations, the two-storey den, a repertoire
 of 119 animations with dances that cheer up the crabs around them, the manta-ray glide, the crab
-festival every tenth day, the den's pets, crab moods, earthquakes, surface news and achievements.
+festival every tenth day, the den's pets, crab moods, earthquakes, surface news, achievements,
+apprentices, contracts, the hydrothermal chimney and the lighthouse lamp.
 
 ## Visitors and the sea
 
 - **Kelp forest claim.** A fourth claimable area on the left that slows walking but grows
   kelp, a new material for den decorations or a "kelp rope" upgrade.
-- **Hydrothermal chimney.** A second, smaller vent that appears and fades over days; a
-  temporary shortcut and a temporary heat source the engine can tap.
 
 ## Crew and characters
 
-- **Apprentices.** Cheap trainee crabs that work at half speed and become full crabs of
-  their kind after a day. An early-game option when money is tight.
 - **A hungrier web.** Let the food web touch the game: a shark that scares the octopus off, a
   gull that steals a nodule from a hauler on the crest, or the fisherman's catch sold at the
   surface. All decoration now (`eco.js` never reads `S`).
 
 ## Economy and progression
 
-- **Contracts.** Longer goals beside ship orders: "deliver 200 ingots in three days" for a
-  big reward and a unique decoration.
 - **Metal grades.** Rich flags make "fine" ingots worth 50% more; the smelter keeps them on
   a separate shelf of the stockpile, and the reserve can be set per grade.
 - **Prestige / new dig site.** After Crab Tycoon, start a new site with one permanent perk
@@ -53,8 +48,6 @@ festival every tenth day, the den's pets, crab moods, earthquakes, surface news 
   ore pile near the deep deposits.
 - **Charging pad.** A cheap building next to a busy spot where crabs top up themselves,
   slowly, without an energy bot.
-- **Lighthouse lamp.** A building that lights the field at night; crabs near it are not
-  slowed by the dark.
 
 ## Interface and accessibility
 

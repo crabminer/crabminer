@@ -188,6 +188,28 @@ async function check(b, size) {
   await shot('quake');
   await js('document.getElementById("t-crew").click(); true');
 
+  // a chimney, a contract offer, an apprentice and the lighthouse lamp: the hooks, the Accept button, the hire button and the Build card
+  await js('crabminer.chimney(); crabminer.contract(); crabminer.state().credits = 3000; document.querySelector(\'[data-speed="4"]\').click(); true');
+  for (let i = 0; i < 200 && !(await js('!!crabminer.state().chimney && !!crabminer.state().contract')); i++) await wait(100);
+  await key('1');
+  await wait(400);                                                                 // the panel refreshes four times a second
+  expect(await js('!!crabminer.state().chimney'), 'the chimney hook did not open a chimney');
+  expect(await js('!!crabminer.state().contract && crabminer.state().contract.state === "offer" && !document.getElementById("a-contract").hidden'), 'the contract hook did not make an offer with a button in the top bar');
+  await key('c');
+  expect(await js('document.getElementById("t-build").getAttribute("aria-selected") === "true" && !document.getElementById("contract-card").hidden'), 'the C key did not open the contract card');
+  await js('document.getElementById("contract-accept").click(); true');
+  expect(await js('crabminer.state().contract && crabminer.state().contract.state === "on" && !document.getElementById("h-contract").hidden'), 'Accept did not start the contract on the top bar');
+  const lampBtn = await js('(() => { const b = document.querySelector(\'[data-up="lamp"] button\'); if (!b || b.disabled) return false; b.click(); return true; })()');
+  expect(lampBtn && await js('crabminer.state().lv.lamp === 1'), 'the Build tab did not build the lighthouse lamp');
+  await js('document.getElementById("t-crew").click(); true');
+  await js('crabminer.sim.buy("den"); true');                                       // room for one more
+  for (let i = 0; i < 200 && await js('document.querySelector(\'.role[data-role="haul"] [data-act="app"]\').disabled'); i++) await wait(100);   // until a frame has refreshed the panel
+  const apps = await js('crabminer.state().crabs.filter(c => c.apprentice).length');
+  await js('document.querySelector(\'.role[data-role="haul"] [data-act="app"]\').click(); true');
+  expect(await js('crabminer.state().crabs.filter(c => c.apprentice).length') === apps + 1, 'the apprentice button did not hire an apprentice: ' + await js('JSON.stringify({ disabled: document.querySelector(\'.role[data-role="haul"] [data-act="app"]\').disabled, crabs: crabminer.state().crabs.length, cap: crabminer.sim.crewCap(), credits: crabminer.state().credits, t: crabminer.state().t })'));
+  await wait(1500);
+  await shot('chimney');
+
   // the save: a reload picks up where the game was
   const saved = await js('(dispatchEvent(new Event("pagehide")), { t: crabminer.state().t, n: crabminer.state().crabs.length })');
   await load();

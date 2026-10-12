@@ -17,7 +17,7 @@
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0;
+  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0, chimneyToast = false, lampToast = false, chimneyA = 0;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -187,7 +187,9 @@
     octoScared: ['🐙⛔', '🐙👊😤'], octoShoo: ['🐙🏃', '🐙👋😆'], octoSteal: ['🪨💔🐙', '🐙🪨😱'], eelSnap: ['🐍🪨😱', '🪨💔🐍'], eelShoo: ['🐍🏃', '🐍👋😆'], veteran: ['⭐🦀💪', '⭐✨😎'], whale: ['🐋👋', '🐋😮✨'],
     festival: ['🎪🎉🦀', '🏮🎶🦀', '🎪🥳'], mantaPick: ['🪁⬆️🤩', '🪁😆'], mantaDrop: ['🪁❤️', '🪁👋😊'], pet: ['🐾❤️🏠', '🐾😍'], petPat: ['🐾😊', '🐾❤️'],
     happy: ['🎶😊', '😄✨', '🦀😊🎶'], grumpy: ['😤💢', '😒💢', '🦀😤'], boom: ['📰📈🤩', '🪙📈😎'], glut: ['📰📉😩', '🪙📉😒'], rumour: ['📰🤷', '📰👀❓'],
-    quake: ['😱🌊💥', '😵💫', '💥🦀😨'], achievement: ['🏆✨🎉', '🏆😎']
+    quake: ['😱🌊💥', '😵💫', '💥🦀😨'], achievement: ['🏆✨🎉', '🏆😎'],
+    apprentice: ['🎓❓🦀', '🎓👀😅'], graduate: ['🎓✅🎉', '🎓💪😎'], contractOffer: ['📜🪙❓', '📜👀🪙'], contractDone: ['📜✅🎉', '📜🪙🥳'], contractFail: ['📜❌😩', '📜💔😤'],
+    chimney: ['♨️⬆️😆', '♨️💨🤩'], lamp: ['🔦👀😊', '🔦🦀👍']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -205,7 +207,9 @@
     storm: 'A storm', lava: 'A lava surge', octoScared: 'Facing down the octopus', octoShoo: 'The octopus shooed', octoSteal: 'The octopus stealing ore', eelSnap: 'The eel snapping', eelShoo: 'The eel shooed',
     veteran: 'Earning a star', whale: 'Waving at the whale',
     festival: 'Festival day', mantaPick: 'Swept up by the manta', mantaDrop: 'Thanking the manta', pet: 'A pet moving in', petPat: "Petting the den's pet",
-    happy: 'In a good mood', grumpy: 'In a bad mood', boom: 'A copper boom', glut: 'A glut at the surface', rumour: 'A rumour from the surface', quake: 'An earthquake', achievement: 'An achievement won'
+    happy: 'In a good mood', grumpy: 'In a bad mood', boom: 'A copper boom', glut: 'A glut at the surface', rumour: 'A rumour from the surface', quake: 'An earthquake', achievement: 'An achievement won',
+    apprentice: 'An apprentice starting', graduate: 'An apprentice graduating', contractOffer: 'A contract offered', contractDone: 'A contract filled', contractFail: 'A contract run out',
+    chimney: 'Riding the hydrothermal chimney', lamp: 'Seeing by the lighthouse lamp'
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
   Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
@@ -216,7 +220,8 @@
     '😩': 'ugh', '😊': ':)', '🔧': 'fix', '💥': 'bang', '😫': 'ugh', '🙈': 'oops', '😱': 'eek!', '🕳': 'hole', '😒': 'meh', '👀': 'look',
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
     '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel',
-    '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet', '💢': 'grr', '📰': 'news', '📈': 'up', '📉': 'down', '💫': 'dizzy' };
+    '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet', '💢': 'grr', '📰': 'news', '📈': 'up', '📉': 'down', '💫': 'dizzy',
+    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp' };
   var NEWS_HEADLINES = {   // three headlines a kind; the sim picks which (S.news.n)
     boom: ['Copper boom at the surface!', 'Shipyards bid up every ingot!', 'Metal shortage on land: prices soar!'],
     glut: ['Glut at the docks: ingots pile up unsold', 'A rival port floods the market', 'Smelters on land undercut the sea'],
@@ -319,9 +324,10 @@
     ctx.restore();
   }
   function ventTop() { return H * 0.1; }
-  function airPos(c) {                 // where a crab riding the vent, or swimming down from it, is drawn
-    var px = crabX(c), gy = groundY(px, c.d) - 9 * scaleAt(c.d);
-    return { x: px + (c.air && c.air.phase === 'rise' ? Math.sin(T * 5 + c.vph) * 4 * CS : 0), y: gy + (ventTop() + 14 * CS - gy) * c.alt };
+  function chimneyTop(x) { return Math.max(ventTop() + H * 0.06, groundY(X(x), K.CHIMNEY_D) - H * 0.2); }   // the smaller column tops out lower
+  function airPos(c) {                 // where a crab riding the vent or the chimney, or swimming down from it, is drawn
+    var px = crabX(c), gy = groundY(px, c.d) - 9 * scaleAt(c.d), top = c.air && c.air.vent === 'chimney' ? chimneyTop(c.air.col) : ventTop();
+    return { x: px + (c.air && c.air.phase === 'rise' ? Math.sin(T * 5 + c.vph) * 4 * CS : 0), y: gy + (top + 14 * CS - gy) * c.alt };
   }
 
   // ----- the economy's events become things you can see -----
@@ -376,7 +382,42 @@
         break;
       case 'wake': if (a.vsleep && a.vsleep.burrow) { p = X(a.x); poof(p, groundY(p, a.d), 12, 0.9); play(a, ['shiver', 'shock'], 0.8); } a.vsleep = null;
         express(a, 'stretch', 1.2); say(a, TALK.wake, 1.4); play(a, ['yawnStretch', 'sideStretch', 'wave'], 1.6); break;
-      case 'ride': p = X(K.VENT_IN); burst(p, groundY(p, 0.8) - 6, 6); express(a, 'wheee', 2.5); say(a, TALK.ride, 2.2); break;
+      case 'ride':
+        if (e.b === 'chimney') { p = X(a.air ? a.air.col : K.CHIMNEY_SPOTS[0]); burst(p, groundY(p, K.CHIMNEY_D) - 6, 8); express(a, 'wheee', 2); say(a, TALK.chimney, 2); }
+        else { p = X(K.VENT_IN); burst(p, groundY(p, 0.8) - 6, 6); express(a, 'wheee', 2.5); say(a, TALK.ride, 2.2); }
+        break;
+      case 'chimneyOpen':
+        p = X(a.x); poof(p, groundY(p, a.d), 16, 1, pal.sandLine); spark(p, groundY(p, a.d) - 10 * CS, 10, pal.lavaHot);
+        near(a.x, 120).forEach(function (n) { play(n, ['shock', 'curious', 'sparkleEyes', 'lookAround'], 1.8); });
+        if (!chimneyToast && started) { chimneyToast = true; toast('A hydrothermal chimney has opened behind the plots', 'For two days crabs near it with a long way to go ride its column up and swim down, either way along the line, and the Stirling engine draws half again as much heat from it.'); }
+        else if (started) toast('A hydrothermal chimney has opened', 'It stands behind the plots for two days: a shortcut for the crabs and extra heat for the engine.');
+        break;
+      case 'chimneyFade': p = X(a.x); poof(p, groundY(p, a.d), 10, 0.7, pal.sandLine); if (started) toast('The chimney has gone cold', 'It gave ' + a.rides + ' ride' + (a.rides === 1 ? '' : 's') + '. Another will open in a while.'); break;
+      case 'apprentice': if (started) toast(a.name + ' starts as an apprentice ' + ROLE_NOUN[a.role], 'Half the price, half the pace, and a full ' + ROLE_NOUN[a.role] + ' after a day on the job.'); break;
+      case 'graduate':
+        p = clawPos(a, 0); spark(p.x, p.y - 10 * CS, 16, pal.ingot); a.vhop = 1; a.vcap = T;   // the cap flies
+        say(a, TALK.graduate, 2.2); play(a, ['backflip', 'spin', 'hopJoy', 'flex'], 2);
+        near(a.x, 90).forEach(function (n) { if (n !== a) play(n, ['clap', 'cheer', 'bigWave'], 1.6); });
+        for (i = 0; i < 30; i++) confetti.push({ x: crabX(a) + rr(-20, 20), y: groundY(crabX(a), a.d) - 30 * CS, vx: rr(-30, 30), vy: rr(-60, 20), r: rr(0, TAU), vr: rr(-6, 6), c: [pal.ingot, pal.warn, pal.light][i % 3], life: 0 });
+        if (started) toast(a.name + ' has graduated', 'A full ' + ROLE_NOUN[a.role] + ' now, at full pace. ' + S.stat.graduates + ' apprentice' + (S.stat.graduates === 1 ? ' has' : 's have') + ' graduated.');
+        break;
+      case 'contractOffer':
+        if (started) toast('📜 A contract from the surface: ' + a.need + ' ingots in three days', 'It pays ' + money(a.need * a.pay) + ' and a ' + DECOR_NAMES[a.decor] + ' for the den. Accept it in the Build tab (C) within ' + fmtTime(a.acceptBy - S.t) + '. A contract taken and not filled costs a reputation star; one left alone costs nothing.');
+        near(S.pos.STOCK, 140).forEach(function (n, j2) { if (j2 % 2 === 0) say(n, TALK.contractOffer, 2); play(n, ['curious', 'think', 'lookAround'], 1.8); });
+        break;
+      case 'contractStart': toast('Contract accepted: ' + a.need + ' ingots by day ' + Math.floor(a.until / K.DAY + 1), 'Every ingot up the riser counts. The top bar keeps the tally.'); S.crabs.forEach(function (n) { if (n.role === 'smelt' || n.role === 'crush') play(n, ['salute', 'determined', 'flex'], 1.6); }); break;
+      case 'contractLapse': if (started && !e.b) toast('The contract offer has lapsed', 'Nothing lost. Another will come along.'); break;
+      case 'contractDone':
+        partyUntil = T + 4;
+        toast('Contract filled! +$' + e.b, 'The surface pays up, and the crabs hang a ' + DECOR_NAMES[a.decor] + ' by the den. Crab profit!');
+        floater('Contract filled! +$' + e.b, collectorBase().x, collectorBase().y - 100 * CS, true);
+        for (i = 0; i < 120; i++) confetti.push({ x: rr(0, W), y: rr(-H * 0.3, 0), vx: rr(-20, 20), vy: rr(40, 110), r: rr(0, TAU), vr: rr(-6, 6), c: [pal.ingot, pal.crab, pal.energy, pal.light][i % 4], life: 0 });
+        S.crabs.forEach(function (n, j2) { if (n.state !== 'sleep') { play(n, ['cheer', 'jazz', 'disco', 'clap', 'cartwheel', 'bigWave'], 2); if (j2 % 3 === 0) say(n, TALK.contractDone, 2); } });
+        break;
+      case 'contractFail':
+        toast('The contract ran out', 'You sent ' + a.got + ' of ' + a.need + '. Reputation drops to ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') + '. Take a smaller one next time, or none.');
+        S.crabs.forEach(function (n, j2) { if (n.role === 'smelt' || j2 % 4 === 0) { play(n, ['slump', 'sigh', 'facepalm'], 1.8); if (j2 % 4 === 0) say(n, TALK.contractFail, 1.8); } });
+        break;
       case 'land': p = X(a.x); poof(p, groundY(p, a.d), 8, 0.7); a.vhop = 0.7; say(a, TALK.land, 1); play(a, ['hopJoy', 'bow', 'jazz', 'frontflip', 'balance'], 1.2); break;
       case 'plug': p = postPos(); spark(p.x, p.y - 18 * CS, 4, pal.light); break;
       case 'ocStart': for (i = 0; i < S.crabs.length; i++) { p = clawPos(S.crabs[i], 0); spark(p.x, p.y, 3, pal.light); if (i % 3 === 0) say(S.crabs[i], TALK.oc, 1.6); if (i % 3 === 1) play(S.crabs[i], ['flex', 'determined'], 1.4); } break;
@@ -434,6 +475,11 @@
       case 'spareUsed': say(a, a.role === 'repair' ? TALK.spareBit : TALK.spareLeg, 1.6); break;
       case 'turtleArrive': if (!turtleToast) { turtleToast = true; toast('A sea turtle is passing', 'It gives a crab with a long way to go a lift across the dunes.'); } break;
       case 'glow':
+        if (e.b === 'lamp') {
+          if (!a.say || a.say.until < T) { if (Math.random() < 0.4) say(a, TALK.lamp, 1.4); }
+          if (!lampToast) { lampToast = true; toast('The lighthouse lamp lights the way', 'A tired crab in its light works at full speed at night, like one in the glowing plankton. The next level reaches further over the field.'); }
+          break;
+        }
         if (!a.say || a.say.until < T) { if (Math.random() < 0.4) say(a, TALK.glow, 1.4); }
         if (!glowToast) { glowToast = true; toast('Glowing plankton light the way', 'A tired crab inside a patch of glowing plankton works at full speed at night. The tide pushes the patches along the sand, and storms and ships make them bigger.'); }
         break;
@@ -583,7 +629,7 @@
         break;
       case 'build': p = buildSpot(a); if (p) { poof(p.x, p.y, 14, 1, pal.sandLine); spark(p.x, p.y - 10, 10, pal.hat); }
         S.crabs.forEach(function (n) {
-          if (a === 'den' || (a === 'field' && (n.role === 'scout' || n.role === 'drill')) || (a === 'engine' && n.role === 'energy') || (a === 'riser' && n.role === 'smelt') || (a === 'bits' && n.role === 'drill') || (a === 'yard' && (n.role === 'haul' || n.role === 'crush')) || (a === 'scanner' && n.role === 'scout')) play(n, a === 'engine' ? 'disco' : ['cheer', 'jazz', 'clap'], 2);
+          if (a === 'den' || a === 'lamp' || (a === 'field' && (n.role === 'scout' || n.role === 'drill')) || (a === 'engine' && n.role === 'energy') || (a === 'riser' && n.role === 'smelt') || (a === 'bits' && n.role === 'drill') || (a === 'yard' && (n.role === 'haul' || n.role === 'crush')) || (a === 'scanner' && n.role === 'scout')) play(n, a === 'engine' ? 'disco' : a === 'lamp' ? ['sparkleEyes', 'pointUp', 'clap'] : ['cheer', 'jazz', 'clap'], 2);
         });
         break;
     }
@@ -595,6 +641,7 @@
     if (id === 'yard') { px = X(S.pos.ORE); return { x: px, y: groundY(px, 0.8) }; }
     if (id === 'field') { px = X(300); return { x: px, y: groundY(px, S.lv.field === 1 ? 0.5 : 0.18) }; }
     if (id === 'den') { px = X(S.pos.WORKSHOP); return { x: px, y: groundY(px, 0.93) }; }
+    if (id === 'lamp') { px = lampPos(); return { x: px.x, y: px.y - 20 * CS }; }
     return null;
   }
 
@@ -660,6 +707,8 @@
       if (c.alt > 0 && Math.random() < dtReal * 10) { var ap = airPos(c); bubbles.push({ x: ap.x + rr(-8, 8), y: ap.y + rr(-4, 6), r: rr(1, 3), vy: rr(30, 60), ph: rr(0, TAU) }); }
     }
     stormA += ((S.storm ? 1 : 0) - stormA) * Math.min(1, dtReal * 0.8);
+    chimneyA += ((S.chimney && S.t < S.chimney.until - 20 ? 1 : 0) - chimneyA) * Math.min(1, dtReal * 0.25);   // the chimney grows over a few seconds and fades over its last twenty
+    if (S.chimney && chimneyA > 0.1 && !reduce && Math.random() < dtReal * 10 * chimneyA) { var chp = chimneyPos(); bubbles.push({ x: chp.x + rr(-5, 5) * CS, y: chp.y - 16 * chp.s, r: rr(1.2, 3.4), vy: rr(50, 90), ph: rr(0, TAU), top: chimneyTop(S.chimney.x) }); }
     eelA += ((S.eel.out ? 1 : 0) - eelA) * Math.min(1, dtReal * 3);   // the eel slides out of its crack, and back
     lavaA += ((S.lavaSurge ? 1 : 0) - lavaA) * Math.min(1, dtReal * 0.8);
     if (stormA > 0.05 && !reduce) {
@@ -740,7 +789,7 @@
     for (i = bubbles.length - 1; i >= 0; i--) {
       n = bubbles[i];
       n.y -= n.vy * dtReal; n.x += Math.sin(T * 2.2 + n.ph) * 9 * dtReal;
-      if (n.y < (n.vent ? H * 0.1 : surfH * 0.7)) bubbles.splice(i, 1);
+      if (n.y < (n.top !== undefined ? n.top : n.vent ? H * 0.1 : surfH * 0.7)) bubbles.splice(i, 1);
     }
   }
 
@@ -1044,7 +1093,8 @@
   // ----- the den, and the decorations the crabs make for it -----
   var DECOR_NAMES = { shellGarland: 'shell garland', seaGlass: 'sea-glass mosaic', cairn: 'pebble cairn', kelpWreath: 'kelp wreath',
     coral: 'coral sculpture', sandCastle: 'sand castle', noduleTotem: 'nodule totem', trophy: 'rank trophy', pearlLamp: 'pearl lamp',
-    inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp', lanterns: 'string of festival lanterns' };
+    inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp', lanterns: 'string of festival lanterns',
+    brassBell: 'brass ship\'s bell', goldAnchor: 'golden anchor', contractPlaque: 'contract plaque', shipWheel: 'ship\'s wheel' };
   var PET_NAMES = { slug: 'sea slug', babyOcto: 'baby octopus', starfish: 'starfish', snail: 'sea snail' };
   var DEN_S = 2;                         // the den is drawn at twice the scale of the crabs: four times the house
   function decorSlot(i) {                // decorations ring the den on the sand, nearest first
@@ -1120,6 +1170,32 @@
           ctx.fillStyle = i % 2 ? '#ffb347' : '#ff5c5c'; ctx.beginPath(); ctx.ellipse(lx, ly, 1.8, 2.4, 0, 0, TAU); ctx.fill();
           ctx.fillStyle = pal.ingot; ctx.fillRect(lx - 0.8, ly - 2.9, 1.6, 0.8);
         }
+        break;
+      case 'brassBell':                  // contract rewards: a bell on a gallows, swinging a little
+        ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-7, -15); ctx.lineTo(7, -15); ctx.lineTo(7, 0); ctx.stroke();
+        ctx.save(); ctx.translate(0, -15); ctx.rotate(Math.sin(T * 1.7) * 0.15);
+        ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.moveTo(-1.5, 0); ctx.lineTo(1.5, 0); ctx.quadraticCurveTo(2.5, 5, 5, 8); ctx.lineTo(-5, 8); ctx.quadraticCurveTo(-2.5, 5, -1.5, 0); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8; ctx.stroke(); ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.arc(0, 9, 1.2, 0, TAU); ctx.fill();
+        ctx.restore();
+        break;
+      case 'goldAnchor':
+        ctx.strokeStyle = pal.ingot; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(0, -2); ctx.moveTo(-6, -11); ctx.lineTo(6, -11); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, -6, 7, 0.3, Math.PI - 0.3); ctx.stroke();
+        ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(0, -17.5, 2, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(0, -2); ctx.stroke();
+        break;
+      case 'contractPlaque':
+        ctx.fillStyle = '#8a6a4a'; ctx.fillRect(-9, -15, 18, 12); ctx.fillStyle = pal.ingot; ctx.fillRect(-7.5, -13.5, 15, 9);
+        ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.7; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-5.5, -11.5 + i * 2.6); ctx.lineTo(5.5, -11.5 + i * 2.6); ctx.stroke(); }
+        ctx.fillStyle = pal.crab; ctx.beginPath(); ctx.arc(4.5, -6.5, 1.3, 0, TAU); ctx.fill();
+        break;
+      case 'shipWheel':
+        ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -6); ctx.stroke();
+        ctx.save(); ctx.translate(0, -12); ctx.rotate(mqReduce.matches ? 0 : T * 0.4);
+        ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, TAU); ctx.stroke();
+        ctx.lineWidth = 1.2; for (i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(Math.cos(i * Math.PI / 4) * 8, Math.sin(i * Math.PI / 4) * 8); ctx.lineTo(-Math.cos(i * Math.PI / 4) * 8, -Math.sin(i * Math.PI / 4) * 8); ctx.stroke(); }
+        ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, TAU); ctx.fill();
+        ctx.restore();
         break;
     }
     ctx.restore();
@@ -1375,6 +1451,69 @@
     for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - 10, top + 8 + i * 14); ctx.quadraticCurveTo(x - W * 0.35, top + H * 0.05 + i * 20, X(K.FIELD0 + 120 + i * 140), base[1] - 20 + i * 18); ctx.stroke(); }
     ctx.setLineDash([]); ctx.globalAlpha = 1;
   }
+  function chimneyPos() { var ch = S.chimney, px = X(ch.x); return { x: px, y: groundY(px, ch.d), s: scaleAt(ch.d) }; }
+  function drawChimney() {             // the hydrothermal chimney: a stack of rock with a shimmering column of hot water, fading in and out
+    var ch = S.chimney, p, s, top, g, i, y, w, a = chimneyA, cx;
+    if (!ch || a < 0.02) return;
+    p = chimneyPos(); s = p.s; top = chimneyTop(ch.x); w = 14 * CS * a;
+    ctx.save(); ctx.globalAlpha = a;
+    g = ctx.createLinearGradient(0, top, 0, p.y);
+    g.addColorStop(0, 'rgba(255,200,140,0)'); g.addColorStop(0.5, 'rgba(255,190,120,.12)'); g.addColorStop(1, 'rgba(255,150,80,.3)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(p.x - w * 0.5, p.y - 14 * s);
+    for (y = p.y - 14 * s; y >= top; y -= 10) ctx.lineTo(p.x - w * (0.3 + 0.3 * (y - top) / (p.y - top)) + Math.sin(y * 0.07 + T * 2.4) * 3, y);
+    for (y = top; y <= p.y - 14 * s; y += 10) ctx.lineTo(p.x + w * (0.3 + 0.3 * (y - top) / (p.y - top)) + Math.sin(y * 0.07 + T * 2.4 + 1) * 3, y);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.foam; ctx.lineWidth = 1; ctx.globalAlpha = 0.3 * a;   // the shimmer
+    for (i = 0; i < 2; i++) { ctx.beginPath(); for (y = p.y - 14 * s; y >= top; y -= 8) { cx = p.x + Math.sin(y * 0.05 - T * 3.5 + i * 2.5) * w * 0.3; if (y === p.y - 14 * s) ctx.moveTo(cx, y); else ctx.lineTo(cx, y); } ctx.stroke(); }
+    ctx.globalAlpha = a;
+    // the stack: a cone of dark rock with a glowing throat, mineral crusts down its sides
+    ctx.fillStyle = pal.mechDark; ctx.beginPath(); ctx.moveTo(p.x - 13 * s, p.y); ctx.lineTo(p.x - 5 * s, p.y - 16 * s); ctx.lineTo(p.x + 5 * s, p.y - 16 * s); ctx.lineTo(p.x + 13 * s, p.y); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = pal.ingot; ctx.globalAlpha = 0.5 * a; ctx.fillRect(p.x - 8 * s, p.y - 6 * s, 3 * s, 1.5 * s); ctx.fillRect(p.x + 4 * s, p.y - 9 * s, 3 * s, 1.5 * s); ctx.fillRect(p.x - 3 * s, p.y - 12 * s, 2 * s, 1.5 * s);
+    ctx.globalAlpha = a; ctx.fillStyle = pal.lavaHot; ctx.beginPath(); ctx.ellipse(p.x, p.y - 16 * s, 4.5 * s, 1.6 * s, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,200,120,' + (0.25 + 0.15 * Math.sin(T * 3)).toFixed(2) + ')'; ctx.beginPath(); ctx.ellipse(p.x, p.y - 17 * s, 7 * s, 3 * s, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+  function lampPos() { var px = X(K.LAMP_X); return { x: px, y: groundY(px, K.LAMP_D), s: scaleAt(K.LAMP_D) }; }
+  function drawLamp() {                // the lighthouse lamp: a little striped tower at the field's edge with a lantern room on top
+    if (!S.lv.lamp) return;
+    var p = lampPos(), s = p.s * 1.15, i, on = nightA > 0.05, lv = S.lv.lamp;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s); ctx.lineCap = 'round';
+    ctx.fillStyle = pal.sandLine; ctx.beginPath(); ctx.ellipse(0, 0, 11, 3.2, 0, 0, TAU); ctx.fill();   // its footing
+    ctx.fillStyle = pal.paper; ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-4.5, -26); ctx.lineTo(4.5, -26); ctx.lineTo(7, 0); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.fillStyle = pal.crab;                                                          // red bands
+    for (i = 0; i < 3; i++) { var y0 = -4 - i * 8, k0 = 7 - (4 + i * 8) * 0.096, k1 = 7 - (8 + i * 8) * 0.096; ctx.beginPath(); ctx.moveTo(-k0, y0); ctx.lineTo(-k1, y0 - 4); ctx.lineTo(k1, y0 - 4); ctx.lineTo(k0, y0); ctx.closePath(); ctx.fill(); }
+    ctx.fillStyle = pal.metalDark; ctx.fillRect(-6, -28, 12, 2);                       // the gallery
+    ctx.fillStyle = on ? 'rgba(255,236,160,' + (0.5 + 0.5 * nightA).toFixed(2) + ')' : 'rgba(200,230,255,.6)'; ctx.fillRect(-3.5, -34, 7, 6);   // the lantern room
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8; ctx.strokeRect(-3.5, -34, 7, 6); ctx.beginPath(); ctx.moveTo(0, -34); ctx.lineTo(0, -28); ctx.stroke();
+    ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.moveTo(-4.5, -34); ctx.lineTo(0, -38); ctx.lineTo(4.5, -34); ctx.closePath(); ctx.fill();   // the cap
+    if (lv > 1) { ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.arc(0, -39, 1.4, 0, TAU); ctx.fill(); }   // a finial for the bigger lamp
+    ctx.restore();
+  }
+  function drawLampLight() {           // at night: a pool of warm light over the sand the lamp reaches, and a beam that sweeps round
+    if (!S.lv.lamp || nightA < 0.03) return;
+    var p = lampPos(), r = sim.up('lamp'), rx = X(r) - X(0), ry = Math.max(6 * CS, Math.abs(groundY(p.x, Math.min(1, K.LAMP_D + r / K.DEPTH)) - p.y)), g, a = nightA, ly = p.y - 31 * p.s * 1.15, ang, i;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1, ry / rx);
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    g.addColorStop(0, 'rgba(255,230,150,' + (0.22 * a).toFixed(3) + ')'); g.addColorStop(0.6, 'rgba(255,225,140,' + (0.1 * a).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,220,130,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, TAU); ctx.fill();
+    ctx.restore();
+    ctx.save();                                                        // the beam: two wedges turning slowly from the lantern room
+    ang = mqReduce.matches ? 0.4 : T * 0.6;
+    for (i = 0; i < 2; i++) {
+      var th = ang + i * Math.PI, len = rx * 1.3, c0 = Math.cos(th), s0 = Math.sin(th) * 0.35;
+      g = ctx.createLinearGradient(p.x, ly, p.x + c0 * len, ly + s0 * len);
+      g.addColorStop(0, 'rgba(255,240,180,' + (0.16 * a).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,240,180,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(p.x, ly);
+      ctx.lineTo(p.x + Math.cos(th - 0.12) * len, ly + Math.sin(th - 0.12) * 0.35 * len); ctx.lineTo(p.x + Math.cos(th + 0.12) * len, ly + Math.sin(th + 0.12) * 0.35 * len);
+      ctx.closePath(); ctx.fill();
+    }
+    g = ctx.createRadialGradient(p.x, ly, 0, p.x, ly, 16 * CS);
+    g.addColorStop(0, 'rgba(255,240,190,' + (0.6 * a).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,240,190,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, ly, 16 * CS, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
   function drawBase() {                // the energy bots' base station, wired to the Stirling engine
     var b = basePos(), e = enginePos(), s = scaleAt(0.8);
     ctx.strokeStyle = pal.ink; ctx.lineWidth = 1.4; ctx.globalAlpha = 0.6;
@@ -1535,7 +1674,7 @@
     }
     if (nightA > 0.05) {
       ctx.globalCompositeOperation = 'lighter';
-      drawGlowPatches();
+      drawGlowPatches(); drawLampLight();
       for (i = 0; i < n; i++) {
         p = plankton[i]; if (p.y === undefined) continue;
         tw = still ? 1 : 0.6 + 0.4 * Math.sin(p.ph * 3.1 + i);
@@ -1792,7 +1931,7 @@
     for (var i = 0; i < S.crabs.length; i++) {
       var c = S.crabs[i], s = scaleAt(c.d), px = crabX(c), y = c.alt > 0 ? airPos(c).y : c.turtle && S.turtle ? turtlePos().y : c.manta && S.manta ? mantaPos().y : groundY(px, c.d) - 9 * s;
       if (c.state === 'sleep') continue;
-      var g = ctx.createRadialGradient(px, y - 6 * s, 1, px, y - 6 * s, 22 * s), col = c.glow ? GLOW : '255,240,170';   // lit by plankton: a blue-green glow
+      var g = ctx.createRadialGradient(px, y - 6 * s, 1, px, y - 6 * s, 22 * s), col = c.glow && !(sim.lampLit(c.x, c.d) && !sim.lit(c.x, c.d)) ? GLOW : '255,240,170';   // lit by plankton: a blue-green glow; by the lamp: warm
       g.addColorStop(0, 'rgba(' + col + ',' + (0.35 * nightA).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + col + ',0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, y - 6 * s, 22 * s, 0, TAU); ctx.fill();
     }
@@ -2314,7 +2453,7 @@
   function drawCrab(c) {
     if (burrowed(c)) { drawBurrow(c); return; }
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
-    var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1);
+    var s = scaleAt(c.d) * (role === 'energy' ? 0.86 : 1) * (c.apprentice ? 0.8 : 1);   // an apprentice is still small
     var px = crabX(c), gy = groundY(px, c.d), moving = c.moving, f = face(c), airborne = c.alt > 0, ap;
     var low = role !== 'energy' && c.bat < K.LOW;
     var i, side, ph, lift, hx, fx, ax, ay, hit, by, bob, w, col, look;
@@ -2508,6 +2647,15 @@
       ctx.fillStyle = dark; ctx.beginPath(); ctx.ellipse(0, by - 5 * s, 7 * s, 4.2 * s, 0, Math.PI, TAU); ctx.fill();
       ctx.fillStyle = pal.lavaHot; ctx.beginPath(); ctx.arc(0, by - 8.4 * s, 1.4 * s, 0, TAU); ctx.fill();
     }
+    if (c.apprentice || (c.vcap && T - c.vcap < 1.2)) {       // the apprentice's paper cap: a yellow cone with a pompom; it flies off at graduation
+      var capT = c.apprentice ? 0 : (T - c.vcap) / 1.2, capX = -3 * s + capT * 14 * s * c.dir, capY = by - 6 * s - Math.sin(Math.min(1, capT) * Math.PI) * 26 * s, capR = capT * 3;
+      ctx.save(); ctx.translate(capX, capY); ctx.rotate(-0.25 + capR); ctx.globalAlpha = 1 - capT * 0.7;
+      ctx.fillStyle = pal.warn; ctx.beginPath(); ctx.moveTo(-4.5 * s, 0); ctx.lineTo(0, -9 * s); ctx.lineTo(4.5 * s, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = dark; ctx.lineWidth = 0.8 * s; ctx.stroke();
+      ctx.fillStyle = pal.paper; ctx.beginPath(); ctx.arc(0, -9.2 * s, 1.6 * s, 0, TAU); ctx.fill();
+      ctx.fillStyle = dark; ctx.font = '700 ' + Math.round(5 * s) + 'px ' + cssFont; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText('A', 0, -1.6 * s);
+      ctx.restore();
+    }
 
     // eyes on stalks
     for (side = -1; side <= 1; side += 2) {
@@ -2589,8 +2737,10 @@
     if (c.state === 'sleep') t = 'asleep: off shift';
     if (c.state && c.state.charAt(0) === 'b' && { bseek: 1, bpick: 1, bhaul: 1, bstack: 1 }[c.state]) t = 'helping out: ' + { bseek: 'fetching nodules', bpick: 'picking up a nodule', bhaul: 'carrying nodules to the ore pile', bstack: 'stacking the ore pile' }[c.state] + (c.role === 'drill' && !c.bitOk ? ' while its bit waits for repair' : '');
     if (S.si && S.si.night && c.role !== 'scout' && S.t - c.lastRest > K.REST_WINDOW * K.DAY / 24 && c.state !== 'sleep') t += ' (tired: half speed at night)';
-    if (c.air) t = c.air.phase === 'walk' ? 'heading for the thermal vent' : (c.air.phase === 'rise' ? 'floating up the thermal vent' : 'swimming down the current');
+    if (c.air) t = c.air.vent === 'chimney' ? (c.air.phase === 'walk' ? 'heading for the hydrothermal chimney' : c.air.phase === 'rise' ? 'riding up the chimney\'s plume' : 'swimming down from the chimney') :
+      c.air.phase === 'walk' ? 'heading for the thermal vent' : (c.air.phase === 'rise' ? 'floating up the thermal vent' : 'swimming down the current');
     if (sim.isHeld(c)) t = 'being repaired';
+    if (c.apprentice) t += ' · apprentice, half pace, graduates in ' + fmtTime(c.apprentice.until - S.t);
     if (c.limp) t += ' (lost a leg)';
     if (c.role === 'drill' && !c.bitOk) t += ' (bit broken)';
     if (c.role === 'energy' && c.broken) t += ' (worn out)';
@@ -2600,7 +2750,7 @@
   }
   function moodWord(c) { return c.moodZone === 'happy' ? 'happy' : c.moodZone === 'grumpy' ? 'grumpy' : 'content'; }
   function drawInfo(c, x, y, s) {
-    var line1 = c.name + ', ' + NAMES[c.role].toLowerCase() + starText(c), line2 = statusText(c), line3 = recText(c), w;
+    var line1 = c.name + ', ' + (c.apprentice ? 'apprentice ' : '') + NAMES[c.role].toLowerCase() + starText(c), line2 = statusText(c), line3 = recText(c), w;
     ctx.save();
     ctx.font = '700 12px ' + cssFont; w = ctx.measureText(line1).width;
     ctx.font = '11px ' + cssFont; w = Math.max(w, ctx.measureText(line2).width, ctx.measureText(line3).width) + 16;
@@ -2643,13 +2793,14 @@
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
     layers[2].push({ y: groundY(X(S.pos.WORKSHOP), 0.95), kind: 3, f: drawWorkshop });
     layers[2].push({ y: groundY(X(S.pos.DEN), 0.82), kind: 3, f: drawDen });
+    if (S.lv.lamp) layers[2].push({ y: lampPos().y, kind: 3, f: drawLamp });
     for (i = 0; i < S.pets.length; i++) layers[2].push({ y: petY(S.pets[i]) + 0.02, kind: 3, f: drawPet.bind(null, S.pets[i]) });
     layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
       sheet(k, dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); }, k < 2 ? function (x) { return crestY(k + 1, x); } : null, 1);
       drawRipples(k); drawEcoFloor(k);
       if (k === 0) { drawWeeds(0); drawRidge(); }
-      if (k === 2) { drawCavern(); drawVent(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }
+      if (k === 2) { drawCavern(); drawVent(); drawChimney(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }
       if (k > 0) drawLocked(k);
       list = layers[k];
       list.sort(function (a, b) { return a.y - b.y; });
@@ -2696,11 +2847,14 @@
     scanner: { name: 'Sharper scanner', fx: function (v) { return 'Scans find metal ' + Math.round(v[0] * 100) + '% of the time' + (v[1] ? ', +' + v[1].toFixed(2) + ' richness' : ''); } },
     engine: { name: 'Stirling engine', fx: function (v) { return v + ' charges a minute from the lava'; } },
     riser: { name: 'Riser pump', fx: function (v) { return 'Sends an ingot up every ' + v + ' s (up to ' + Math.round(60 / v) + ' a minute)'; } },
-    yard: { name: 'Bigger yard', fx: function (v) { return 'Ore pile holds ' + K.ORE_CAP[v] + ', bar stack ' + K.BAR_CAP[v]; } }
+    yard: { name: 'Bigger yard', fx: function (v) { return 'Ore pile holds ' + K.ORE_CAP[v] + ', bar stack ' + K.BAR_CAP[v]; } },
+    lamp: { name: 'Lighthouse lamp', fx: function (v) { return v ? 'Lights ' + v + ' units around the field\'s edge at night: tired crabs there are not slowed by the dark' : 'No lamp: tired crabs work at half speed in the dark'; } }
   };
   var STAGE_NAME = { scout: 'Scouting', drill: 'Drilling', haul: 'Hauling', crush: 'Crushing', smelt: 'Smelting', sell: 'Selling' };
   var ui = {
-    aOcto: $('a-octo'), aEel: $('a-eel'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
+    aOcto: $('a-octo'), aEel: $('a-eel'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), aContract: $('a-contract'), aContractLabel: $('a-contract-label'),
+    contract: $('h-contract'), contractN: $('h-contract-n'), contractT: $('h-contract-t'), contractBar: $('h-contract-bar'),
+    contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
@@ -2760,12 +2914,15 @@
     stage.scrollTo({ left: crabX(c) * Z - stage.clientWidth / 2, behavior: mqReduce.matches ? 'auto' : 'smooth' });
   }
   function renderAlerts() {
-    var tr = S.trader;
+    var tr = S.trader, co = S.contract;
     ui.aOcto.hidden = !S.octo || S.octo.state === 'flee';
     ui.aEel.hidden = !S.eel.out;
     ui.aTrader.hidden = !tr || tr.state === 'leave';
     if (tr) ui.aTraderLabel.textContent = tr.state === 'stay' ? 'Trader open ' + fmtTime(tr.until - S.t) : 'Trader coming';
+    ui.aContract.hidden = !co || co.state !== 'offer';
+    if (co && co.state === 'offer') ui.aContractLabel.textContent = 'Contract offer ' + fmtTime(co.acceptBy - S.t);
   }
+  function openContract() { if (!S.contract) return; renderPanel(); selectTab('t-build'); flashCard(ui.contractCard); }
   var rosterIds = '';
   function renderRoster() {              // rows are rebuilt only when the crew changes, so focus and clicks survive
     ui.rosterCount.textContent = '(' + S.crabs.length + ')';
@@ -2785,7 +2942,7 @@
       c = crew[i]; li = rows[i];
       li.querySelector('b').textContent = c.name;
       li.querySelector('.stars').textContent = c.stars ? new Array(c.stars + 1).join('★') : '';
-      li.querySelector('.kind').textContent = NAMES[c.role].toLowerCase();
+      li.querySelector('.kind').textContent = (c.apprentice ? 'apprentice ' : '') + NAMES[c.role].toLowerCase();
       li.querySelector('.what').textContent = statusText(c) + ' · ' + c.rec.jobs + ' job' + (c.rec.jobs === 1 ? '' : 's');
       li.querySelector('button').setAttribute('aria-label', 'Show ' + c.name + ' on the field');
     }
@@ -2827,7 +2984,8 @@
         '<span class="role-name"><b><em class="long">' + NAMES[r] + 's</em><em class="short">' + SHORT[r] + '</em></b><span>' + ROLE_INFO[r] + '</span></span>' +
         '<span class="role-ctl"><button type="button" class="mini" data-act="retire" aria-label="Retire one ' + NAMES[r].toLowerCase() + '">−</button>' +
         '<output aria-label="' + NAMES[r] + 's">0</output>' +
-        '<button type="button" class="hire" data-act="hire" aria-label="Hire one ' + NAMES[r].toLowerCase() + '">+ $0</button></span></div>';
+        '<button type="button" class="hire" data-act="hire" aria-label="Hire one ' + NAMES[r].toLowerCase() + '">+ $0</button>' +
+        '<button type="button" class="hire app" data-act="app" aria-label="Hire an apprentice ' + NAMES[r].toLowerCase() + ': half the price, half the pace, a full crab after a day">🎓 $0</button></span></div>';
     });
     ui.roles.innerHTML = html;
     html = '';
@@ -2863,9 +3021,14 @@
       row = rows[i]; r = row.getAttribute('data-role'); cost = sim.hireCost(r);
       row.querySelector('output').textContent = n[r];
       hire = row.querySelector('[data-act="hire"]');
-      hire.textContent = '+ ' + money(cost);
-      hire.disabled = full || S.credits < cost;
-      hire.title = full ? 'The den is full' : (S.credits < cost ? 'Not enough credits' : 'Hire for ' + money(cost));
+      var app = row.querySelector('[data-act="app"]'), appCost = sim.hireCost(r, true), appMode = ui.appMode.checked;   // on phones the toggle turns + into the apprentice button
+      hire.textContent = (appMode ? '🎓 ' : '+ ') + money(appMode ? appCost : cost);
+      hire.disabled = full || S.credits < (appMode ? appCost : cost);
+      hire.classList.toggle('on-app', appMode);
+      hire.title = full ? 'The den is full' : (S.credits < cost ? 'Not enough credits' : (appMode ? 'An apprentice for ' + money(appCost) : 'Hire for ' + money(cost)));
+      app.textContent = '🎓 ' + money(appCost);
+      app.disabled = full || S.credits < appCost;
+      app.title = full ? 'The den is full' : (S.credits < appCost ? 'Not enough credits' : 'An apprentice for ' + money(appCost) + ': half the pace, a full ' + ROLE_NOUN[r] + ' after a day');
       var ret = row.querySelector('[data-act="retire"]');
       ret.disabled = n[r] <= 0;
       ret.title = n[r] ? 'Retire one for a refund of ' + money(sim.refund(r)) : '';
@@ -2893,6 +3056,15 @@
         var T = K.TRADES[id], short = (T.pay.bars || 0) > S.bars || (T.pay.ingots || 0) > S.stock, sold = tr.sold[id];
         return '<div class="offer"><span><b>' + TRADE_INFO[id][0] + '</b><br>' + TRADE_INFO[id][1] + '</span><button type="button" class="hire" data-trade="' + id + '"' + (!open || sold || short ? ' disabled' : '') + '>' + (sold ? 'Swapped' : 'Swap ' + priceText(T.pay)) + '</button></div>';
       }).join('');
+    }
+    var co = S.contract;
+    ui.contractCard.hidden = !co;
+    if (co) {
+      ui.contractTime.textContent = co.state === 'offer' ? 'offer open ' + fmtTime(co.acceptBy - S.t) : fmtTime(co.until - S.t) + ' left';
+      ui.contractText.textContent = co.state === 'offer'
+        ? 'The surface wants ' + co.need + ' ingots within three days (' + fmtTime(K.CONTRACT_DAYS * K.DAY) + ' of crab time). Filled, it pays ' + money(co.need * co.pay) + ' (' + money(co.pay) + ' an ingot' + (S.rep ? ', raised by your ' + S.rep + ' star' + (S.rep === 1 ? '' : 's') : '') + ') and a ' + DECOR_NAMES[co.decor] + ' for the den. Run out, it costs a reputation star. Let it lapse and nothing happens.'
+        : co.got + ' of ' + co.need + ' ingots sent up, ' + fmtTime(co.until - S.t) + ' to go. Pays ' + money(co.need * co.pay) + ' and a ' + DECOR_NAMES[co.decor] + ' when filled; a star if not.';
+      ui.contractAccept.hidden = ui.contractDecline.hidden = co.state !== 'offer';
     }
     ui.spares.textContent = (S.spares.bit || S.spares.leg || S.luckyPearls) ? 'In stock from the trader: ' + S.spares.bit + ' spare bit' + (S.spares.bit === 1 ? '' : 's') + ', ' + S.spares.leg + ' spare leg' + (S.spares.leg === 1 ? '' : 's') + (S.luckyPearls ? ', a lucky shell' : '') + '.' : '';
     ui.postBtn.textContent = S.post.auto ? 'Bots move it' : 'Pinned';
@@ -2949,6 +3121,15 @@
     if (sim.pattern() && S.scoutsNight && !S.si.night && !S.flags.length && !sim.has('flagBundle') && sim.counts().scout)
       return 'Advisor: <b>The drills have run out of flags.</b> Your scouts work nights. Give them a bigger flag bundle in the Tech tab (Sonar lab), or untick "Scouts work the night".';
     if (S.trader && S.trader.state === 'stay') return 'Advisor: <b>The hermit-crab trader is open for ' + fmtTime(S.trader.until - S.t) + '.</b> Swap bars or ingots for its goods in the Build tab.';
+    if (S.contract && S.contract.state === 'offer') {
+      var coRate = sim.rates(300).sold * K.CONTRACT_DAYS * K.DAY / 60;
+      return 'Advisor: <b>A contract offers ' + money(S.contract.need * S.contract.pay) + ' for ' + S.contract.need + ' ingots in three days.</b> At the last five minutes\' pace you would send about ' + Math.round(coRate) + '. ' + (coRate >= S.contract.need * 1.1 ? 'Take it in the Build tab (C).' : 'Tight: it costs a star if you fall short. Hire first, or let it lapse.');
+    }
+    if (S.contract && S.contract.state === 'on' && !S.order && S.t - S.contract.at > 60) {   // a minute in, once the rate means something
+      var coLeft = S.contract.need - S.contract.got, coNeedRate = coLeft / Math.max(1, (S.contract.until - S.t) / 60), coNow = sim.rates(60).sold;
+      var coB = sim.bottleneck(), coStage = (STAGE_NAME[coB] || { power: 'power', repair: 'repairs', mech: 'legs' }[coB] || coB).toLowerCase();
+      if (coNeedRate > coNow * 1.05) return 'Advisor: <b>The contract is falling behind: ' + coLeft + ' more ingots in ' + fmtTime(S.contract.until - S.t) + ' needs ' + coNeedRate.toFixed(1) + ' a minute, and the line makes ' + coNow.toFixed(1) + '.</b>' + (S.reserve > 0 ? ' Lower the reserve.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock.' : '') + ' The slowest stage is ' + coStage + '.';
+    }
     if (S.quake) return 'Advisor: <b>Earthquake!</b> The ' + K.ZONES[S.quake.zone].name.toLowerCase() + ' is shaking. When the sand slides it buries what lies in its path and bares a rich patch elsewhere: send the scouts and drills there.';
     if (S.news && S.news.kind === 'boom') return 'Advisor: <b>Copper boom!</b> Ingots fetch 40% more for ' + fmtTime(S.news.until - S.t) + '.' + (S.reserve > 0 ? ' Drop the stockpile reserve to send everything up.' : '') + (S.ocBank >= 5 && !S.oc ? ' Overclock to make the most of it.' : '');
     if (S.news && S.news.kind === 'glut') return 'Advisor: <b>A glut at the surface.</b> Ingots fetch 35% less for ' + fmtTime(S.news.until - S.t) + '. Raise the stockpile reserve to hold them back until it passes' + (S.order ? ', unless the ship order matters more' : '') + '.';
@@ -3004,6 +3185,13 @@
       if (S.order.rivalRate) ui.rivalBar.style.width = (S.order.rival / S.order.need * 100).toFixed(1) + '%';
       ui.orderT.textContent = fmtTime(S.order.until - S.t) + ' left · +' + Math.round(S.order.premium * 100) + '% · ' + '★'.repeat(S.rep) + '☆'.repeat(K.REP_MAX - S.rep);
       ui.orderBar.style.width = (S.order.got / S.order.need * 100).toFixed(1) + '%';
+    }
+    var co = S.contract, onCo = co && co.state === 'on';
+    ui.contract.hidden = !onCo;
+    if (onCo) {
+      ui.contractN.textContent = co.got + ' of ' + co.need;
+      ui.contractT.textContent = fmtTime(co.until - S.t) + ' left · ' + money(co.need * co.pay);
+      ui.contractBar.style.width = (co.got / co.need * 100).toFixed(1) + '%';
     }
     ui.oc.setAttribute('aria-pressed', String(S.oc));
     ui.oc.disabled = !S.oc && S.ocBank < 1;
@@ -3104,6 +3292,8 @@
       '<tr><th scope="row">Plankton light</th><td class="n">' + Math.round(S.stat.glowLit) + ' s of tired crabs working at full speed at night</td></tr>' +
       '<tr><th scope="row">Wear</th><td class="n">average ' + Math.round(sim.avgWear()) + ' s without rest (trouble starts at ' + K.WEAR_FREE + ')</td></tr>' +
       '<tr><th scope="row">Thermal vent</th><td class="n">' + r.rides.toFixed(1) + ' rides a minute</td></tr>' +
+      '<tr><th scope="row">Lighthouse lamp</th><td class="n">' + (S.lv.lamp ? 'lights ' + sim.up('lamp') + ' units; ' + Math.round(S.stat.lampLit) + ' s of tired crabs working at full speed in its light' : 'not built (Build tab)') + '</td></tr>' +
+      '<tr><th scope="row">Apprentices</th><td class="n">' + S.stat.apprentices + ' hired, ' + S.stat.graduates + ' graduated, ' + S.crabs.filter(function (c2) { return c2.apprentice; }).length + ' learning now</td></tr>' +
       '</tbody></table>';
     var cov = sim.coverage(), ri, si2, cell;
     html += '<h3>Shifts: crabs on duty in each part of the day</h3><table class="ltable"><thead><tr><th scope="col">Role</th>';
@@ -3120,7 +3310,7 @@
     html += '<h3>The crew: names, stars and records</h3><table class="ltable"><thead><tr><th scope="col">Crab</th><th scope="col">Job</th><th scope="col">Record</th></tr></thead><tbody>';
     shown.forEach(function (cr2) {
       var nextAt = cr2.stars < K.VET_LEVELS.length ? K.VET_AT[cr2.role] * K.VET_LEVELS[cr2.stars] : 0;
-      html += '<tr><th scope="row">' + cr2.name + (cr2.stars ? ' <span class="vet" aria-label="' + cr2.stars + ' star' + (cr2.stars === 1 ? '' : 's') + '">' + '★'.repeat(cr2.stars) + '</span>' : '') + '</th><td>' + ROLE_NOUN[cr2.role] + '</td><td class="note">' + recText(cr2) +
+      html += '<tr><th scope="row">' + cr2.name + (cr2.stars ? ' <span class="vet" aria-label="' + cr2.stars + ' star' + (cr2.stars === 1 ? '' : 's') + '">' + '★'.repeat(cr2.stars) + '</span>' : '') + '</th><td>' + (cr2.apprentice ? 'apprentice ' : '') + ROLE_NOUN[cr2.role] + '</td><td class="note">' + recText(cr2) +
         (nextAt ? ' (next star at ' + nextAt + ')' : '') + '</td></tr>';
     });
     var nHappy = 0, nGrumpy = 0, moodSum = 0;
@@ -3146,6 +3336,8 @@
       '<tr><th scope="row">Sunken chests</th><td class="n">' + S.stat.chests + ' opened, ' + money(S.stat.chestCredits) + '</td></tr>' +
       '<tr><th scope="row">Earthquakes</th><td class="n">' + S.stat.quakes + ', burying ' + S.stat.quakeBuried + ' nodules and ' + S.stat.quakeFlags + ' flags' + (S.quake ? ' (shaking now!)' : '') + '</td></tr>' +
       '<tr><th scope="row">Surface news</th><td class="n">' + S.stat.news + ' headlines, ' + (S.stat.newsCredits < 0 ? '−' : '+') + money(Math.abs(S.stat.newsCredits)) + ' from booms and gluts' + (S.news ? ' (' + S.news.kind + ' now)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Contracts</th><td class="n">' + S.stat.contractsFilled + ' filled, ' + S.stat.contractsFailed + ' run out, ' + (S.stat.contracts - S.stat.contractsFilled - S.stat.contractsFailed - (S.contract ? 1 : 0)) + ' let lapse; ' + money(S.stat.contractCredits) + ' earned' + (S.contract ? (S.contract.state === 'offer' ? ' (one on offer now)' : ' (' + S.contract.got + ' of ' + S.contract.need + ' under way)') : '') + '</td></tr>' +
+      '<tr><th scope="row">Hydrothermal chimney</th><td class="n">' + S.stat.chimneys + ' opened, ' + S.stat.chimneyRides + ' rides' + (S.chimney ? ' (open now at ' + S.chimney.x + ', ' + fmtTime(S.chimney.until - S.t) + ' left)' : '') + '</td></tr>' +
       '</tbody></table>';
     html += '<h3>Bonuses</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Flow</th><td class="n">×' + sim.flowMult().toFixed(2) + ' on sales, ' + S.streak + ' in a row' + (S.festival ? ' (festival day: doubled)' : '') + '</td></tr>' +
@@ -3338,7 +3530,8 @@
     function onRoleClick(e) {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var r = b.closest('.role').getAttribute('data-role'), res;
-      if (b.getAttribute('data-act') === 'hire') { res = sim.hire(r); if (res === true) toast('Hired a ' + NAMES[r].toLowerCase(), ROLE_INFO[r].replace(/^./, function (m) { return m.toUpperCase(); }) + '.'); }
+      if (b.getAttribute('data-act') === 'hire' && !ui.appMode.checked) { res = sim.hire(r); if (res === true) toast('Hired a ' + NAMES[r].toLowerCase(), ROLE_INFO[r].replace(/^./, function (m) { return m.toUpperCase(); }) + '.'); }
+      else if (b.getAttribute('data-act') === 'app' || b.getAttribute('data-act') === 'hire') sim.hire(r, true);   // the apprentice event raises its own toast
       else sim.retire(r);
       sim.drain().forEach(handle);
       renderPanel(); renderHUD();
@@ -3347,6 +3540,9 @@
     ui.aOcto.addEventListener('click', shoo);
     ui.aEel.addEventListener('click', function () { if (sim.shooEel()) { sim.drain().forEach(handle); renderHUD(); } });
     ui.aTrader.addEventListener('click', openShop);
+    ui.aContract.addEventListener('click', openContract);
+    ui.contractAccept.addEventListener('click', function () { sim.acceptContract(); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
+    ui.contractDecline.addEventListener('click', function () { if (sim.declineContract()) toast('Contract declined', 'Nothing lost. Another will come along in a while.'); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     ui.rosterBox.addEventListener('toggle', renderRoster);
     ui.roster.addEventListener('click', function (e) {
       var b = e.target.closest('[data-show]'), id = b && +b.getAttribute('data-show'), c = null, i;
@@ -3391,6 +3587,7 @@
       });
     });
     $('scouts-night').addEventListener('change', function () { sim.setScoutsNight(this.checked); renderPanel(); renderHUD(); });
+    ui.appMode.addEventListener('change', renderPanel);
     Array.prototype.forEach.call(document.querySelectorAll('[data-shift]'), function (b) {
       b.addEventListener('click', function () { sim.setShift(b.getAttribute('data-shift')); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     });
@@ -3440,6 +3637,7 @@
       if (k === '1' || k === '2' || k === '3') setSpeed([1, 2, 4][+k - 1]);
       else if (k === 's') shoo();
       else if (k === 't') openShop();
+      else if (k === 'c') openContract();
       else if (k === 'm') { selectTab('t-build'); ui.arrangeBtn.click(); }
       else if (k === '[' || k === ']') {
         for (j = 0; j < list.length; j++) if (list[j].getAttribute('aria-selected') === 'true') break;
@@ -3549,7 +3747,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

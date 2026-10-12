@@ -36,13 +36,14 @@ the line, which the advisor and the Ledger tab point out.
   beside a hauler, running hand in hand with an energy bot), or else takes the hauling backup
   job; tired crabs dig themselves into the sand to sleep. Each kind walks at
   its own speed.
-- **Progression:** upgrades, 5 technologies unlocking 20 worker upgrades (including night
-  scouting), and movable building plots.
+- **Progression:** upgrades (including a lighthouse lamp that lights the field's edge at night), 5 technologies unlocking 20 worker upgrades (including night
+  scouting), movable building plots, and apprentices: half-price crabs at half pace that graduate after a day.
 - **Money and bonuses:** overclock and a flow bonus, a drifting market price with surface news
-  (booms, gluts and rumours that move it for a minute), twenty achievements listed in the Ledger, and cargo-ship
-  orders with reputation stars. From Ingot Magnate a rival lobster crew behind the ridge
+  (booms, gluts and rumours that move it for a minute), twenty-four achievements listed in the Ledger, cargo-ship
+  orders with reputation stars, and contracts from the surface (so many ingots in three days, accepted or let lapse,
+  paying credits and a unique decoration). From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.
-- **The sea:** tides (which also push the refuel post around), storms, earthquakes that bury a band of a dune and bare a rich patch elsewhere, lava surges, an octopus
+- **The sea:** tides (which also push the refuel post around), storms, earthquakes that bury a band of a dune and bare a rich patch elsewhere, lava surges, a hydrothermal chimney that opens behind the plots for two days as a second vent and extra heat, an octopus
   thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, a manta ray that sweeps walking crabs along the back of the claim, sunken chests on the back dune,
   sea life in the deep shadows, a plankton cycle that glows at night after ship wakes and storms, and a closed
   food web (`eco.js`, view-only): shoals, shrimp, jellies and crawlers, their hunters, a shark or two, gulls on

@@ -21,7 +21,7 @@ function rng(seed) {                       // a small seeded generator, separate
 function act(sim, r) {
   const K = sim.K, S = sim.state(), pick = a => a[Math.floor(r() * a.length)];
   const role = pick(K.ROLES), x = r();
-  if (x < 0.25) return sim.hire(role);
+  if (x < 0.25) return sim.hire(role, r() < 0.3);   // now and then an apprentice
   if (x < 0.40) return sim.retire(role);   // often, since leaving is where claims go stale
   if (x < 0.50) return sim.buy(pick(Object.keys(K.UP)));
   if (x < 0.56) return sim.research(pick(Object.keys(K.TECH)));
@@ -34,7 +34,8 @@ function act(sim, r) {
   if (x < 0.85) return sim.setScoutsNight(r() < 0.5);
   if (x < 0.89) return sim.setReserve(Math.floor(r() * 13));
   if (x < 0.94) return sim.overclock(r() < 0.7);
-  if (x < 0.96) return sim.shoo();
+  if (x < 0.95) return sim.shoo();
+  if (x < 0.965) return S.contract ? (r() < 0.7 ? sim.acceptContract() : sim.declineContract()) : sim.shooEel();
   if (S.trader && S.trader.offers) return sim.trade(pick(S.trader.offers));
 }
 

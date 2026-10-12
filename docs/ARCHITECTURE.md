@@ -150,6 +150,8 @@ off.
 | Rival | `rival{since, drive, won, lost}`: `null` until Ingot Magnate; `won` and `lost` are the rival's races |
 | Den | `decor[]`, `decorWork`, `decorTheme`, `festival` (true through a festival day), `pets[{kind, name, at, how}]` |
 | Quake | `quake{zone, x, until}` while a dune shakes, `nextQuake` |
+| Contract | `contract{state ('offer' or 'on'), need, got, pay, acceptBy, until, at, decor, n}`, `nextContract` |
+| Chimney | `chimney{x, d, born, until, rides}` while one is open, `nextChimney` |
 | Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle`, `manta{x,d,dir,riders[]}`, `nextManta` |
 | Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes), `long[]` and `longEvery` (the whole game: a sample every 15 s, halved in resolution each time it passes `K.LONG_MAX` = 240 points) |
 
@@ -159,7 +161,8 @@ off.
 | --- | --- |
 | Identity | `id`, `role`, `k` (number within its role; used for lanes and groups), `name` |
 | Record | `rec{jobs, helped, rides, legs, dances, pearls, chests}`, `stars` (0–3, veteran level) |
-| Position | `x`, `d`, `dir`, `air` (vent ride: `{phase, x0, gx, gd, tx, td, used}`), `alt` (0–1 height on the ride) |
+| Position | `x`, `d`, `dir`, `air` (a ride on the vent or the chimney: `{phase, vent ('main' or 'chimney'), inX, inD, col, rise, x0, gx, gd, tx, td, used}`), `alt` (0–1 height on the ride) |
+| Training | `apprentice{until}` while it is one (half pace in `pace()`, half a crab in `strength()`); `null` or absent for a full crab |
 | Behaviour | `state` (state-machine node), `timer`, `target`, `tx`/`td`, `flag`, `nod` (hole being drilled), `load` (hauler), `bload` (backup job), `carry` (item in claws), `n` (bars carried) |
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
 | Claims | `claimedBy` (energy bot coming), `fixBy`, `mendBy` (repair and maintenance bots coming) |
@@ -183,7 +186,7 @@ Every 1/60 s of crab time, in this order:
 
 1. `t += dt`; `si = shiftInfo()`; the overclock bank counts down.
 2. **For each crab:**
-   1. Clear `moving`, `working` and `floating`; count down `fresh`.
+   1. Clear `moving`, `working` and `floating`; count down `fresh`; graduate an apprentice whose day is up (`graduate`).
    2. If it is asleep, recharge it, shed wear, mark it rested, and wake it if it is on duty.
       Then go to the next crab.
    3. If no fixer is holding it, run its **state machine**: its role's rule, or the backup
@@ -197,10 +200,10 @@ Every 1/60 s of crab time, in this order:
 3. `dance()`: pair idle neighbours, apply recharge and rest, and `craft()` den decorations
    from idle time.
 4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `eel()`; `turtle()`; `manta()`; `trader()`;
-   `quake()`; `news()`. Crabs riding the turtle or the manta skip their own rules for the step.
+   `quake()`; `news()`; `chimney()`; `contract()`. Crabs riding the turtle or the manta skip their own rules for the step.
 5. `morning()` when the day number changes (fresh starts, `dawn`).
-6. The engine's store gains heat; `weather()` (storms, lava surges, ship orders).
-7. `sell()`: the riser timer, flow streak, order premium and bonus, overclock banking,
+6. The engine's store gains heat (half again as much while a chimney is open); `weather()` (storms, lava surges, ship orders).
+7. `sell()`: the riser timer, flow streak, order premium and bonus, the contract's tally and reward, overclock banking,
    `ranks()`.
 8. Once a second: `market()` (price, times the news multiplier), `snapshot()` (into `hist`, and into `long` when a sample is due) and `achievements()` (each of `ACH` not yet in `S.ach` is tested; a win stores the time and emits `achievement`).
 
@@ -313,6 +316,9 @@ and emits `festival`; `flowMult()` doubles the bonus while it is set. `adopt(kin
   once every `K.EEL_BITE`. `eelGuards(n)` keeps `nearestNodule()` off nodules in its reach while it
   is out. `shooEel()` and the end of its stay call `eelHide()`.
 - `quake()` runs an earthquake: `S.quake` for `K.QUAKE_TIME` (walkers slowed in `moveTo`), then the slide buries free nodules and idle flags in the band, pushes `K.QUAKE_FLAGS` rich flags (`map: true, quake: true`) clear of it, and emits `quakeEnd` with the counts and the patch.
+- `chimney()` opens a hydrothermal chimney on one of `K.CHIMNEY_SPOTS` for `K.CHIMNEY_LIFE` and fades it (`chimneyOpen`, `chimneyFade`). `go()` offers it as a second vent: a ride object carries its own `vent`, `inX`, `col` and `rise`, so a ride outlives the chimney, and the glide goes either way. `newcomer()` fills those fields into rides from older saves.
+- `contract()` runs the surface's contracts: an offer sized from `rates(300)` that stands for `K.CONTRACT_OFFER`, then `acceptContract()` or `declineContract()`; `sell()` counts ingots and pays out (`contractDone`, a `K.CONTRACT_DECOR` decoration), and `contract()` fails it at `until` (`contractFail`, a star lost).
+- `lampLit(x, d)` is the lighthouse lamp's reach (`K.LAMP_X`, `K.LAMP_D`, radius `up('lamp')`); `bright()` is either light, and `nightSlow()` uses it. `step()` counts `stat.lampLit` and emits `glow` with `'lamp'` as its second argument.
 - `news()` runs a surface headline: `S.news` for `K.NEWS_TIME` with a price multiplier that `market()` applies; `sell()` books the difference into `stat.newsCredits`.
 - `weather()` runs storms, lava surges and ship orders. It also brings in the rival crew at
   `K.RIVAL_RANK`, gives each new order a `rivalRate` (ingots a second, from `K.RIVAL_PACE` and
@@ -367,18 +373,19 @@ notifications only: the sim never depends on anyone reading them.
 
 | Area | Events |
 | --- | --- |
-| Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `glow`, `morning`, `dawn`, `shiftMode`, `veteran` |
+| Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `glow` (b: `'lamp'` under the lighthouse), `morning`, `dawn`, `shiftMode`, `veteran`, `apprentice`, `graduate` |
 | Mining | `flag`, `miss`, `flagDone`, `strike`, `uncover`, `dry`, `pearl`, `chest` |
 | Line | `take`, `stack`, `feed`, `bar`, `grab`, `ingot`, `stock`, `sell`, `rank` |
 | Power | `charge`, `plug`, `refill`, `postGrab`, `postMoved`, `postDrift` |
 | Breakdowns | `bitBreak`, `ebotBreak`, `legOff`, `takeMat`, `forged`, `fixed` |
-| Movement | `ride`, `land` |
+| Movement | `ride` (b: `'main'` or `'chimney'`), `land`, `chimneyOpen`, `chimneyFade` |
 | Bonuses | `ocStart`, `ocEnd`, `flowLost` |
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
 | Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone`, `mantaArrive`, `mantaPick`, `mantaDrop`, `mantaGone` |
 | Den | `decor`, `festival`, `pet` |
 | Crew | `happy`, `grumpy`, `moodOk`, `achievement` |
 | Shocks | `quakeStart`, `quakeEnd`, `newsStart`, `newsEnd` |
+| Contracts | `contractOffer`, `contractStart`, `contractLapse` (b: true when declined), `contractDone`, `contractFail` |
 | Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `eelOut`, `eelSnap`, `eelShoo`, `eelIn`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
 
 ### 4.9 Public API
@@ -386,12 +393,12 @@ notifications only: the sim never depends on anyone reading them.
 | Group | Functions |
 | --- | --- |
 | Lifecycle | `reset(opts)`, `step()`, `drain()`, `state()`, `save()`, `load(data)`, `K`, `FLOW` |
-| Crew | `hire(role)`, `retire(role)`, `hireCost(role)`, `refund(role)`, `crewCap()`, `counts()` |
+| Crew | `hire(role, apprentice)`, `retire(role)`, `hireCost(role, apprentice)`, `refund(role)`, `crewCap()`, `counts()`, `strength(role)` |
 | Build | `buy(id)`, `upgradeCost(id)`, `up(id)`, `place(building, plot)`, `placePost(x, d)`, `setPostAuto(on)`, `postTarget()` |
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
-| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)` |
-| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `glowR()`, `crushSpot(c)`, `haulSpot(c, back)` |
+| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)`, `acceptContract()`, `declineContract()` |
+| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `lampLit(x, d)`, `glowR()`, `crushSpot(c)`, `haulSpot(c, back)` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
 `'done'`). They emit events the view can react to.

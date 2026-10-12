@@ -112,6 +112,13 @@ you can have (section 14).
 
 Walk speeds are in track units per second. Haulers walk at 88 with Spring legs.
 
+### Apprentices
+
+- Any kind can be hired as an **apprentice** (the 🎓 button beside +, or on phones the "hire apprentices" toggle above the crew rows) for half the price of the next crab of that kind.
+- An apprentice works and walks at half pace. It is drawn smaller, in a yellow paper cap, and its card, the crew list and the Ledger's crew table say so.
+- After one day (180 s) on the job it graduates: full pace, the cap flies off, and a toast says so. It keeps its name, record and any stars it earned meanwhile; jobs done as an apprentice count toward its stars.
+- Retiring takes the newest crab of a kind as usual; an apprentice refunds half of its half price. The capacity estimate in the Ledger counts an apprentice as half a crab. Five graduations win the Teacher achievement.
+
 ### Names, records and veterans
 
 Every crab has a name and keeps a record: the jobs it has done at its own work, nodules it
@@ -208,7 +215,7 @@ about the anvil and the post rather than in a row.
   | Missing leg | ×0.55 |
   | Climbing a dune lip | ×0.5 |
   | Storm | ×0.85 |
-  | Night, unrested, outside the plankton light | ×0.5 |
+  | Night, unrested, outside the plankton light and the lighthouse lamp's light | ×0.5 |
 
 - They speed up with:
 
@@ -223,6 +230,7 @@ about the anvil and the post rather than in a row.
   3. It swims down and sideways at 200 units a second, landing on its target.
 - A crab only rides when riding is at least 10% quicker than walking.
 - Floating costs no power and no wear.
+- **The hydrothermal chimney.** While a chimney is open behind the plots (section 17), any crab with a trip of at least 120 units may ride it instead: it walks to the chimney, rises for 1.2 s, and swims down at 200 units a second to its target, to the left or to the right. The same 10% rule decides, and the main vent is checked first. A crab on its way to a chimney that fades walks on instead.
 
 ## 7. Power
 
@@ -376,12 +384,18 @@ are slow haulers.
     | Ship order filled | Ship in a bottle |
     | Lava surge ends | Lava lamp |
     | Festival day | String of festival lanterns (not inspired: given outright, even to a full den) |
+    | Contract filled | A brass ship's bell, then a golden anchor, a contract plaque and a ship's wheel, in turn (given outright, like the lanterns) |
 
 ## 13. Money
 
 - **Metal price.** It centres on 12 credits per ingot and moves within 6.6 to 18. A slow swell (±18% over 150 s), a faster ripple (±7% over 43 s), and a seeded random walk (up to ±15%) set it.
 - **Surface news.** From 420 s, and 300 to 540 s after each headline passes, news from the surface runs for 60 s: a **boom** (the price ×1.4), a **glut** (×0.65), or a **rumour** (no change), one in three each. The top bar's price trend says "boom!" or "glut" with the time left, the advisor says what to do with the reserve, and the Ledger counts the headlines and what the booms and gluts were worth.
-- **Achievements.** Twenty, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), and Crab Tycoon.
+- **Contracts.** From 480 s, and 540 to 840 s after each one ends, the surface offers a contract: so many ingots within three days (540 s). The number is 80% of what the last five minutes' sales rate would send in three days, at least 25 and at most 999, so an offer is a stretch for a line that keeps its pace and easy for one that grows. The offer stands for 90 s, with a button over the field (C) and a card in the Build tab.
+  - **Accept it,** and every ingot up the riser counts (ship orders count the same ingots). The top bar shows the tally and the time left, and the advisor warns, a minute in, if the line is behind the rate it needs.
+  - **Filling it** pays 5 credits an ingot, plus 10% per reputation star at the time of the offer (a 40-ingot contract with two stars pays 240), counting toward rank, and the den gets a unique decoration (section 12).
+  - **Running out** costs a reputation star, like a missed order.
+  - **Letting it lapse** (the button, or the 90 s passing) costs nothing. The Ledger counts contracts filled, run out and let lapse, and the credits earned.
+- **Achievements.** Twenty-four, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), and Crab Tycoon.
 - **Flow bonus.** An ingot sold within 6 s of the last keeps the flow going. Each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow.
 - **Overclock.**
   - Every sale banks 0.6 s of overclock, multiplied by (1 + streak / 10), up to 30 s.
@@ -419,7 +433,9 @@ are slow haulers.
 | Stirling engine | 32, 56, 90 charges a minute | 140, 420 |
 | Riser pump | One ingot every 3.0, 1.8, 1.0 s | 100, 300 |
 | Bigger yard | Ore pile 15/24/36, bar stack 10/16/24 | 90, 240 |
+| Lighthouse lamp | Lights 120, then 220 units around the field's edge at night | 220, 520 |
 
+- **The lighthouse lamp.** A striped tower at the field's edge (x = 548, depth 0.74), between the den and the near field. At night it lights the sand within its reach (120 units along the track, or across the dunes at 300 units a dune's depth; 220 at the second level): a tired crab in its light works and walks at full speed, as in the plankton light (section 17), and its light shows warm rather than blue-green. The Ledger counts the crab-seconds of night work it lit.
 ## 15. Research and worker upgrades (Tech tab)
 
 Research a technology to unlock its worker upgrades. A worker upgrade is bought once and
@@ -489,6 +505,9 @@ Everything costs 4,450 in total.
   2. While the eel is out, haulers leave nodules within its reach alone, and pick them up once it has gone back in. Nothing is lost, only time.
   3. Click it, or press **Shoo the eel** over the field (the S key, once the octopus is dealt with), to send it back into its crack early.
 - **Earthquakes.** The first comes at 540 s, then 600 to 900 s after each. One claimed dune shakes for 6 s: the whole sea judders, walking drops to 60% speed, and the crabs reel. Then a 120-unit band of that dune slides: every free nodule and every flag nobody is working in the band is buried (the flags count as buried in the Ledger), and the slide bares a fresh patch of three flags of richness 0.8 to 0.95 somewhere on the claim clear of the band. Nodules in a hauler's claws or claim, and flags being drilled, are safe.
+- **The hydrothermal chimney.** The first opens at 300 s, then 360 to 600 s after the last one fades. It stands on one of three spots behind the plots (x = 600, 690 or 780, depth 0.72) for two days (360 s), growing over its first seconds and fading over its last twenty.
+  - While it is open, crabs with a long way to go ride its column (section 6), and the Ledger counts the rides.
+  - The Stirling engine makes 50% more charge a minute while a chimney is open, on top of a lava surge's doubling.
 - **Whales.** Every 2 to 4 minutes a whale glides overhead and the crabs below wave. This is decoration only.
 - **The food web.** The water and the seabed hold a closed ecosystem, decoration only, that never touches the crabs or the economy.
   - A bottom-heavy pyramid, with counts scaled to the screen's width (these at 1,200 px): 36 minnows in schools, 14 shrimp by the rocks, 8 jellyfish, and 24 tiny crawlers a tenth of a crab's size on the sand; above them 3 seahorses, 5 piranha, 2 squid, 2 eels, 2 sea snakes, 2 frogs, 2 small turtles, 3 lobsters and 5 gulls; at the top 1 shark, 2 on screens wider than 1,400 px.
@@ -560,8 +579,9 @@ trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Shoo the octopus | Over the field, top right | Shown while the octopus is in; shoos it (S) |
 | Shoo the eel | Over the field, top right | Shown while the eel is out; sends it back in (S, after the octopus) |
 | Trader | Over the field, top right | Shown while the trader comes and keeps shop; opens its goods (T) |
-| Crew tab | Panel | Hire (+), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
-| Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods |
+| Contract offer | Over the field, top right | Shown while a contract is on offer; opens its card (C) |
+| Crew tab | Panel | Hire (+), hire an apprentice (🎓, or the toggle on phones), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
+| Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods, the contract on offer or under way (Accept, Let it lapse) |
 | Tech tab | Panel | Research and worker upgrades |
 | Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, the food web's lab report, prices, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away and scroll the field |

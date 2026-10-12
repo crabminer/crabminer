@@ -48,8 +48,11 @@ function env(t, still) {
   const crabs = [];
   for (let i = 0; i < 6; i++) { const d = 0.4 + i * 0.09, x = geom.X(100 + i * 60) + Math.sin(t * 0.3 + i) * 80; crabs.push({ x, y: geom.groundY(x, d), d }); }
   const whale = t % 500 > 300 && t % 500 < 360 ? { x: W * (1 - (t % 500 - 300) / 60), y: 120, v: -30 } : null;
+  // now and then an octopus in the water and a crab carrying nodules along the back dune's crest, for the web's two bites
+  const octo = t % 90 > 40 && t % 90 < 70 ? { x: W * 0.4 + (t % 90 - 40) * 6, y: H * 0.3 } : null;
+  const carriers = t % 60 > 20 ? [{ id: 7, x: geom.X(300) + Math.sin(t * 0.2) * 60, y: geom.groundY(geom.X(300), 0.08) }] : [];
   return { W, H, CS, T: t, pal, nightA: 0.5 + 0.5 * Math.sin(t / 240), stormA: t % 400 > 350 ? 0.8 : 0, tide, bloom: 0.5, still, whale, cargo,
-    riserShip: { x: geom.X(852), y: geom.waveY(geom.X(852)) - 4 }, perches, crabs, geom };
+    riserShip: { x: geom.X(852), y: geom.waveY(geom.X(852)) - 4 }, perches, crabs, octo, carriers, geom };
 }
 function drawAll(eco, e) {
   eco.drawDeep(ctx, e); eco.drawWater(ctx, e);
@@ -64,7 +67,7 @@ const ok = (cond, msg) => { if (cond) console.log('ok   ' + msg); else { failed+
 {
   const eco = CrabEco(), DT = 1 / 30, FRAMES = 36000, caps = {};
   eco.SPECIES.forEach(sp => { caps[sp.key] = 0; });
-  let error = null, nan = 0, overCap = 0, maxTotal = 0, overTotal = 0, landed = 0, dived = 0, lastT = 0;
+  let error = null, nan = 0, overCap = 0, maxTotal = 0, overTotal = 0, landed = 0, dived = 0, lastT = 0, scares = 0, snatches = 0, badEv = 0;
   const everEaten = {};
   const t0 = Date.now();
   try {
@@ -72,6 +75,7 @@ const ok = (cond, msg) => { if (cond) console.log('ok   ' + msg); else { failed+
     for (let i = 1; i <= FRAMES; i++) {
       const t = i * DT, e = env(t, false);
       eco.update(DT, e); drawAll(eco, e);
+      for (const ev of eco.events()) { if (ev.kind === 'sharkScare') scares++; else if (ev.kind === 'gullSnatch' && ev.id === 7 && Number.isFinite(ev.x) && Number.isFinite(ev.y)) snatches++; else badEv++; }
       if (i % 30 === 0) {                 // the invariants, once a second
         const all = eco.animals(), rep = eco.report();
         maxTotal = Math.max(maxTotal, all.length);
@@ -96,6 +100,9 @@ const ok = (cond, msg) => { if (cond) console.log('ok   ' + msg); else { failed+
   ok(f.escaped >= 1, 'at least one fish escaped (' + f.escaped + ')');
   ok(f.netted >= 1, 'jellyfish were netted (' + f.netted + ')');
   ok(landed >= 1, 'a gull landed');
+  ok(scares >= 1 && rep.web.sharkScares === scares, 'the shark chased the octopus off (' + scares + ')');
+  ok(snatches >= 1 && rep.web.gullSnatches === snatches && badEv === 0, 'a gull swooped on the carrier and reported it (' + snatches + ')');
+  ok(eco.events().length === 0, 'events are drained');
   ok(dived >= 1, 'a gull dived');
   ok(rep.log.length > 0 && rep.log.every(l => typeof l.text === 'string' && l.text.indexOf('undefined') < 0 && l.text.indexOf('NaN') < 0), 'the log reads clean (' + rep.log.length + ' lines)');
   ok(rep.species.every(sp => typeof sp.emoji === 'string' && sp.emoji.length && sp.name && sp.plural), 'every species is labelled');

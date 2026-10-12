@@ -17,20 +17,13 @@ and its lab report, the crushing line of press stations, the two-storey den, a r
 of 119 animations with dances that cheer up the crabs around them, the manta-ray glide, the crab
 festival every tenth day, the den's pets, crab moods, earthquakes, surface news, achievements,
 apprentices, contracts, the hydrothermal chimney, the lighthouse lamp, the kelp forest claim, the ore
-conveyor, the charging pad and the new dig site after Crab Tycoon.
-
-## Crew and characters
-
-- **A hungrier web.** Let the food web touch the game: a shark that scares the octopus off, a
-  gull that steals a nodule from a hauler on the crest, or the fisherman's catch sold at the
-  surface. All decoration now (`eco.js` never reads `S`).
+conveyor, the charging pad, the new dig site after Crab Tycoon, insurance, the food web's two bites at the
+game (the shark and the gulls), sound, and the tutorial.
 
 ## Economy and progression
 
 - **Metal grades.** Rich flags make "fine" ingots worth 50% more; the smelter keeps them on
   a separate shelf of the stockpile, and the reserve can be set per grade.
-- **Insurance.** Pay credits up front to have storms and octopus losses refunded; an
-  economic choice rather than a reflex.
 
 ## Buildings and layout
 
@@ -41,10 +34,6 @@ conveyor, the charging pad and the new dig site after Crab Tycoon.
 
 ## Interface and accessibility
 
-- **Tutorial.** A guided first five minutes: hire the second smelter, watch the advisor,
-  try overclock.
-- **Sound.** Soft clicks, bubbles, a crab-rave tune, the whale's song; muted by default,
-  with a toggle.
 - **Colour-blind check.** Run the role colours through a contrast and CVD validator and add
   a shape or letter to each crab's gear so roles are never told apart by colour alone.
 - **Touch gestures.** Pinch to zoom the field on phones, drag to pan, long-press a crab for

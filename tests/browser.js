@@ -94,6 +94,7 @@ async function check(b, size) {
   expect(await js('crabminer.state().t < 1 && document.getElementById("intro").hidden'), 'New game did not start a new game');
   const t0 = await js('crabminer.state().t');
   await wait(1500);
+  expect(await js('!document.getElementById("tutorial").hidden && crabminer.view().tutorial === 0 && /second smelter/.test(document.getElementById("tut-text").textContent)'), 'the tutorial did not open on a new game');
   expect(await js('crabminer.state().t') > t0, 'the simulation is not running');
   expect(await js('document.documentElement.scrollWidth <= innerWidth + 1'), 'the page scrolls sideways');
   await shot('start');
@@ -105,6 +106,18 @@ async function check(b, size) {
   await js(`document.querySelectorAll('#t-crew').forEach(t => t.click());
     document.querySelectorAll('.role[data-role] [data-act="hire"]').forEach(b => b.click()); true`);
   expect(await js('crabminer.state().crabs.length') > before, 'the hire buttons did not hire');
+  await js('crabminer.sim.buy("den"); crabminer.sim.hire("smelt"); true');   // the den was full: make room and hire the second smelter the tutorial asks for
+  for (let i = 0; i < 100 && !(await js('crabminer.view().tutorial >= 1')); i++) await wait(100);
+  expect(await js('crabminer.view().tutorial >= 1'), 'the tutorial did not move on after the second smelter was hired');
+  await js('document.getElementById("tut-skip").click(); true');
+  expect(await js('document.getElementById("tutorial").hidden && crabminer.view().tutorial === -1'), 'Skip did not close the tutorial');
+  await js('document.getElementById("sound-btn").click(); true');
+  expect(await js('crabminer.view().sound === true && document.getElementById("sound-btn").getAttribute("aria-pressed") === "true"'), 'the sound button did not turn sound on');
+  await js(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true })); true`);
+  expect(await js('crabminer.view().sound === false'), 'the N key did not turn sound off');
+  await js('document.getElementById("t-build").click(); document.getElementById("insure-btn").click(); true');
+  expect(await js('crabminer.state().insured === true && document.getElementById("insure-btn").textContent === "Insured"'), 'the Insure button did not insure the crew');
+  await js('document.getElementById("t-crew").click(); true');
   for (const tab of ['build', 'tech', 'ledger', 'view', 'crew']) {
     await js(`document.getElementById('t-${tab}').click(); true`);
     expect(await js(`document.getElementById('t-${tab}').getAttribute('aria-selected') === 'true'`), 'the ' + tab + ' tab did not open');
@@ -147,7 +160,7 @@ async function check(b, size) {
   expect(await js('document.getElementById("t-build").getAttribute("aria-selected") === "true"'), 'the ] key did not move to the next tab');
   await js('const S = crabminer.state(); S.ore = Math.max(S.ore, 4); S.nextOcto = S.t; S.nextTrader = S.t; true');
   for (let i = 0; i < 100 && await js('document.getElementById("a-octo").hidden || document.getElementById("a-trader").hidden'); i++) await wait(100);
-  expect(!(await js('document.getElementById("a-octo").hidden')), 'no Shoo button in the top bar when the octopus came');
+  expect(!(await js('document.getElementById("a-octo").hidden')) || await js('crabminer.state().stat.sharkScares > 0'), 'no Shoo button in the top bar when the octopus came');   // unless the shark got there first
   expect(!(await js('document.getElementById("a-trader").hidden')), 'no trader button in the top bar when the trader came');
   await shot('alerts');
   await key('s');
@@ -218,7 +231,7 @@ async function check(b, size) {
   expect(await js('crabminer.state().stat.belted > 0'), 'no nodule rode the conveyor to the pile');
   await shot('belt');
   await js('document.getElementById("t-ledger").click(); true'); await wait(600);
-  expect(await js('/Ore conveyor/.test(document.getElementById("ledger").textContent) && /Kelp forest/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no conveyor or kelp rows');
+  expect(await js('/Ore conveyor/.test(document.getElementById("ledger").textContent) && /Kelp forest/.test(document.getElementById("ledger").textContent) && /Insurance/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no conveyor, kelp or insurance rows');
   await js('const S2 = crabminer.state(); S2.rank = 5; S2.earned = 7000; S2.tech.sonar = true; document.getElementById("t-ledger").click(); true'); await wait(1200);
   await js('document.querySelector("#ledger [data-site]").click(); true');
   expect(await js('!document.getElementById("win").hidden && !document.getElementById("site-tech-btn").disabled'), 'the Ledger did not open the new-site card with a technology to keep');

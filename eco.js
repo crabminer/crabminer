@@ -39,6 +39,9 @@ function CrabEco() {
 
   var W = 0, H = 0, CS = 1, T = 0, G = null, pal = {}, env = null, stocked = false, stockedW = 0;
   var pop = {}, pend = {}, st = {}, threats = {}, rocks = [], bubbles = [], splashes = [], deep = [], lureList = [], log = [], dirty = false;
+  // The web's two bites at the game, reported to the view as events (it decides what they do to the crabs): the shark
+  // chasing the octopus off, and a gull swooping on a crab carrying nodules along the back dune's crest.
+  var events = [], gullCd = 0, web = { sharkScares: 0, gullSnatches: 0 };
   var schools = [], NS = 1;
   var hook = { x: 0, y: 0, tx: 0, ty: 0, hook: true, sp: { size: 4, name: 'bait' } };
   var boat = { x: 0, dir: 1, state: 'idle', t: 2, bucket: 0, bait: false, jelly: null, fish: null, casts: 0, netted: 0, bites: 0, hooked: 0, escaped: 0 };
@@ -174,6 +177,10 @@ function CrabEco() {
     for (i = 0; i < tl.length; i++) { th = tl[i]; if (th === an) continue; d = dist(an.x, an.y, th.x, th.y); if (d < bd) { bd = d; best = th; } }
     if (best) { want = Math.atan2(an.y - best.y, an.x - best.x); an.flee = 0.8; an.target = null; }
     if (an.flee > 0) spd *= 1.8;
+    if (sp.key === 'shark') {                                                // the shark chases the octopus off when it passes close
+      an.scareCd = Math.max(0, (an.scareCd || 0) - dt);
+      if (env.octo && an.scareCd <= 0 && dist(an.x, an.y, env.octo.x, env.octo.y) < 70 * CS) { an.scareCd = 90; web.sharkScares++; events.push({ kind: 'sharkScare' }); note('The shark chased the octopus off.'); }
+    }
     if (want === -9 && sp.diet) {                                            // hunting: the nearest prey in sight, slowly
       t = an.target;
       if (t && (t.dead || t.hooked || t.netted || (t === hook && boat.state !== 'wait'))) t = an.target = null;
@@ -308,6 +315,11 @@ function CrabEco() {
       an.next -= dt;
       if (an.next <= 0 && an.grow >= 1) {
         an.next = rr(8, 22);
+        if (gullCd <= 0 && env.carriers && env.carriers.length && Math.random() < 0.4) {   // a crab with nodules on the back dune's crest: swoop
+          list = env.carriers; bd = 240 * CS;
+          for (i = 0; i < list.length; i++) { d = Math.abs(list[i].x - an.x); if (d < bd) { bd = d; best = list[i]; } }
+          if (best) { gullCd = 150; an.prey = { id: best.id, x: best.x, y: best.y }; an.state = 'swoop'; an.hunt = 0; an.dir = sgn(best.x - an.x); return; }
+        }
         if (Math.random() < 0.5) {                                           // a minnow near the surface, within a glide
           list = pop.minnow; bd = 260 * CS;
           for (i = 0; i < list.length; i++) { m = list[i]; if (m.dead || m.y > G.waveY(m.x) + 30 * CS) continue; d = Math.abs(m.x - an.x); if (d < bd) { bd = d; best = m; } }
@@ -321,7 +333,16 @@ function CrabEco() {
         splash(t.x, ty, 1); an.target = null; an.state = 'rise'; an.alt = rr(10, Math.max(14, sky1 - 4)); an.dives = (an.dives || 0) + 1;
         if (Math.random() < 0.55 && dist(t.x, t.y, t.x, ty) < 30 * CS) { kill(t, 'gull'); an.gulp = 0.45; note('A gull dived and caught a minnow.'); } else note('A gull dived and missed.');
       } else { an.x += (t.x - an.x) / d * spd * 1.8 * dt; an.y += (ty - an.y) / d * spd * 1.8 * dt; if (Math.abs(t.x - an.x) > 2) an.dir = sgn(t.x - an.x); }
+    } else if (an.state === 'swoop') {                                       // down through the water to the crest, a grab, and away
+      t = an.prey; an.hunt += dt;
+      for (i = 0; t && env.carriers && i < env.carriers.length; i++) if (env.carriers[i].id === t.id) { t.x = env.carriers[i].x; t.y = env.carriers[i].y; }   // it moves; follow it
+      ty = t.y - 10 * CS; d = dist(an.x, an.y, t.x, ty);
+      if (d < 6 * CS || an.hunt > 5) {
+        if (d < 6 * CS) { web.gullSnatches++; events.push({ kind: 'gullSnatch', id: t.id, x: t.x, y: ty }); an.carry = 1.6; note('A gull swooped on a crab on the crest and flew off with a nodule.'); bubble(an.x, an.y, 4); }
+        an.prey = null; an.state = 'rise'; an.alt = rr(10, Math.max(14, sky1 - 4)); an.dives = (an.dives || 0) + 1;
+      } else { an.x += (t.x - an.x) / d * spd * 1.6 * dt; an.y += (ty - an.y) / d * spd * 1.6 * dt; if (Math.abs(t.x - an.x) > 2) an.dir = sgn(t.x - an.x); if (Math.abs(an.y - G.waveY(an.x)) < 3 * CS) splash(an.x, G.waveY(an.x), 0.6); }
     } else if (an.state === 'rise') {
+      an.carry = Math.max(0, (an.carry || 0) - dt);
       an.y -= 40 * CS * dt; an.x += an.dir * spd * 0.7 * dt;
       if (an.y <= an.alt) an.state = 'fly';
     } else if (an.state === 'toPerch') {
@@ -496,7 +517,7 @@ function CrabEco() {
     use(e); if (!stocked || W !== stockedW) reset(e);
     if (e.still) return;
     var i, j, sp, list;
-    T += dt;
+    T += dt; gullCd = Math.max(0, gullCd - dt);
     births(); gatherThreats(); schoolsStep(dt);
     for (i = 0; i < SPECIES.length; i++) {
       sp = SPECIES[i]; list = pop[sp.key];
@@ -629,6 +650,7 @@ function CrabEco() {
       c.fillStyle = pal.foam; c.strokeStyle = pal.ink; c.lineWidth = 0.6; c.beginPath(); c.arc(4.5 + h, -1.8, 1.9, 0, TAU); c.fill(); c.stroke();
       c.fillStyle = pal.ingot; c.beginPath(); c.moveTo(6 + h, -2.2); c.lineTo(9 + h, -1.3); c.lineTo(6 + h, -0.8); c.closePath(); c.fill();
       c.fillStyle = pal.ink; c.beginPath(); c.arc(5.2 + h, -2.3, 0.5, 0, TAU); c.fill();
+      if (an.carry > 0) { c.fillStyle = pal.nodule || pal.rockDark; c.beginPath(); c.arc(9.5 + h, -0.6, 1.8, 0, TAU); c.fill(); }   // the nodule in its beak
     }
   };
   function drawOne(c, an, s) {
@@ -717,11 +739,13 @@ function CrabEco() {
     return {
       species: species,
       fisherman: { casts: boat.casts, netted: boat.netted, bites: boat.bites, hooked: boat.hooked, escaped: boat.escaped, bucket: boat.bucket, state: boat.state },
+      web: { sharkScares: web.sharkScares, gullSnatches: web.gullSnatches },
       log: log.map(function (e) { return { t: e.t, text: e.text }; })
     };
   }
   function animals() { var all = [], i; for (i = 0; i < SPECIES.length; i++) if (pop[SPECIES[i].key]) all = all.concat(pop[SPECIES[i].key]); return all; }   // for the tests
 
-  return { reset: reset, update: update, drawDeep: drawDeep, drawWater: drawWater, drawFloor: drawFloor, drawSurface: drawSurface, lures: function () { return lureList; }, report: report, animals: animals, SPECIES: SPECIES };
+  function drainEvents() { var e = events; events = []; return e; }
+  return { reset: reset, update: update, drawDeep: drawDeep, drawWater: drawWater, drawFloor: drawFloor, drawSurface: drawSurface, lures: function () { return lureList; }, report: report, animals: animals, events: drainEvents, SPECIES: SPECIES };
 }
 if (typeof module !== 'undefined') module.exports = CrabEco;

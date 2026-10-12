@@ -393,6 +393,8 @@ notifications only: the sim never depends on anyone reading them.
 | Shocks | `quakeStart`, `quakeEnd`, `newsStart`, `newsEnd` |
 | Contracts | `contractOffer`, `contractStart`, `contractLapse` (b: true when declined), `contractDone`, `contractFail` |
 | Career | `newSite` (a: the site number, b: the perk) |
+| Insurance | `insurance` (a: on or off, b: `'lapsed'` at a dawn without the premium), `insurePremium`, `insurePay` (a: credits, b: what took it) |
+| The web's bites | `sharkScare` (a: the octopus, b: nodules dropped), `gullSnatch` (a: the crab) |
 | Sea | `surge`, `bury`, `stormWarn`, `stormStart`, `stormEnd`, `lavaStart`, `lavaEnd`, `octoArrive`, `octoScared`, `octoSteal`, `octoShoo`, `octoGone`, `eelOut`, `eelSnap`, `eelShoo`, `eelIn`, `orderStart`, `orderDone`, `orderFail`, `rivalArrive`, `rivalSell`, `orderLost` |
 
 ### 4.9 Public API
@@ -404,7 +406,7 @@ notifications only: the sim never depends on anyone reading them.
 | Build | `buy(id)`, `upgradeCost(id)`, `up(id)`, `place(building, plot)`, `placePost(x, d)`, `setPostAuto(on)`, `postTarget()` |
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
-| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)`, `acceptContract()`, `declineContract()` |
+| Play | `setReserve(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)`, `acceptContract()`, `declineContract()`, `setInsured(on)`, `scare()` and `snatch(crabId)` (the food web's bites, called by the view) |
 | Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `lampLit(x, d)`, `inKelp(x)`, `glowR()`, `crushSpot(c)`, `haulSpot(c, back)` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
@@ -656,6 +658,12 @@ side are a third of a cycle apart, and the two sides half a cycle.
 
   It is for the console and for automated browser tests.
 
+**The web's bites.** `eco.events()` drains a list of `{kind}` events: `sharkScare` when the shark passes the octopus the view put in `env.octo`, and `gullSnatch` (with the crab's `id`) when a gull's swoop reaches one of `env.carriers`, the crabs with nodules on the back dune's crest. `drawDeep()` in game.js turns them into `sim.scare()` and `sim.snatch(id)` calls, exactly as a click would, so the sim stays deterministic given its calls and the headless tests never see them. `report().web` counts them.
+
+**Sound** (`sfx` in game.js) is a handful of synthesised notes and noises through Web Audio: `tone()`, `noise()`, a rave riff played an eighth at a time by `sfx.step()` in the frame while `rave()` lasts. `SOUNDS` maps event types to noises and `handle()` plays them; the toggle (`setSound`) is the 🔇 button or N, off by default, remembered in `localStorage` under `crabminer-sound`. The audio context is made on the first toggle, so it never runs before a gesture.
+
+**The tutorial** (`TUT`, `tut`, `startTutorial`, `updateTutorial`) is a list of steps with a `done()` test each, shown in the `#tutorial` card over the field and advanced from the quarter-second UI tick. `newGame()` starts it; a saved game resumes it unless `localStorage` has `crabminer-tutorial` = `done`, which `endTutorial()` writes.
+
 ## 6. Script 3: read aloud
 
 Script 3 is independent of the game. It collects readable blocks from `#intro` and the
@@ -672,7 +680,7 @@ and scrolling as it goes.
 ## 6a. Script 4: the food web (`CrabEco`)
 
 `eco.js` is `CrabEco()`, a factory like `CrabSim`, and runs the sea's closed ecosystem. It is
-view-only, like the plankton and the whale: it uses `Math.random()`, never reads `S`, and
+view-only, like the plankton and the whale: it uses `Math.random()`, never reads `S` (it is handed `env.octo` and `env.carriers` by the view), and
 the sim never knows it is there. Script 2 owns one instance (`eco`) and drives it from
 `drawDeep()` once a frame: `eco.update(dt, env)`, then the five draw calls in painter's order,
 each with the same `env` object (`ecoEnv()` rebuilds it every frame: size, time, palette,

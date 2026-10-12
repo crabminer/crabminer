@@ -41,15 +41,16 @@ the line, which the advisor and the Ledger tab point out.
   scouting), movable building plots, apprentices: half-price crabs at half pace that graduate after a day, and after Crab Tycoon a
   new dig site with one perk carried over (a technology, the decorations or the best crab) and a career record.
 - **Money and bonuses:** overclock and a flow bonus, a drifting market price with surface news
-  (booms, gluts and rumours that move it for a minute), twenty-eight achievements listed in the Ledger, cargo-ship
-  orders with reputation stars, and contracts from the surface (so many ingots in three days, accepted or let lapse,
-  paying credits and a unique decoration). From Ingot Magnate a rival lobster crew behind the ridge
+  (booms, gluts and rumours that move it for a minute), thirty achievements listed in the Ledger, cargo-ship
+  orders with reputation stars, contracts from the surface (so many ingots in three days, accepted or let lapse,
+  paying credits and a unique decoration), and insurance (a daily premium against what the octopus and the sea take). From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.
 - **The sea:** tides (which also push the refuel post around), storms, earthquakes that bury a band of a dune and bare a rich patch elsewhere, lava surges, a hydrothermal chimney that opens behind the plots for two days as a second vent and extra heat, an octopus
   thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, a manta ray that sweeps walking crabs along the back of the claim, sunken chests on the back dune,
   sea life in the deep shadows, a plankton cycle that glows at night after ship wakes and storms, and a closed
   food web (`eco.js`, view-only): shoals, shrimp, jellies and crawlers, their hunters, a shark or two, gulls on
-  the ships, and a fisherman whose jellyfish bait feeds more fish than it catches, with a lab report in the Ledger. Three patches of
+  the ships, and a fisherman whose jellyfish bait feeds more fish than it catches, with a lab report in the Ledger. The web
+  bites the game twice, through the sim's API: the shark chases the octopus off, and gulls snatch a nodule from a crab on the back dune's crest. Three patches of
   plankton drift over the sand with the tide; at night a tired crab inside one works at full speed.
 - **Crabs:** names and personal records, veteran stars (up to three, +5% each at their own
   job), moods (happy crabs dance from further off, grumpy ones sulk and slow 5%), emoji crab-talk grammar, 119 animations (acrobatics, 30 dances for two, the claw-in-claw
@@ -61,7 +62,7 @@ the line, which the advisor and the Ledger tab point out.
   bonus doubled, bunting on the den and a string of lanterns for it.
 - **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the
   page hides, and a reload resumes it exactly (the seed is saved too). New game is under ?.
-- **Interface:** starts straight into play on the big field, with a phone layout for small screens
+- **Interface:** a six-step tutorial on every new game, synthesised sound behind a toggle (off by default), starts straight into play on the big field, with a phone layout for small screens
   like the iPhone SE, and 4K screens at 100% scaling. Everything the field can be clicked for
   also has a button and a key: visitor buttons over the field, the crew by name, plots with
   ◀ ▶, and shortcuts listed in the intro. A read-aloud "Listen all" button lives in the intro. The paper below the

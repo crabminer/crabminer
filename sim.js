@@ -113,6 +113,9 @@ function CrabSim() {
     BELT_HEAD: 546, BELT_D: 0.8, BELT_SPEED: 60, BELT_GAP: 7, BELT_CAP: 14,
     // the charging pad: a disc between the ore pile and the crushing yard; crabs on it (not energy bots) top up slowly
     PAD_REACH: 40, PAD_D: 0.86,
+    // insurance: a premium each dawn, and the insurer pays for what the sea takes: nodules the octopus gets away with,
+    // flags buried by the tide, a storm or a quake, and nodules a quake buries
+    INSURE_DAY: 30, INSURE_NODULE: 6, INSURE_FLAG: 8,
     // the sea turtle: swims across now and then and gives one crab with a long way to go a ride
     TURTLE_FIRST: 180, TURTLE_EVERY: [150, 270], TURTLE_SPEED: 85, TURTLE_REACH: 50, TURTLE_DIP: 160, TURTLE_MIN_TRIP: 160,
     ORDER_FIRST: 150, ORDER_EVERY: [180, 300], ORDER_TIME: 100, ORDER_PREMIUM: 0.3, ORDER_BONUS: 6, REP_STEP: 0.05, REP_MAX: 5,
@@ -219,7 +222,7 @@ function CrabSim() {
     'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
     'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights',
     'apprentices', 'graduates', 'contracts', 'contractsFilled', 'contractsFailed', 'contractCredits', 'chimneys', 'chimneyRides', 'lampLit',
-    'kelpFlags', 'belted', 'padCharge'];
+    'kelpFlags', 'belted', 'padCharge', 'premiums', 'payouts', 'sharkScares', 'gullSnatched'];
   // achievements: checked once a second; each is won once, at the time kept in S.ach
   var ACH = [
     ['pearl', 'First pearl', 'Strike a pearl', function () { return S.stat.pearls >= 1; }],
@@ -249,6 +252,8 @@ function CrabSim() {
     ['belt', 'Belt and braces', 'Two hundred nodules ridden to the pile on the conveyor', function () { return S.stat.belted >= 200; }],
     ['pad', 'Self-service', 'Ten batteries\' worth of charge from the charging pad', function () { return S.stat.padCharge >= 10; }],
     ['prestige', 'Second claim', 'Start a new dig site with a perk', function () { return S.site >= 2; }],
+    ['insured', 'Covered', 'A hundred credits paid out by the insurer', function () { return S.stat.payouts >= 100; }],
+    ['web', 'Nature\'s way', 'The shark chases the octopus off three times', function () { return S.stat.sharkScares >= 3; }],
     ['tycoon', 'Crab Tycoon', 'Reach the top rank', function () { return S.rank >= K.RANKS.length - 1; }]
   ];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
@@ -331,7 +336,7 @@ function CrabSim() {
       festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST,
       quake: null, nextQuake: K.QUAKE_FIRST, news: null, nextNews: K.NEWS_FIRST, ach: {}, nightBreaks: 0, nightWork: 0,
       contract: null, nextContract: K.CONTRACT_FIRST, chimney: null, nextChimney: K.CHIMNEY_FIRST, belt: [],
-      site: opts.site || 1, perks: opts.perks || [], career: opts.career || { sites: 0, earned: 0, sold: 0, time: 0 },
+      site: opts.site || 1, perks: opts.perks || [], career: opts.career || { sites: 0, earned: 0, sold: 0, time: 0 }, insured: false,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
       crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
     };
@@ -1320,8 +1325,43 @@ function CrabSim() {
     if (S.tide < -K.TIDE_HIGH && S.t >= S.nextBury) {
       S.nextBury = S.t + K.BURY_EVERY;
       for (i = 0; i < S.flags.length; i++) if (!S.flags[i].by) free.push(S.flags[i]);
-      if (free.length && sr() < K.BURY_CHANCE) { f = free[Math.floor(sr() * free.length)]; removeFlag(f); S.stat.buried++; emit('bury', f); }
+      if (free.length && sr() < K.BURY_CHANCE) { f = free[Math.floor(sr() * free.length)]; removeFlag(f); S.stat.buried++; emit('bury', f); insure(K.INSURE_FLAG, 'tide'); }
     }
+  }
+  // Insurance: while the policy stands, the insurer pays for what the sea takes; the premium goes at each dawn.
+  function insure(n, what) {
+    if (!S.insured || n <= 0) return;
+    S.credits += n; S.stat.payouts += n;
+    emit('insurePay', n, what);
+  }
+  function setInsured(on) {
+    on = !!on;
+    if (on === S.insured) return S.insured;
+    if (on && S.credits < K.INSURE_DAY) return 'credits';
+    S.insured = on;
+    if (on) { S.credits -= K.INSURE_DAY; S.stat.premiums += K.INSURE_DAY; }   // the first premium at once
+    emit('insurance', on);
+    return S.insured;
+  }
+  // The food web's two bites at the game, both only when the view sees them happen: the shark chases the octopus
+  // off (it drops what it took, like a shoo), and a gull swoops on a crab carrying nodules on the back dune's crest.
+  function scare() {
+    var o = S.octo, i;
+    if (!o || o.state === 'flee') return false;
+    for (i = 0; i < o.carry; i++) S.nodules.push({ x: clamp(o.x + srr(-10, 10), K.FIELD0, K.FIELD1 + 40), d: clamp(o.d + srr(-0.04, 0.04), 0.7, 0.97), alive: true, eddy: -1, by: null });
+    S.stat.stolen -= o.carry;
+    emit('sharkScare', o, o.carry);
+    o.carry = 0; o.state = 'flee'; o.fx = o.x; o.dir = -1; S.stat.sharkScares++;
+    return true;
+  }
+  function snatch(id) {
+    var i, c = null;
+    for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].id === id) c = S.crabs[i];
+    if (!c || c.state === 'sleep' || c.air || c.turtle || c.manta) return false;
+    if (c.load > 0) c.load--; else if (c.bload > 0) c.bload--; else return false;
+    S.stat.gullSnatched++;
+    emit('gullSnatch', c);
+    return true;
   }
   // Every few minutes an octopus swims down out of the sea for the ore pile, or for a nodule on the sand.
   // A crab standing near its target scares it off; so does the player, with a click.
@@ -1412,7 +1452,7 @@ function CrabSim() {
     } else {
       o.dir = -1; o.x -= mv;
       if (o.x < Math.max(K.FIELD0 - 40, o.fx - 300)) {               // back up and away into the sea
-        emit('octoGone', o, o.carry); S.octo = null; S.nextOcto = S.t + srr(K.OCTO_EVERY[0], K.OCTO_EVERY[1]); }
+        emit('octoGone', o, o.carry); insure(o.carry * K.INSURE_NODULE, 'octopus'); S.octo = null; S.nextOcto = S.t + srr(K.OCTO_EVERY[0], K.OCTO_EVERY[1]); }
     }
   }
   // Storms and lava surges come and go on their own clocks.
@@ -1440,7 +1480,7 @@ function CrabSim() {
       if (S.t >= S.nextStormBury) {                         // and buries flags nobody is working
         S.nextStormBury = S.t + K.STORM_BURY;
         for (i = 0; i < S.flags.length; i++) if (!S.flags[i].by) free.push(S.flags[i]);
-        if (free.length && sr() < 0.6) { f = free[Math.floor(sr() * free.length)]; removeFlag(f); S.stat.buried++; emit('bury', f); }
+        if (free.length && sr() < 0.6) { f = free[Math.floor(sr() * free.length)]; removeFlag(f); S.stat.buried++; emit('bury', f); insure(K.INSURE_FLAG, 'storm'); }
       }
       if (S.t >= S.stormEnd) { inspire('driftwood'); S.storm = false; S.stormWarned = false; S.stormAt = S.t + srr(K.STORM_EVERY[0], K.STORM_EVERY[1]); emit('stormEnd'); }
     }
@@ -1567,6 +1607,7 @@ function CrabSim() {
     for (i = 0; i < K.QUAKE_FLAGS; i++) S.flags.push({ id: S.nextId++, x: clamp(p.x + srr(-22, 22), K.FIELD0, K.FIELD1), d: clamp(p.d + srr(-0.05, 0.05), K.ZONES[z].d0, K.ZONES[z].d1), q: srr(0.8, 0.95), size: 3 + K.ZONES[z].size, by: null, zone: z, born: S.t, map: true, quake: true });
     S.stat.quakeBuried += buried; S.stat.quakeFlags += flags; S.stat.buried += flags;
     emit('quakeEnd', q, { buried: buried, flags: flags, x: p.x, d: p.d });
+    insure(buried * K.INSURE_NODULE + flags * K.INSURE_FLAG, 'quake');
     S.quake = null; S.nextQuake = S.t + srr(K.QUAKE_EVERY[0], K.QUAKE_EVERY[1]);
   }
   // News from the surface: a headline moves the metal price for a minute, or turns out to be only a rumour.
@@ -1715,6 +1756,10 @@ function CrabSim() {
     S.day = S.si.day;
     if (S.nightWork >= K.QUIET_NIGHT_WORK && !S.nightBreaks) S.stat.quietNights++;   // a night's work with no breakdown
     S.nightBreaks = 0; S.nightWork = 0;
+    if (S.insured) {                               // the day's premium, or the policy lapses
+      if (S.credits >= K.INSURE_DAY) { S.credits -= K.INSURE_DAY; S.stat.premiums += K.INSURE_DAY; emit('insurePremium', K.INSURE_DAY); }
+      else { S.insured = false; emit('insurance', false, 'lapsed'); }
+    }
     S.festival = S.day % K.FESTIVAL_EVERY === 0;   // every tenth day is festival day: everyone fresh, the flow bonus doubled
     if (S.festival) { S.decor.push({ kind: 'lanterns', at: S.t }); S.stat.decorations++; S.stat.festivals++; }
     for (var i = 0; i < S.crabs.length; i++) {
@@ -1975,7 +2020,7 @@ function CrabSim() {
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
     setReserve: setReserve, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
     flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, achievements: function () { return ACH.map(function (a) { return { id: a[0], name: a[1], what: a[2] }; }); }, placePost: placePost, lit: lit, lampLit: lampLit, glowR: glowR, setPostAuto: setPostAuto,
-    acceptContract: acceptContract, declineContract: declineContract, strength: strength, newSite: newSite, inKelp: inKelp, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
+    acceptContract: acceptContract, declineContract: declineContract, strength: strength, newSite: newSite, inKelp: inKelp, setInsured: setInsured, scare: scare, snatch: snatch, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }
   };
 }

@@ -14,10 +14,61 @@
   var W = 0, H = 0, Z = 1, DPR = 1, T = 0, last = 0, raf = 0, running = false, acc = 0, speed = 1, uiTick = 0, ledgerTick = 0;
   var CS = 1, surfH = 0, F = 0, lavaL = 0, base = [0, 0, 0], farBase = 0, dunePaths = [], farPath = null, grain = null;
   var pal = {};
+  // ----- sound: a few synthesised notes and noises through Web Audio, off until the player turns it on -----
+  var sfx = (function () {
+    var on = false, ac = null, master = null, raveUntil = 0, raveStep = 0, nextRave = 0;
+    function ready() {
+      if (!on) return false;
+      try {
+        if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.22; master.connect(ac.destination); }
+        if (ac.state === 'suspended') ac.resume();
+        return ac.state !== 'closed';
+      } catch (e) { return false; }
+    }
+    function tone(f, dur, type, vol, slideTo, at) {   // one note: an oscillator with a quick attack and a fade
+      if (!ready()) return;
+      var o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime + (at || 0);
+      o.type = type || 'sine'; o.frequency.setValueAtTime(f, t0);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol || 0.5, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + 0.05);
+    }
+    function noise(dur, vol, lowpass, at) {           // a puff of filtered noise: sand, cracks, rumbles
+      if (!ready()) return;
+      var n = Math.floor(ac.sampleRate * dur), buf = ac.createBuffer(1, n, ac.sampleRate), data = buf.getChannelData(0), i, src = ac.createBufferSource(), g = ac.createGain(), fl = ac.createBiquadFilter(), t0 = ac.currentTime + (at || 0);
+      for (i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n);
+      src.buffer = buf; fl.type = 'lowpass'; fl.frequency.value = lowpass || 1200;
+      g.gain.setValueAtTime(vol || 0.3, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      src.connect(fl); fl.connect(g); g.connect(master); src.start(t0);
+    }
+    var RAVE = [523, 659, 784, 659, 880, 784, 659, 523, 587, 698, 880, 698, 988, 880, 698, 587];   // a bouncy riff, two bars
+    return {
+      isOn: function () { return on; },
+      set: function (v) { on = !!v; if (on) ready(); else if (ac && ac.state === 'running') ac.suspend(); },
+      click: function () { tone(1400, 0.03, 'square', 0.08); },
+      coin: function (big) { tone(880, 0.09, 'triangle', 0.35); tone(1320, 0.14, 'triangle', 0.3, 0, 0.07); if (big) tone(1760, 0.2, 'triangle', 0.3, 0, 0.14); },
+      tick: function () { tone(220, 0.04, 'square', 0.12); },
+      crack: function () { noise(0.12, 0.5, 3000); tone(160, 0.08, 'sawtooth', 0.2, 60); },
+      chime: function () { [784, 988, 1175, 1568].forEach(function (f, i) { tone(f, 0.35, 'sine', 0.3, 0, i * 0.08); }); },
+      fanfare: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.22, 'triangle', 0.35, 0, i * 0.12); }); tone(1047, 0.5, 'triangle', 0.3, 0, 0.5); },
+      bubble: function () { tone(600 + Math.random() * 500, 0.09, 'sine', 0.12, 1400); },
+      splash: function () { noise(0.25, 0.25, 2400); },
+      rumble: function (dur) { noise(dur || 4, 0.5, 120); },
+      wind: function () { noise(3, 0.2, 500); },
+      whale: function () { tone(170, 2.6, 'sine', 0.3, 95); tone(255, 2.2, 'sine', 0.12, 140, 0.3); },
+      thud: function () { tone(90, 0.15, 'sine', 0.4, 40); },
+      sigh: function () { tone(440, 0.3, 'sine', 0.12, 300); },
+      rave: function (secs) { raveUntil = T + (secs || 5); },
+      step: function () {                               // the crab-rave tune: a note every eighth while the rave lasts
+        if (!on || T >= raveUntil || T < nextRave) return;
+        nextRave = T + 0.14; tone(RAVE[raveStep % RAVE.length], 0.12, 'square', 0.14); if (raveStep % 4 === 0) tone(RAVE[raveStep % RAVE.length] / 4, 0.12, 'triangle', 0.2); raveStep++;
+      }
+    };
+  })();
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], kelp = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0, chimneyToast = false, lampToast = false, chimneyA = 0;
+  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0, chimneyToast = false, lampToast = false, chimneyA = 0, insureToast = false, gullToast = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -194,7 +245,8 @@
     quake: ['😱🌊💥', '😵💫', '💥🦀😨'], achievement: ['🏆✨🎉', '🏆😎'],
     apprentice: ['🎓❓🦀', '🎓👀😅'], graduate: ['🎓✅🎉', '🎓💪😎'], contractOffer: ['📜🪙❓', '📜👀🪙'], contractDone: ['📜✅🎉', '📜🪙🥳'], contractFail: ['📜❌😩', '📜💔😤'],
     chimney: ['♨️⬆️😆', '♨️💨🤩'], lamp: ['🔦👀😊', '🔦🦀👍'],
-    kelp: ['🌿🌿😅', '🌿🦀💨', '🌿👀✨'], belt: ['🪨🛤️👍', '🛤️🪨😎'], pad: ['🔌⚡😊', '⚡🦀👍'], newSite: ['🏕️🦀❗', '🏕️✨🤩', '🏕️💪']
+    kelp: ['🌿🌿😅', '🌿🦀💨', '🌿👀✨'], belt: ['🪨🛤️👍', '🛤️🪨😎'], pad: ['🔌⚡😊', '⚡🦀👍'], newSite: ['🏕️🦀❗', '🏕️✨🤩', '🏕️💪'],
+    gull: ['🐦🪨😱', '🪨💔🐦', '🐦👊😤']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -215,7 +267,7 @@
     happy: 'In a good mood', grumpy: 'In a bad mood', boom: 'A copper boom', glut: 'A glut at the surface', rumour: 'A rumour from the surface', quake: 'An earthquake', achievement: 'An achievement won',
     apprentice: 'An apprentice starting', graduate: 'An apprentice graduating', contractOffer: 'A contract offered', contractDone: 'A contract filled', contractFail: 'A contract run out',
     chimney: 'Riding the hydrothermal chimney', lamp: 'Seeing by the lighthouse lamp',
-    kelp: 'Pushing through the kelp forest', belt: 'Dropping ore on the conveyor', pad: 'Topping up on the charging pad', newSite: 'A new dig site'
+    kelp: 'Pushing through the kelp forest', belt: 'Dropping ore on the conveyor', pad: 'Topping up on the charging pad', newSite: 'A new dig site', gull: 'A gull snatching a nodule'
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
   Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
@@ -227,7 +279,7 @@
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
     '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel',
     '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet', '💢': 'grr', '📰': 'news', '📈': 'up', '📉': 'down', '💫': 'dizzy',
-    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp', '🌿': 'kelp', '🛤': 'belt', '🏕': 'site' };
+    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp', '🌿': 'kelp', '🛤': 'belt', '🏕': 'site', '🐦': 'gull' };
   var NEWS_HEADLINES = {   // three headlines a kind; the sim picks which (S.news.n)
     boom: ['Copper boom at the surface!', 'Shipyards bid up every ingot!', 'Metal shortage on land: prices soar!'],
     glut: ['Glut at the docks: ingots pile up unsold', 'A rival port floods the market', 'Smelters on land undercut the sea'],
@@ -343,8 +395,15 @@
     flights.push(f);
   }
   function incoming(tag) { var n = 0; for (var i = 0; i < flights.length; i++) if (flights[i].tag === tag) n++; return n; }
+  var SOUNDS = {                         // which event makes which noise
+    sell: function (e) { sfx.coin(e.a >= 15); }, pearl: sfx.chime, chest: sfx.chime, strike: sfx.tick, dry: sfx.sigh, bitBreak: sfx.crack, legOff: sfx.crack, ebotBreak: sfx.crack,
+    rank: function () { sfx.fanfare(); sfx.rave(5); }, festival: function () { sfx.fanfare(); sfx.rave(20); }, orderDone: sfx.fanfare, contractDone: function () { sfx.fanfare(); sfx.rave(4); }, achievement: sfx.chime, veteran: sfx.chime, graduate: sfx.chime,
+    ride: sfx.bubble, land: sfx.splash, quakeStart: function () { sfx.rumble(6); }, stormStart: sfx.wind, lavaStart: function () { sfx.rumble(2); }, octoShoo: sfx.splash, eelShoo: sfx.splash, sharkScare: sfx.splash,
+    bar: sfx.thud, stack: sfx.tick, chimneyOpen: function () { sfx.rumble(1.5); }, build: sfx.thud, tech: sfx.chime, wup: sfx.coin, join: sfx.bubble, pet: sfx.chime, newSite: sfx.fanfare
+  };
   function handle(e) {
     var a = e.a, p, m, i, j;
+    if (started && SOUNDS[e.type]) SOUNDS[e.type](e);
     switch (e.type) {
       case 'join': a.vfall = started ? 1 : 0; a.vjoin = true; break;
       case 'leave': p = crabX(a); burst(p, groundY(p, a.d) - 10, 6); near(a.x, 70).forEach(function (n) { play(n, ['wave', 'bow'], 1.6); }); break;
@@ -366,6 +425,17 @@
         break;
       case 'belted': fly('nod', beltPoint(S.pos.BELT_END), oreSlot(Math.max(0, S.ore - 1)), 0.3, { tag: 'ore' }); break;
       case 'padOn': p = clawPos(a, 0); spark(p.x, p.y + 6 * CS, 4, pal.light); if (Math.random() < 0.25) say(a, TALK.pad, 1.4); break;
+      case 'insurance': if (started) toast(a ? 'Insured' : e.b === 'lapsed' ? 'The insurance has lapsed' : 'Insurance cancelled', a ? 'The insurer pays $' + K.INSURE_NODULE + ' for every nodule the octopus gets away with or a quake buries, and $' + K.INSURE_FLAG + ' for every flag the tide, a storm or a quake buries. The premium is $' + K.INSURE_DAY + ' a day, taken at dawn.' : e.b === 'lapsed' ? 'There was not $' + K.INSURE_DAY + ' for the premium at dawn. Insure again from the Build tab.' : 'No more premiums, and no more payouts.'); break;
+      case 'insurePay': floater('+$' + a + ' insured', collectorBase().x, collectorBase().y - 70 * CS, false); if (!insureToast && started) { insureToast = true; toast('The insurer paid $' + a, 'For what the ' + e.b + ' took. The Ledger keeps premiums against payouts.'); } break;
+      case 'insurePremium': break;
+      case 'sharkScare':
+        ink(a); near(a.x, 160).forEach(function (n) { say(n, TALK.octoShoo, 1.4); play(n, ['cheer', 'pump', 'sparkleEyes'], 1.6); });
+        toast('The shark chased the octopus off!', a && e.b ? 'It dropped the ' + e.b + ' nodule' + (e.b > 1 ? 's' : '') + ' it took. The sea looks after its own now and then.' : 'It fled empty-handed. The sea looks after its own now and then.');
+        break;
+      case 'gullSnatch':
+        p = crabX(a); poof(p, groundY(p, a.d) - 8 * CS, 6, 0.6); express(a, 'shock', 1.6); a.vhop = 0.8; say(a, TALK.gull, 1.8); play(a, ['shock', 'stomp', 'lookAround'], 1.6);
+        if (!gullToast) { gullToast = true; toast('A gull snatched a nodule', 'It swooped on ' + a.name + ' along the back dune\'s crest, where the sky is close. Haulers there carry at their own risk.'); }
+        break;
       case 'newSite':
         S = sim.state(); freshView(); won = false;
         toast('Dig site ' + a + ': fresh dunes', (e.b.kind === 'tech' ? TECH_INFO[e.b.id].name + ' came along, researched already.' : e.b.kind === 'decor' ? 'The den\'s ' + e.b.n + ' decorations came along.' : e.b.name + ' the ' + ROLE_NOUN[e.b.role] + ' came along, stars and all.') + ' Your career record is in the Ledger.');
@@ -748,6 +818,7 @@
     if (!whale && T > nextWhale) {                   // now and then a whale glides overhead
       var dir = Math.random() < 0.5 ? 1 : -1;
       whale = { x: dir > 0 ? -W * 0.25 : W * 1.25, y: rr(surfH + 40, base[0] - 70), v: dir * rr(40, 60), id: ++whaleId, ph: 0 };
+      if (started) sfx.whale();
       if (!whaleToast && started) { whaleToast = true; toast('A whale passes overhead', 'Its shadow sweeps across the dunes. The crabs love it.'); }
     }
     if (whale) {
@@ -1703,14 +1774,25 @@
       riserShip: { x: top.x, y: sy }, perches: [{ x0: top.x - 40, x1: top.x + 40, y: sy - 6 }], crabs: [], geom: ecoGeom
     };
     if (e.cargo) e.perches.push({ x0: e.cargo.x - 76, x1: e.cargo.x + 40, y: e.cargo.y - 10 });
-    if (S) for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.alt > 0 || c.turtle || c.manta) continue; px = crabX(c); e.crabs.push({ x: px, y: groundY(px, c.d), d: c.d }); }
+    e.octo = S && S.octo && S.octo.state !== 'flee' ? octoPos() : null;   // for the shark to chase
+    e.carriers = [];                                                       // crabs with nodules along the back dune's crest, for the gulls
+    if (S) for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i]; if (c.alt > 0 || c.turtle || c.manta) continue; px = crabX(c); e.crabs.push({ x: px, y: groundY(px, c.d), d: c.d });
+      if ((c.load > 0 || c.bload > 0) && c.d < 0.14 && c.state !== 'sleep') e.carriers.push({ id: c.id, x: px, y: groundY(px, c.d) });
+    }
     return e;
   }
   function drawDeep(dt) {                // the far silhouettes, and the ecosystem's step for the frame
     if (!eco) return;
-    var e = ecoEnv();
+    var e = ecoEnv(), ev = null, i, acted = false;
     if (ecoDirty) { eco.reset(e); ecoDirty = false; }
     eco.update(dt, e);
+    ev = eco.events();                   // the web's bites at the game go through the sim's API, like a click would
+    for (i = 0; i < ev.length; i++) {
+      if (ev[i].kind === 'sharkScare') { if (sim.scare()) acted = true; }
+      else if (ev[i].kind === 'gullSnatch') { if (sim.snatch(ev[i].id)) acted = true; }
+    }
+    if (acted) sim.drain().forEach(handle);
     lures = eco.lures();
     eco.drawDeep(ctx, e);
   }
@@ -2977,7 +3059,7 @@
   var ui = {
     aOcto: $('a-octo'), aEel: $('a-eel'), aTrader: $('a-trader'), aTraderLabel: $('a-trader-label'), aContract: $('a-contract'), aContractLabel: $('a-contract-label'),
     contract: $('h-contract'), contractN: $('h-contract-n'), contractT: $('h-contract-t'), contractBar: $('h-contract-bar'),
-    contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), siteTech: $('site-tech'), siteTechBtn: $('site-tech-btn'), siteDecorBtn: $('site-decor-btn'), siteCrabBtn: $('site-crab-btn'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
+    contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), insureBtn: $('insure-btn'), insureText: $('insure-text'), soundBtn: $('sound-btn'), tutorial: $('tutorial'), tutStep: $('tut-step'), tutText: $('tut-text'), tutSkip: $('tut-skip'), tutorialBtn: $('tutorial-btn'), siteTech: $('site-tech'), siteTechBtn: $('site-tech-btn'), siteDecorBtn: $('site-decor-btn'), siteCrabBtn: $('site-crab-btn'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
@@ -3189,6 +3271,10 @@
         : co.got + ' of ' + co.need + ' ingots sent up, ' + fmtTime(co.until - S.t) + ' to go. Pays ' + money(co.need * co.pay) + ' and a ' + DECOR_NAMES[co.decor] + ' when filled; a star if not.';
       ui.contractAccept.hidden = ui.contractDecline.hidden = co.state !== 'offer';
     }
+    ui.insureBtn.textContent = S.insured ? 'Insured' : 'Insure';
+    ui.insureBtn.setAttribute('aria-pressed', String(S.insured));
+    ui.insureBtn.disabled = !S.insured && S.credits < K.INSURE_DAY;
+    ui.insureText.textContent = (S.insured ? 'Covered: ' : 'Not covered: ') + '$' + K.INSURE_DAY + ' a day at dawn buys $' + K.INSURE_NODULE + ' back for every nodule the octopus gets away with or a quake buries, and $' + K.INSURE_FLAG + ' for every flag the tide, a storm or a quake buries. So far: $' + S.stat.premiums + ' in premiums, $' + S.stat.payouts + ' paid out.' + (S.insured ? ' Press Insured to cancel.' : '');
     ui.spares.textContent = (S.spares.bit || S.spares.leg || S.luckyPearls) ? 'In stock from the trader: ' + S.spares.bit + ' spare bit' + (S.spares.bit === 1 ? '' : 's') + ', ' + S.spares.leg + ' spare leg' + (S.spares.leg === 1 ? '' : 's') + (S.luckyPearls ? ', a lucky shell' : '') + '.' : '';
     ui.postBtn.textContent = S.post.auto ? 'Bots move it' : 'Pinned';
     ui.postBtn.setAttribute('aria-pressed', String(S.post.auto));
@@ -3464,6 +3550,8 @@
       '<tr><th scope="row">Contracts</th><td class="n">' + S.stat.contractsFilled + ' filled, ' + S.stat.contractsFailed + ' run out, ' + (S.stat.contracts - S.stat.contractsFilled - S.stat.contractsFailed - (S.contract ? 1 : 0)) + ' let lapse; ' + money(S.stat.contractCredits) + ' earned' + (S.contract ? (S.contract.state === 'offer' ? ' (one on offer now)' : ' (' + S.contract.got + ' of ' + S.contract.need + ' under way)') : '') + '</td></tr>' +
       '<tr><th scope="row">Hydrothermal chimney</th><td class="n">' + S.stat.chimneys + ' opened, ' + S.stat.chimneyRides + ' rides' + (S.chimney ? ' (open now at ' + S.chimney.x + ', ' + fmtTime(S.chimney.until - S.t) + ' left)' : '') + '</td></tr>' +
       '<tr><th scope="row">Kelp forest</th><td class="n">' + (S.lv.kelp ? S.stat.kelpFlags + ' deposits flagged in it (richer by 0.1, a nodule bigger)' : 'roped off; claim it in the Build tab') + '</td></tr>' +
+      '<tr><th scope="row">Insurance</th><td class="n">' + (S.insured ? 'covered' : 'not covered') + ' · $' + S.stat.premiums + ' in premiums, $' + S.stat.payouts + ' paid out</td></tr>' +
+      '<tr><th scope="row">The food web\'s bites</th><td class="n">the shark chased the octopus off ' + S.stat.sharkScares + ' time' + (S.stat.sharkScares === 1 ? '' : 's') + ', gulls snatched ' + S.stat.gullSnatched + ' nodule' + (S.stat.gullSnatched === 1 ? '' : 's') + ' on the crest</td></tr>' +
       '</tbody></table>';
     if (S.site > 1 || S.rank >= K.RANKS.length - 1) {
       html += '<h3>Career</h3><p class="note">' + (S.site > 1 ? 'Dig site ' + S.site + '. Before it: ' + S.career.sites + ' site' + (S.career.sites === 1 ? '' : 's') + ', ' + money(S.career.earned) + ' earned and ' + S.career.sold.toLocaleString('en-US') + ' ingots sold in ' + fmtTime(S.career.time) + ' of crab time. Carried over: ' +
@@ -3625,6 +3713,7 @@
     S = sim.reset();
     talkCount = {};
     freshView();
+    startTutorial();
     sim.drain().forEach(handle);
     renderPanel(); renderHUD();
     saveGame();
@@ -3671,6 +3760,42 @@
     saveGame();
   }
   function setSpeed(v) { speed = v; renderHUD(); }
+  function setSound(on) {               // the sound toggle in the top bar (N); remembered between visits
+    sfx.set(on);
+    ui.soundBtn.textContent = on ? '🔊' : '🔇'; ui.soundBtn.setAttribute('aria-pressed', String(on));
+    try { localStorage.setItem('crabminer-sound', on ? '1' : '0'); } catch (e) { /* storage may be unavailable */ }
+  }
+  // ----- the tutorial: a guided first few minutes, one step at a time in a card over the field -----
+  var TUT = [
+    { text: 'Welcome, boss. Your crew is already mining. Open the Crew tab and hire a second smelter: bars are waiting for the lava.', done: function () { return sim.counts().smelt >= 2; } },
+    { text: 'The advisor at the top of the Crew tab names the slowest stage. Hire what it asks for next.', done: function () { return S.crabs.length >= 11; } },
+    { text: 'Every delivery banks overclock. When ⚡ Overclock shows 10 s or more, press it (or O) for a burst of speed.', done: function () { return S.oc || S.stat.sold >= 200; } },
+    { text: 'Crabs that never rest wear out and break. Try A/B shifts in the Crew tab: everyone works the day, half sleep each night.', done: function () { return S.shift !== 'all'; } },
+    { text: 'With $200 spare, claim the middle dune in the Build tab: richer, bigger deposits. Click a locked dune to jump there.', done: function () { return S.lv.field >= 2; } },
+    { text: 'That is the loop: feed the slowest stage, keep every job covered on every shift, and let the crabs rest and dance. The Ledger tells the rest. Crab profit!', done: function () { return false; }, last: true }
+  ];
+  var tut = { step: -1, until: 0 }, TUT_KEY = 'crabminer-tutorial';
+  function startTutorial() { tut.step = 0; tut.until = 0; renderTutorial(); }
+  function endTutorial(skipped) {
+    tut.step = -1; ui.tutorial.hidden = true;
+    try { localStorage.setItem(TUT_KEY, 'done'); } catch (e) { /* storage may be unavailable */ }
+    if (!skipped) sfx.chime();
+  }
+  function renderTutorial() {
+    var st = TUT[tut.step];
+    ui.tutorial.hidden = tut.step < 0 || !started || !ui.intro.hidden;
+    if (tut.step < 0) return;
+    ui.tutStep.textContent = st.last ? 'Tutorial done' : 'Tutorial ' + (tut.step + 1) + ' of ' + (TUT.length - 1);
+    ui.tutText.textContent = st.text;
+    ui.tutSkip.textContent = st.last ? 'Close' : 'Skip the tutorial';
+  }
+  function updateTutorial() {           // a few times a second: move on when the step is done; the last card closes itself
+    var st;
+    if (tut.step < 0) return;
+    st = TUT[tut.step];
+    if (st.last) { if (tut.until && T > tut.until) endTutorial(false); return; }
+    if (st.done()) { tut.step++; if (TUT[tut.step].last) tut.until = T + 12; sfx.coin(false); renderTutorial(); }
+  }
   function setBig(on) {                 // big playfield: the stage fills the screen and the sand fills its lower half
     document.body.classList.toggle('big', on);
     ui.bigBtn.setAttribute('aria-pressed', String(on));
@@ -3695,6 +3820,11 @@
     ui.aEel.addEventListener('click', function () { if (sim.shooEel()) { sim.drain().forEach(handle); renderHUD(); } });
     ui.aTrader.addEventListener('click', openShop);
     ui.aContract.addEventListener('click', openContract);
+    ui.insureBtn.addEventListener('click', function () { var r = sim.setInsured(!S.insured); if (r === 'credits') toast('Not enough credits', 'The first premium is $' + K.INSURE_DAY + '.'); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
+    ui.soundBtn.addEventListener('click', function () { setSound(!sfx.isOn()); if (sfx.isOn()) sfx.coin(true); });
+    ui.tutSkip.addEventListener('click', function () { endTutorial(true); });
+    ui.tutorialBtn.addEventListener('click', function () { startTutorial(); closeIntro(); });
+    document.addEventListener('click', function (e) { if (sfx.isOn() && e.target.closest && e.target.closest('button')) sfx.click(); });
     ui.contractAccept.addEventListener('click', function () { sim.acceptContract(); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     ui.contractDecline.addEventListener('click', function () { if (sim.declineContract()) toast('Contract declined', 'Nothing lost. Another will come along in a while.'); sim.drain().forEach(handle); renderPanel(); renderHUD(); });
     ui.rosterBox.addEventListener('toggle', renderRoster);
@@ -3798,6 +3928,7 @@
       else if (k === 's') shoo();
       else if (k === 't') openShop();
       else if (k === 'c') openContract();
+      else if (k === 'n') { setSound(!sfx.isOn()); if (sfx.isOn()) sfx.coin(true); }
       else if (k === 'm') { selectTab('t-build'); ui.arrangeBtn.click(); }
       else if (k === '[' || k === ']') {
         for (j = 0; j < list.length; j++) if (list[j].getAttribute('aria-selected') === 'true') break;
@@ -3878,7 +4009,8 @@
     update(dt);
     if (stageVisible) draw();
     uiTick += dt; ledgerTick += dt;
-    if (uiTick > 0.25) { uiTick = 0; renderHUD(); renderPanel(); renderRoster(); }
+    if (uiTick > 0.25) { uiTick = 0; renderHUD(); renderPanel(); renderRoster(); updateTutorial(); if (tut.step >= 0) ui.tutorial.hidden = !ui.intro.hidden; }
+    sfx.step();
     if (ledgerTick > 1 && !$('p-ledger').hidden) { ledgerTick = 0; renderLedger(); }
     saveTick += dt;
     if (saveTick > 10) { saveTick = 0; saveGame(); }
@@ -3907,7 +4039,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z, sound: sfx.isOn(), tutorial: tut.step }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;
@@ -3916,9 +4048,12 @@
   measure();
   wire();
   started = true;                       // straight into the game, the saved one if there is one; the ? button brings up the intro
-  var resumed = loadGame();
+  var resumed = loadGame(), tutDone = null, soundPref = null;
   if (!resumed) newGame();
   ui.intro.hidden = true;
+  try { tutDone = localStorage.getItem(TUT_KEY); soundPref = localStorage.getItem('crabminer-sound'); } catch (e) { /* storage may be unavailable */ }
+  if (resumed && tutDone !== 'done') startTutorial();   // a saved game that never finished the tutorial picks it up again
+  if (soundPref === '1') setSound(true);
   renderPanel(); renderHUD();
   if (stage.scrollWidth > stage.clientWidth) stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * (document.body.classList.contains('big') ? 0.62 : 0.55);
   draw();

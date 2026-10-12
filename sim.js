@@ -121,6 +121,14 @@ function CrabSim() {
     // tab's upgrade). Smelters spread themselves over the two rims, each going to the one with fewer smelters at it, and the
     // repair crews forge at whichever is nearer. Fewer crabs on one rim, shorter walks from the bar stack and to the stockpile.
     RIM2: 846, RIM2_D: 0.94,
+    // the annex: three plots in the middle of the middle dune, among the deep deposits (the Build tab's upgrade, once the
+    // middle dune is claimed), with a second ore pile and a second crushing yard. Haulers drop at the nearer pile with room,
+    // every other crusher presses at the annex yard, and its bars ride a cableway down to the bar stack. Scouts leave the
+    // annex's ground alone once it is built.
+    ANNEX_PLOTS: [300, 343, 386], ANNEX_D: 0.5, ANNEX_BUILDINGS: ['ore2', 'crush2'], ANNEX_LAYOUT: { ore2: 0, crush2: 1 }, ANNEX_FIELD: 2,
+    ANNEX_X0: 270, ANNEX_X1: 416, ANNEX_D0: 0.43, ANNEX_D1: 0.57, CREST_COST: 24,   // climbing a lip at half speed costs about 24 units of walking
+    // a crusher follows the ore: idle at an empty pile this long while the other pile holds this many, it walks to the other yard
+    YARD_SWITCH_WAIT: 4, YARD_SWITCH_ORE: 6,
     // insurance: a premium each dawn, and the insurer pays for what the sea takes: nodules the octopus gets away with,
     // flags buried by the tide, a storm or a quake, and nodules a quake buries
     INSURE_DAY: 30, INSURE_NODULE: 6, INSURE_FLAG: 8,
@@ -200,7 +208,8 @@ function CrabSim() {
       kelp: { costs: [350], vals: [0, 1] },               // the kelp forest claim
       belt: { costs: [300], vals: [0, 1] },               // the ore conveyor
       pad: { costs: [180, 420], vals: [0, 0.008, 0.016] }, // the charging pad: battery a second for crabs on it
-      rim: { costs: [280], vals: [0, 1] }                 // the second smelting rim
+      rim: { costs: [280], vals: [0, 1] },                // the second smelting rim
+      annex: { costs: [500], vals: [0, 1] }               // the annex on the middle dune: a second ore pile and yard
     },
     // research: each technology unlocks the worker upgrades for some roles
     TECH: {
@@ -231,7 +240,7 @@ function CrabSim() {
     'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
     'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights',
     'apprentices', 'graduates', 'contracts', 'contractsFilled', 'contractsFailed', 'contractCredits', 'chimneys', 'chimneyRides', 'lampLit',
-    'kelpFlags', 'belted', 'padCharge', 'premiums', 'payouts', 'sharkScares', 'gullSnatched', 'fineIngots', 'fineSold', 'fineCredits', 'rim2'];
+    'kelpFlags', 'belted', 'padCharge', 'premiums', 'payouts', 'sharkScares', 'gullSnatched', 'fineIngots', 'fineSold', 'fineCredits', 'rim2', 'stacked2', 'bars2'];
   // achievements: checked once a second; each is won once, at the time kept in S.ach
   var ACH = [
     ['pearl', 'First pearl', 'Strike a pearl', function () { return S.stat.pearls >= 1; }],
@@ -264,6 +273,7 @@ function CrabSim() {
     ['insured', 'Covered', 'A hundred credits paid out by the insurer', function () { return S.stat.payouts >= 100; }],
     ['web', 'Nature\'s way', 'The shark chases the octopus off three times', function () { return S.stat.sharkScares >= 3; }],
     ['fine', 'Fine metal', 'Deliver fifty fine ingots up the riser', function () { return S.stat.fineSold >= 50; }],
+    ['annex', 'Up the dune', 'Two hundred nodules stacked on the annex pile', function () { return S.stat.stacked2 >= 200; }],
     ['tycoon', 'Crab Tycoon', 'Reach the top rank', function () { return S.rank >= K.RANKS.length - 1; }]
   ];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
@@ -286,9 +296,14 @@ function CrabSim() {
   function oreCap() { return K.ORE_CAP[up('yard')]; }
   function barCap() { return K.BAR_CAP[up('yard')]; }
   function zoneOf(d) { return d >= 0.66 ? 0 : (d >= 0.34 ? 1 : 2); }
-  function spot() {                       // a random place in the dunes the crew has claimed (the kelp forest only once it is)
-    var z = K.ZONES[Math.floor(sr() * up('field'))];
-    return { x: srr((S.lv.kelp ? K.FIELD0 : K.KELP1) + 10, K.FIELD1 - 10), d: srr(z.d0, z.d1) };
+  function spot() {                       // a random place in the dunes the crew has claimed (the kelp forest only once it is; the annex's ground never)
+    var z, p, tries;
+    for (tries = 0; tries < 4; tries++) {
+      z = K.ZONES[Math.floor(sr() * up('field'))];
+      p = { x: srr((S.lv.kelp ? K.FIELD0 : K.KELP1) + 10, K.FIELD1 - 10), d: srr(z.d0, z.d1) };
+      if (!S.lv.annex || p.x < K.ANNEX_X0 || p.x > K.ANNEX_X1 || p.d < K.ANNEX_D0 || p.d > K.ANNEX_D1) return p;
+    }
+    return p;
   }
   function inKelp(x) { return x < K.KELP1; }
   // how hard a crab can go right now: flat batteries, tiredness, and overclock all count
@@ -322,9 +337,25 @@ function CrabSim() {
   function carry() { return has('bigHopper') ? 5 : K.CARRY; }
   function charges() { return has('bigCells') ? 6 : K.CHARGES; }
   function layoutPos() {                  // where each building stands, and the spots crabs work at beside it
-    var x = function (b) { return K.PLOTS[S.layout[b]]; };
+    var x = function (b) { return K.PLOTS[S.layout[b]]; }, xa = function (b) { return K.ANNEX_PLOTS[S.layoutA[b]]; };
     S.pos = { DEN: x('den'), WORKSHOP: x('workshop'), ORE: x('ore'), HAUL_STAND: x('ore') - 24, CRUSH: x('crush'), BAR: x('bar'), GRAB: x('bar') + 16,
-      STOCK: x('stock'), COLLECTOR: x('collector'), BELT_END: x('ore') - 10, PAD: (x('ore') + x('crush')) / 2 };
+      STOCK: x('stock'), COLLECTOR: x('collector'), BELT_END: x('ore') - 10, PAD: (x('ore') + x('crush')) / 2,
+      ORE2: xa('ore2'), HAUL_STAND2: xa('ore2') - 24, CRUSH2: xa('crush2') };
+  }
+  // the two ore piles and the two yards: 1 is the line on the front dune, 2 the annex on the middle dune
+  var PILE = { 1: { ore: 'ore', fine: 'oreFine' }, 2: { ore: 'ore2', fine: 'ore2Fine' } };
+  function pileOf(c) { return c.pile === 2 && S.lv.annex ? 2 : 1; }
+  function yardOf(c) { return c.yard === 2 && S.lv.annex ? 2 : 1; }   // a crusher's yard; it follows the ore (see crush())
+  function pickPile(c) {                   // a loaded hauler heads for the nearer pile, counting the slow climb over the lip
+    var d1, d2;
+    if (!S.lv.annex) return 1;
+    d1 = far(c, S.pos.HAUL_STAND, 0.78) + (zoneOf(c.d) !== 0 ? K.CREST_COST : 0); d2 = far(c, S.pos.HAUL_STAND2, K.ANNEX_D) + (zoneOf(c.d) !== 1 ? K.CREST_COST : 0);
+    return d2 < d1 ? 2 : 1;
+  }
+  function yardIndex(c) {                  // a crusher's place among the crushers at its yard, and how many stand there
+    var i, w, y = yardOf(c), kk = 0, n = 0;
+    for (i = 0; i < S.crabs.length; i++) { w = S.crabs[i]; if (w.role === 'crush' && yardOf(w) === y) { n++; if (w.k < c.k) kk++; } }
+    return { kk: kk, n: n };
   }
   function wearMult(c) { return 1 + Math.min(K.WEAR_MAX, Math.max(0, c.wear - K.WEAR_FREE) / K.WEAR_SCALE); }
 
@@ -335,7 +366,7 @@ function CrabSim() {
     events = [];
     S = {
       t: 0, credits: K.START_CREDITS, earned: 0, heat: 6, price: K.PRICE, walk: 0, tick: 0, liftT: 0,
-      nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, oreFine: 0, barsFine: 0, stockFine: 0, reserveFine: 0, docks: [],
+      nodules: [], flags: [], ore: 0, bars: 0, stock: 0, reserve: K.RESERVE, oreFine: 0, barsFine: 0, stockFine: 0, reserveFine: 0, ore2: 0, ore2Fine: 0, docks: [],
       post: { x: K.STIRLING - 60, d: 0.86, auto: true, carrier: null, moved: -99, home: { x: K.STIRLING - 60, d: 0.86 }, drift: 0 }, day: 1,
       tide: 0, nextSurge: 0, nextBury: 0, octo: null, nextOcto: K.OCTO_FIRST, eel: { out: false, until: 0, next: K.EEL_FIRST, bite: 0 },
       storm: false, stormAt: K.STORM_FIRST, stormEnd: 0, stormWarned: false, nextStormWash: 0, nextStormBury: 0,
@@ -348,9 +379,10 @@ function CrabSim() {
       contract: null, nextContract: K.CONTRACT_FIRST, chimney: null, nextChimney: K.CHIMNEY_FIRST, belt: [],
       site: opts.site || 1, perks: opts.perks || [], career: opts.career || { sites: 0, earned: 0, sold: 0, time: 0 }, insured: false,
       shift: opts.shift || 'all', si: null, work: { start: 8, len: 8, count: 1, rest: 3, groups: 1 }, scoutsNight: true, oc: false, ocBank: 0, streak: 0, lastSale: -99,
-      crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, pos: null
+      crabs: [], nextId: 1, rank: 0, lv: {}, stat: {}, hist: [], long: [], longEvery: K.LONG_EVERY, tech: {}, wu: {}, layout: {}, layoutA: {}, pos: null
     };
     for (k in K.LAYOUT) S.layout[k] = (opts.layout && opts.layout[k] !== undefined) ? opts.layout[k] : K.LAYOUT[k];
+    for (k in K.ANNEX_LAYOUT) S.layoutA[k] = K.ANNEX_LAYOUT[k];
     for (k in (opts.wu || {})) S.wu[k] = true;
     for (k in (opts.tech || {})) S.tech[k] = true;
     layoutPos();
@@ -715,13 +747,13 @@ function CrabSim() {
   function haul(c) {
     if (c.state === 'init') c.state = 'seek';
     if (c.state === 'seek') {
-      if (c.load >= carry()) { c.state = 'haul'; return; }
+      if (c.load >= carry()) { c.state = 'haul'; c.pile = pickPile(c); return; }   // a full load: head for the nearer pile with room
       if (c.load === 0 && !c.target && offShift(c)) return;
       if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
       if (c.target) {
         if (go(c, c.target.x, c.target.d, spd(c))) { c.state = 'pick'; c.timer = K.T_PICK; }
       } else if (c.load > 0) {
-        c.state = 'haul';
+        c.state = 'haul'; c.pile = pickPile(c);
       } else tryBackup(c);                                   // nothing lying about: lend a claw elsewhere
     } else if (c.state === 'pick') {
       c.timer -= work(c);
@@ -738,7 +770,7 @@ function CrabSim() {
       var hs = haulSpot(c, false);
       if (moveTo(c, hs.x, hs.d, spd(c))) { c.state = 'stack'; c.timer = K.T_STACK; }
     } else if (c.state === 'stack') {
-      if (!dropRoom()) return;                               // the ore pile (or the conveyor) is full: wait
+      if (!dropRoom(pileOf(c))) return;                      // the ore pile (or the conveyor) is full: wait
       c.timer -= work(c);
       if (c.timer <= 0) {
         c.load--; S.stat.stacked++; dropNodule(c, takeFine(c, 'loadFine'));
@@ -757,27 +789,34 @@ function CrabSim() {
   function takePlain(key, fineKey, n) {    // take n from a pile, the plain ones first (the forge and the trader are not fussy)
     S[key] -= n; if (S[fineKey] > S[key]) S[fineKey] = S[key];
   }
-  // Nodules go onto the ore pile, or, with the conveyor built, onto the belt's head to ride to the pile.
-  function dropRoom() { return S.lv.belt ? S.belt.length < K.BELT_CAP && (!S.belt.length || S.belt[S.belt.length - 1].x > K.BELT_HEAD + K.BELT_GAP) : S.ore < oreCap(); }
+  // Nodules go onto the ore pile, or, with the conveyor built, onto the belt's head to ride to the pile; at the annex, onto its pile.
+  function dropRoom(pile) {
+    if (pile === 2) return S.ore2 < oreCap();
+    return S.lv.belt ? S.belt.length < K.BELT_CAP && (!S.belt.length || S.belt[S.belt.length - 1].x > K.BELT_HEAD + K.BELT_GAP) : S.ore < oreCap();
+  }
   function dropNodule(c, fine) {
-    if (S.lv.belt) { var b = { x: K.BELT_HEAD }; if (fine) b.fine = true; S.belt.push(b); emit('stack', c, 'belt'); }
-    else { S.ore++; if (fine) S.oreFine++; emit('stack', c); }
+    if (pileOf(c) === 2) { S.ore2++; if (fine) S.ore2Fine++; S.stat.stacked2++; emit('stack', c, fine ? 'annexFine' : 'annex'); }
+    else if (S.lv.belt) { var b = { x: K.BELT_HEAD }; if (fine) b.fine = true; S.belt.push(b); emit('stack', c, fine ? 'beltFine' : 'belt'); }
+    else { S.ore++; if (fine) S.oreFine++; emit('stack', c, fine ? 'fine' : undefined); }
   }
   function belt() {                        // the conveyor: each nodule rides toward the pile, no closer than a gap behind the one ahead
     var i, n, lim = S.pos.BELT_END;
     if (!S.belt.length) return;
-    for (i = 0; i < S.belt.length; i++) { n = S.belt[i]; n.x = Math.min(lim, n.x + K.BELT_SPEED * dt); lim = n.x - K.BELT_GAP; }
+    for (i = 0; i < S.belt.length; i++) { n = S.belt[i]; n.x = Math.max(n.x, Math.min(lim, n.x + K.BELT_SPEED * dt)); lim = n.x - K.BELT_GAP; }   // never backward: a short belt holds its nodules closer
     if (S.belt[0].x >= S.pos.BELT_END && S.ore < oreCap()) { n = S.belt.shift(); S.ore++; if (n.fine) S.oreFine++; S.stat.belted++; emit('belted'); }
   }
   // The line is laid out like a factory floor. Crushers stand at press stations in a row across the yard (a second
   // row behind the first once there are more than four), and haulers queue up to the ore pile from the field side,
   // one behind the other, so the metal moves along a line of crabs rather than into a huddle.
   function crushSpot(c) {
-    var n = count('crush'), row = Math.floor(c.k / K.CRUSH_ROW), ncol = Math.min(K.CRUSH_ROW, n - row * K.CRUSH_ROW), col = c.k % K.CRUSH_ROW;
+    var y = yardOf(c), yi = yardIndex(c), kk = yi.kk, n = yi.n;
+    var row = Math.floor(kk / K.CRUSH_ROW), ncol = Math.min(K.CRUSH_ROW, n - row * K.CRUSH_ROW), col = kk % K.CRUSH_ROW;
+    if (y === 2) return { x: S.pos.CRUSH2 + (col - (ncol - 1) / 2) * K.CRUSH_GAP, d: K.ANNEX_D - row * 0.06 };
     return { x: S.pos.CRUSH + (col - (ncol - 1) / 2) * K.CRUSH_GAP, d: 0.78 - row * 0.07 };
   }
-  function haulSpot(c, back) {              // the queue to the ore pile (or the conveyor's head): a slot behind the one before, on the field side
+  function haulSpot(c, back) {              // the queue to the ore pile (or the conveyor's head, or the annex pile): a slot behind the one before, on the field side
     var k = back ? c.id % 4 : c.k % 4;
+    if (pileOf(c) === 2) return { x: S.pos.HAUL_STAND2 - 9 * k, d: K.ANNEX_D + (back ? 0.07 : 0) + 0.03 * (k % 2) };
     return { x: (S.lv.belt ? K.BELT_HEAD - 12 : S.pos.HAUL_STAND) - 9 * k, d: (back ? 0.87 : 0.78) + 0.03 * (k % 2) };
   }
   function crush(c) {
@@ -790,17 +829,22 @@ function CrabSim() {
       if (offShift(c)) return;
       st = crushSpot(c);
       if (far(c, st.x, st.d) > 2) { moveTo(c, st.x, st.d, spd(c)); return; }   // the stations shift as the crew changes: shuffle along
-      if (S.ore < K.NOD_PER_BAR && tryBackup(c)) return;     // nothing to press: fetch some ore
-      if (S.ore >= K.NOD_PER_BAR) {
-        c.fine = S.oreFine >= K.NOD_PER_BAR;                 // two fine nodules press into a fine bar; a mixed pressing is plain
-        S.ore -= K.NOD_PER_BAR; if (c.fine) S.oreFine -= K.NOD_PER_BAR; else S.oreFine = Math.min(S.oreFine, S.ore);
+      var P = PILE[yardOf(c)], Q = PILE[yardOf(c) === 2 ? 1 : 2];
+      if (S[P.ore] < K.NOD_PER_BAR) {                        // nothing to press here: after a while, follow the ore to the other yard
+        c.idleT = (c.idleT || 0) + dt;
+        if (S.lv.annex && c.idleT >= K.YARD_SWITCH_WAIT && S[Q.ore] >= K.YARD_SWITCH_ORE) { c.yard = yardOf(c) === 2 ? 1 : 2; c.idleT = 0; c.state = 'home'; emit('yard', c, c.yard); return; }
+        if (tryBackup(c)) return;                            // or fetch some ore
+      } else c.idleT = 0;
+      if (S[P.ore] >= K.NOD_PER_BAR) {
+        c.fine = S[P.fine] >= K.NOD_PER_BAR;                 // two fine nodules press into a fine bar; a mixed pressing is plain
+        S[P.ore] -= K.NOD_PER_BAR; if (c.fine) S[P.fine] -= K.NOD_PER_BAR; else S[P.fine] = Math.min(S[P.fine], S[P.ore]);
         emit('feed', c); c.state = 'crush'; c.timer = c.crushT = K.T_CRUSH * (has('hydraulicClaws') ? 0.65 : 1);
       }
     } else if (c.state === 'crush') {
       c.timer -= work(c);
       if (c.timer <= 0) c.state = 'hold';
-    } else if (c.state === 'hold') {
-      if (S.bars < barCap()) { S.bars++; if (c.fine) S.barsFine++; S.stat.bars++; emit('bar', c, !!c.fine); c.state = 'wait'; }   // else the bar stack is full: wait
+    } else if (c.state === 'hold') {       // the bar goes on the stack, or, from the annex yard, down the chute to it
+      if (S.bars < barCap()) { S.bars++; if (c.fine) S.barsFine++; S.stat.bars++; if (yardOf(c) === 2) S.stat.bars2++; emit('bar', c, !!c.fine); c.state = 'wait'; }   // else the bar stack is full: wait
     }
   }
   // The smelters' two rims: the lava rim by the cavern, and with the upgrade a lava pocket in the cavern side nearer the
@@ -809,7 +853,7 @@ function CrabSim() {
     var i, w, n1 = 0, n2 = 0;
     if (!S.lv.rim) return 1;
     for (i = 0; i < S.crabs.length; i++) { w = S.crabs[i]; if (w !== c && w.role === 'smelt' && (w.state === 'toLava' || w.state === 'smelt')) { if (w.rim === 2) n2++; else n1++; } }
-    return n2 < n1 || (n2 === n1 && c.k % 2) ? 2 : 1;
+    return n2 < n1 || (n2 === n1 && c.rim !== 2) ? 2 : 1;   // a tie: the other rim than last time, so a lone smelter uses both
   }
   function rimSpot(c) {                    // where a smelter stands to hold its bar in the lava
     if (c.rim === 2 && S.lv.rim) return { x: K.RIM2 - 14, d: 0.9 + 0.03 * (c.k % 3) };
@@ -925,7 +969,7 @@ function CrabSim() {
       case 'haul': return c.load > 0 || freeNodule();
       case 'drill': return c.bitOk && S.nodules.length < K.FIELD_CAP;
       case 'scout': return S.flags.length < flagCap();
-      case 'crush': return S.ore >= K.NOD_PER_BAR;
+      case 'crush': return S[PILE[yardOf(c)].ore] >= K.NOD_PER_BAR;
       case 'smelt': return S.bars > 0;
       case 'energy': return needsCharge() || c.charges < charges() || postWanted(c);
       case 'repair': case 'mech':
@@ -979,7 +1023,7 @@ function CrabSim() {
     var w = c.helping;
     if (w && w.helper === c) w.helper = null;
     c.helping = null; c.held = false;
-    if (c.bload > 0) c.state = 'bhaul';                     // a nodule in the claw: deliver it on the way back
+    if (c.bload > 0) { c.state = 'bhaul'; c.pile = pickPile(c); }   // a nodule in the claw: deliver it on the way back
     else c.state = RESUME[c.role];
     emit('helpEnd', c, w);
   }
@@ -987,7 +1031,7 @@ function CrabSim() {
     var w = c.helping, n, tx, td;
     if (!w || w.gone || w.helper !== c || w.state === 'sleep' || w.air || !onDuty(c) || !HELP_STATES[w.role][w.state] ||
         (c.bload === 0 && primaryReady(c)) || (!c.held && S.t - c.hsince > K.HELP_CATCH)) { endHelp(c); return; }
-    if (c.bload > 0 && primaryReady(c) && S.ore >= oreCap()) { setDown(c); endHelp(c); return; }
+    if (c.bload > 0 && primaryReady(c) && !dropRoom(pileOf(w))) { setDown(c); endHelp(c); return; }
     tx = w.x - 10 * (w.dir || 1); td = w.d;
     if (!c.held) {
       if (go(c, tx, td, spd(c) * 1.2) || far(c, tx, td) < K.HELP_REACH) { if (!c.air) { c.held = true; emit('holdClaw', c, w); } }
@@ -1001,8 +1045,8 @@ function CrabSim() {
       c.picked = w.target;
       n = nearestNodule(c);
       if (n && far(c, n.x, n.d) < 60) { n.taken = true; S.nodules.splice(S.nodules.indexOf(n), 1); c.bload++; if (n.fine) c.bloadFine++; emit('take', c); }
-    } else if (c.bload > 0 && w.state === 'stack' && S.ore < oreCap()) {
-      S.ore++; if (takeFine(c, 'bloadFine')) S.oreFine++; c.bload--; S.stat.stacked++; c.rec.helped++; emit('stack', c);
+    } else if (c.bload > 0 && w.state === 'stack' && dropRoom(pileOf(w))) {   // it stacks where the hauler stacks
+      c.pile = w.pile; c.bload--; S.stat.stacked++; dropNodule(c, takeFine(c, 'bloadFine'));   // tally() counts it as help
     }
   }
   // set what it carries down at the edge of the field, for the haulers: a crab never waits at a full pile
@@ -1019,11 +1063,11 @@ function CrabSim() {
   function backupHaul(c) {
     var i;
     if (c.state === 'bseek') {
-      if (c.bload >= carry() || (c.bload > 0 && primaryReady(c))) { c.state = 'bhaul'; return; }
+      if (c.bload >= carry() || (c.bload > 0 && primaryReady(c))) { c.state = 'bhaul'; c.pile = pickPile(c); return; }
       if (c.bload === 0 && (primaryReady(c) || !onDuty(c))) { endBackup(c); return; }
       if (!c.target || !c.target.alive || c.target.taken) { c.target = nearestNodule(c); if (c.target) c.target.by = c; }
       if (c.target) { if (go(c, c.target.x, c.target.d, spd(c))) { c.state = 'bpick'; c.timer = K.T_PICK; } }
-      else if (c.bload > 0) c.state = 'bhaul';
+      else if (c.bload > 0) { c.state = 'bhaul'; c.pile = pickPile(c); }
       else endBackup(c);
     } else if (c.state === 'bpick') {
       c.timer -= work(c);
@@ -1038,7 +1082,7 @@ function CrabSim() {
       var bs = haulSpot(c, true);
       if (moveTo(c, bs.x, bs.d, spd(c))) { c.state = 'bstack'; c.timer = K.T_STACK; }
     } else if (c.state === 'bstack') {
-      if (!dropRoom()) { if (primaryReady(c)) { setDown(c); endBackup(c); } return; }   // the pile is full and its own work is waiting
+      if (!dropRoom(pileOf(c))) { if (primaryReady(c)) { setDown(c); endBackup(c); } return; }   // the pile is full and its own work is waiting
       c.timer -= work(c);
       if (c.timer <= 0) {
         c.bload--; S.stat.stacked++; dropNodule(c, takeFine(c, 'bloadFine')); c.timer = K.T_STACK;
@@ -1457,8 +1501,9 @@ function CrabSim() {
     S.stat.eelShooed++; eelHide(true);
     return true;
   }
-  function octoTarget() {
-    if (S.ore > 0) return { x: S.pos.ORE, d: 0.8, ore: true };
+  function octoTarget() {                  // the fuller of the two piles, else the nodule nearest the line
+    if (S.lv.annex && S.ore2 > S.ore) return { x: S.pos.ORE2, d: K.ANNEX_D, ore: true, pile: 2 };
+    if (S.ore > 0) return { x: S.pos.ORE, d: 0.8, ore: true, pile: 1 };
     var best = null, i, n;
     for (i = 0; i < S.nodules.length; i++) { n = S.nodules[i]; if (n.alive && !n.taken && (!best || n.x > best.x)) best = n; }
     return best ? { x: best.x, d: best.d, nod: best } : null;
@@ -1498,7 +1543,8 @@ function CrabSim() {
       if (scarer) { o.state = 'flee'; o.fx = o.x; emit('octoScared', o, scarer); return; }
       if (o.timer <= 0) {
         tg = o.tg;
-        if (tg && tg.ore && S.ore > 0) { k = Math.min(2, S.ore); o.carryFine = Math.max(0, k - (S.ore - S.oreFine)); S.ore -= k; S.oreFine -= o.carryFine; o.carry = k; }   // the plain ones first
+        var P = PILE[tg && tg.pile === 2 ? 2 : 1];
+        if (tg && tg.ore && S[P.ore] > 0) { k = Math.min(2, S[P.ore]); o.carryFine = Math.max(0, k - (S[P.ore] - S[P.fine])); S[P.ore] -= k; S[P.fine] -= o.carryFine; o.carry = k; }   // the plain ones first
         else if (tg && tg.nod && tg.nod.alive && !tg.nod.taken) {
           tg.nod.taken = true; tg.nod.alive = false; i = S.nodules.indexOf(tg.nod); if (i >= 0) S.nodules.splice(i, 1);
           if (tg.nod.by && tg.nod.by.target === tg.nod) tg.nod.by.target = null;
@@ -1855,7 +1901,7 @@ function CrabSim() {
     return {
       scout: d('scout') * PER.scout[z - 1] * up('scanner')[0] / 0.5 * (1 + up('scanner')[1]) * (has('wideSonar') ? 1.35 : 1) * (has('deepSonar') ? 1.2 : 1),
       drill: d('drill') * (n.scout ? PER.drill : PER.wildcat) * (has('diamondTips') ? 1.2 : 1) * (has('twinAugers') ? 1.2 : 1),
-      haul: d('haul') * PER.haul * (has('bigHopper') ? 1.4 : 1) * (has('springLegs') ? 1.25 : 1) * (S.lv.belt ? 1.3 : 1),
+      haul: d('haul') * PER.haul * (has('bigHopper') ? 1.4 : 1) * (has('springLegs') ? 1.25 : 1) * (S.lv.belt ? 1.3 : 1) * (S.lv.annex ? 1.15 : 1),
       crush: d('crush') * PER.crush * (has('hydraulicClaws') ? 1.5 : 1),
       smelt: d('smelt') * PER.smelt * (has('heatTongs') ? 1.25 : 1) * (has('twinTongs') ? 1.6 : 1) * (S.lv.rim ? 1.1 : 1),
       sell: 60 / up('riser'),
@@ -1915,8 +1961,10 @@ function CrabSim() {
   function buy(id) {
     var cost = upgradeCost(id);
     if (cost === null) return 'max';
+    if (id === 'annex' && S.lv.field < K.ANNEX_FIELD) return 'locked';   // the annex stands on the middle dune: claim it first
     if (S.credits < cost) return 'credits';
     S.credits -= cost; S.stat.spent += cost; S.lv[id]++;
+    if (id === 'annex') for (var i = 0; i < S.crabs.length; i++) { var c = S.crabs[i]; if (c.role === 'crush' && c.k % 2 === 1) { c.yard = 2; if (c.state === 'wait') c.state = 'home'; } }   // every other crusher goes up to the new yard at once
     emit('build', id);
     return true;
   }
@@ -1940,12 +1988,14 @@ function CrabSim() {
     return true;
   }
   function place(b, plot) {                // move a building to a plot; whatever stands there swaps places with it
-    var other = null, k;
-    if (K.BUILDINGS.indexOf(b) < 0 || plot < 0 || plot >= K.PLOTS.length || S.layout[b] === plot) return false;
-    for (k in S.layout) if (S.layout[k] === plot) other = k;
-    if (other) S.layout[other] = S.layout[b];
-    S.layout[b] = plot;
+    var other = null, k, annex = K.ANNEX_BUILDINGS.indexOf(b) >= 0, L = annex ? S.layoutA : S.layout, plots = annex ? K.ANNEX_PLOTS : K.PLOTS;   // the annex's buildings stay on the annex's plots
+    if ((!annex && K.BUILDINGS.indexOf(b) < 0) || (annex && !S.lv.annex) || plot < 0 || plot >= plots.length || L[b] === plot) return false;
+    for (k in L) if (L[k] === plot) other = k;
+    if (other) L[other] = L[b];
+    L[b] = plot;
     layoutPos();
+    var lim = S.pos.BELT_END, i, n, gap = Math.min(K.BELT_GAP, (S.pos.BELT_END - K.BELT_HEAD) / Math.max(1, S.belt.length - 1));   // a pile moved toward the field: the belt's nodules bunch up at its new end at once
+    for (i = 0; i < S.belt.length; i++) { n = S.belt[i]; n.x = Math.max(K.BELT_HEAD, Math.min(lim, n.x)); lim = n.x - gap; }
     emit('layout', b, other);
     return true;
   }
@@ -2064,6 +2114,7 @@ function CrabSim() {
     fresh = reset();                       // fields added to the game since the save was made start at their defaults
     for (k in fresh) if (!(k in s)) s[k] = fresh[k];
     for (k in K.UP) if (s.lv[k] === undefined) s.lv[k] = 0;
+    for (k in K.ANNEX_LAYOUT) if (s.layoutA[k] === undefined) s.layoutA[k] = K.ANNEX_LAYOUT[k];
     for (k = 0; k < STATS.length; k++) if (s.stat[STATS[k]] === undefined) s.stat[STATS[k]] = 0;
     S = s; seed = data.seed >>> 0; events = [];
     layoutPos();
@@ -2075,7 +2126,7 @@ function CrabSim() {
     save: save, load: load,
     K: K, FLOW: FLOW, reset: reset, step: step, counts: counts, rates: rates, capacity: capacity, bottleneck: bottleneck, up: up, oreCap: oreCap, barCap: barCap,
     hire: hire, retire: retire, hireCost: hireCost, refund: refund, crewCap: crewCap, buy: buy, upgradeCost: upgradeCost,
-    setReserve: setReserve, setReserveFine: setReserveFine, rimSpot: rimSpot, forgeSpot: forgeSpot, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
+    setReserve: setReserve, setReserveFine: setReserveFine, rimSpot: rimSpot, forgeSpot: forgeSpot, pileOf: pileOf, yardOf: yardOf, setShift: setShift, setWork: setWork, setScoutsNight: setScoutsNight, dutyFor: dutyFor, pattern: pattern, inPattern: inPattern, hourAt: hourAt, flagCap: flagCap, overclock: overclock, shiftInfo: shiftInfo, coverage: coverage, gaps: gaps, onDuty: onDuty,
     flowMult: flowMult, research: research, upgradeWorker: upgradeWorker, shoo: shoo, shooEel: shooEel, trade: trade, adopt: adopt, decorMax: decorMax, achievements: function () { return ACH.map(function (a) { return { id: a[0], name: a[1], what: a[2] }; }); }, placePost: placePost, lit: lit, lampLit: lampLit, glowR: glowR, setPostAuto: setPostAuto,
     acceptContract: acceptContract, declineContract: declineContract, strength: strength, newSite: newSite, inKelp: inKelp, setInsured: setInsured, scare: scare, snatch: snatch, postTarget: postTarget, unlocked: unlocked, has: has, place: place, charges: charges, carry: carry, wearMult: wearMult, crushSpot: crushSpot, haulSpot: haulSpot, isHeld: isHeld, heldBy: heldBy, drain: drain, avgBattery: avgBattery, avgWear: avgWear, zoneOf: zoneOf,
     state: function () { return S; }

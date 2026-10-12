@@ -141,9 +141,9 @@ off.
 | --- | --- |
 | Clock | `t` (seconds), `tick` (last whole second), `si` (current shift info: hour, day, night, period), `day` |
 | Money | `credits`, `earned`, `price`, `walk` (price random walk), `liftT` (riser timer), `reserve`, `streak`, `lastSale`, `oc`, `ocBank`, `rank`, `news{kind, mult, until, n, sold}`, `nextNews`, `ach{id: t}` (achievements won), `nightBreaks`, `nightWork` (for the quiet-night achievement) |
-| Stocks | `nodules[]` (on the sand; a fine one has `fine: true`), `flags[]`, `ore`, `bars`, `stock`, and the fine counts within them, `oreFine`, `barsFine`, `stockFine` (never above their pile), `reserveFine` (the fine shelf's reserve), `heat` (engine store) |
+| Stocks | `nodules[]` (on the sand; a fine one has `fine: true`), `flags[]`, `ore`, `bars`, `stock`, and the fine counts within them, `oreFine`, `barsFine`, `stockFine` (never above their pile), `reserveFine` (the fine shelf's reserve), `ore2` and `ore2Fine` (the annex pile), `heat` (engine store) |
 | Crew | `crabs[]`, `nextId` |
-| Progress | `lv{}` (upgrade levels), `tech{}`, `wu{}` (worker upgrades), `layout{}` (building → plot), `pos{}` (derived positions) |
+| Progress | `lv{}` (upgrade levels), `tech{}`, `wu{}` (worker upgrades), `layout{}` (building → plot), `layoutA{}` (annex building → annex plot), `pos{}` (derived positions, `ORE2`, `HAUL_STAND2` and `CRUSH2` among them) |
 | Workday | `shift` (pattern key), `work{start,len,count,rest,groups}`, `scoutsNight` |
 | Power | `docks[]` (bots plugged in), `post{x,d,auto,carrier,moved,home,drift,warned}` |
 | Sea | `tide`, `glow[{x, d}]` (the plankton patches), `bloom`, `nextSurge`, `nextBury`, `octo`, `nextOcto`, `eel{out, until, next, bite}`, `storm`, `stormAt`, `stormEnd`, `stormWarned`, `nextStormWash`, `nextStormBury`, `lavaSurge`, `lavaAt`, `lavaEnd`, `order{need, got, until, premium, rival, rivalRate}`, `nextOrder`, `rep` |
@@ -166,7 +166,7 @@ off.
 | Position | `x`, `d`, `dir`, `air` (a ride on the vent or the chimney: `{phase, vent ('main' or 'chimney'), inX, inD, col, rise, x0, gx, gd, tx, td, used}`), `alt` (0–1 height on the ride) |
 | Pad | `onPad` while it stands on the charging pad |
 | Training | `apprentice{until}` while it is one (half pace in `pace()`, half a crab in `strength()`); `null` or absent for a full crab |
-| Behaviour | `state` (state-machine node), `timer`, `target`, `tx`/`td`, `flag`, `nod` (hole being drilled), `load` (hauler) and `loadFine` (the fine ones among them), `bload` (backup job) and `bloadFine`, `carry` (item in claws), `n` (bars carried) and `nFine`, `fine` (a crusher pressing a fine bar), `rim` (a smelter's rim, 1 or 2) |
+| Behaviour | `state` (state-machine node), `timer`, `target`, `tx`/`td`, `flag`, `nod` (hole being drilled), `load` (hauler) and `loadFine` (the fine ones among them), `bload` (backup job) and `bloadFine`, `carry` (item in claws), `n` (bars carried) and `nFine`, `fine` (a crusher pressing a fine bar), `rim` (a smelter's rim, 1 or 2), `pile` (where a loaded hauler is heading, 1 or 2) and `yard` (a crusher's yard) with `idleT` (its wait at an empty pile) |
 | Body | `bat`, `wear`, `bitOk`, `broken`, `limp`, `charges` |
 | Claims | `claimedBy` (energy bot coming), `fixBy`, `mendBy` (repair and maintenance bots coming) |
 | Rest | `lastRest`, `rested`, `fresh` (morning bonus seconds left), `dance` (partner) |
@@ -268,8 +268,19 @@ is how the forge and the trader take plain metal first. `sell()` sends a fine in
 one above `reserve`, at `K.FINE_PRICE` times the price, and books the difference into `stat.fineCredits`. Grades never
 change a count the old code kept, so the fuzzer's new invariants are only that every fine count stays within its pile.
 
+**The annex.** `PILE` maps a pile number to its count fields; `pileOf(c)` and `yardOf(c)` read a crab's pile or yard
+(always 1 without the upgrade). `pickPile(c)` is called at every transition into a carrying trip (`haul`, `bhaul`) and
+chooses the nearer pile by `far()` plus `K.CREST_COST` for a lip to climb. `haulSpot()` and `dropRoom(pile)` take the
+pile, `dropNodule()` stacks on it (`stack` with `'annex'` or `'annexFine'`). A crusher in `wait` at a pile below
+`K.NOD_PER_BAR` counts `idleT`, and after `K.YARD_SWITCH_WAIT` with the other pile at `K.YARD_SWITCH_ORE` or more sets
+`c.yard` to the other, emits `yard`, and walks `home`; `yardIndex(c)` gives its place among that yard's crushers, which
+`crushSpot()` lays out. `spot()` re-rolls (up to four times) a point on the annex's ground. `place()` works on
+`S.layoutA` and `K.ANNEX_PLOTS` for `K.ANNEX_BUILDINGS`, refuses them elsewhere, and squeezes the belt's nodules
+together when the ore pile moves toward the field (and `belt()` never moves a nodule backward). `buy('annex')` returns
+`'locked'` below `K.ANNEX_FIELD` dune claims, and on success sends every odd-numbered crusher to the new yard.
+
 **The two rims.** `pickRim(c)` chooses a smelter's rim as it leaves the bar stack (the one with fewer smelters in
-`toLava` or `smelt`, ties by `k`), `rimSpot(c)` is where it stands at the rim or the lava pocket (`K.RIM2`,
+`toLava` or `smelt`, a tie going to the rim it did not use last), `rimSpot(c)` is where it stands at the rim or the lava pocket (`K.RIM2`,
 `K.RIM2_D`), and `forgeSpot(c)` sends the repair crews to the pocket once it is built. `stat.rim2` counts smeltings there.
 
 **The line's stations.** `crushSpot(c)` gives a crusher its press station: rows of
@@ -395,7 +406,7 @@ notifications only: the sim never depends on anyone reading them.
 | --- | --- |
 | Crew | `join`, `leave`, `sleep`, `wake`, `backup`, `backupEnd`, `dance`, `glow` (b: `'lamp'` under the lighthouse), `morning`, `dawn`, `shiftMode`, `veteran`, `apprentice`, `graduate` |
 | Mining | `flag`, `miss`, `flagDone`, `strike`, `uncover`, `dry`, `pearl`, `chest` |
-| Line | `take`, `stack` (b: `'belt'`, `'fine'` or `'beltFine'` for the conveyor and the grade), `belted` (b: fine), `feed`, `bar` (b: fine), `grab`, `ingot` (b: fine ingots in the batch), `stock` (b: the same), `sell`, `fineSell` (right after a `sell` of a fine ingot), `rank` |
+| Line | `take`, `stack` (b: `'belt'`, `'fine'`, `'beltFine'`, `'annex'` or `'annexFine'` for the conveyor, the annex and the grade), `yard` (a crusher changing yards; b: the yard), `belted` (b: fine), `feed`, `bar` (b: fine), `grab`, `ingot` (b: fine ingots in the batch), `stock` (b: the same), `sell`, `fineSell` (right after a `sell` of a fine ingot), `rank` |
 | Power | `charge`, `plug`, `refill`, `postGrab`, `postMoved`, `postDrift`, `padOn` |
 | Breakdowns | `bitBreak`, `ebotBreak`, `legOff`, `takeMat`, `forged`, `fixed` |
 | Movement | `ride` (b: `'main'` or `'chimney'`), `land`, `chimneyOpen`, `chimneyFade` |
@@ -421,7 +432,7 @@ notifications only: the sim never depends on anyone reading them.
 | Research | `research(id)`, `upgradeWorker(id)`, `unlocked(role)`, `has(id)` |
 | Workday | `setShift(key)`, `setWork(params)`, `setScoutsNight(on)`, `shiftInfo(t)`, `coverage()`, `gaps()`, `onDuty(crab)`, `dutyFor(role, k, hour, day)`, `pattern()`, `inPattern()`, `hourAt(t)` |
 | Play | `setReserve(n)`, `setReserveFine(n)`, `overclock(on)`, `shoo()`, `shooEel()`, `trade(id)`, `acceptContract()`, `declineContract()`, `setInsured(on)`, `scare()` and `snatch(crabId)` (the food web's bites, called by the view) |
-| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `lampLit(x, d)`, `inKelp(x)`, `glowR()`, `crushSpot(c)`, `haulSpot(c, back)`, `rimSpot(c)`, `forgeSpot(c)` |
+| Read-outs | `rates(secs)`, `capacity()`, `bottleneck()`, `flowMult()`, `wearMult(c)`, `avgBattery()`, `avgWear()`, `oreCap()`, `barCap()`, `charges()`, `carry()`, `flagCap()`, `decorMax()`, `isHeld(c)`, `zoneOf(d)`, `lit(x, d)`, `lampLit(x, d)`, `inKelp(x)`, `glowR()`, `crushSpot(c)`, `haulSpot(c, back)`, `rimSpot(c)`, `forgeSpot(c)`, `pileOf(c)`, `yardOf(c)` |
 
 Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max'`, `'locked'`,
 `'done'`). They emit events the view can react to.
@@ -481,11 +492,18 @@ The canvas is drawn in painter's order:
    5. Everything standing on that dune, sorted by screen y: nodules, flags, crabs,
       buildings, the base, the post, the den, the crushing yard (`drawRollers()` for the roller
       table and one `drawPress()` item a crusher, each just behind its crusher at
-      `sim.crushSpot(c)`), the lava pocket (`drawRim2()`, with its own glow in `drawGlow()`), and debris.
+      `sim.crushSpot(c)`), the lava pocket (`drawRim2()`, with its own glow in `drawGlow()`), and debris. With the annex,
+      the middle dune's layer holds the annex pile (`drawOrePile(2)`, `oreSlot(i, 2)`), its roller table
+      (`drawRollers(2)`) and the presses of the crushers whose stations are there, under its own plot
+      foundations (`drawPlots(true)`, `plotRectA(i)`); `drawCableway()` runs over the middle dune before
+      the front dune's items, and a bar from the annex yard flies with `cable: true`, which `drawFlights()`
+      turns into a bucket ride along `cablePoint(t)`.
       Before the sort, `draw()` works out the band of the canvas that is on screen (the stage's
       `scrollLeft` and `clientWidth`, plus a margin of 110 × `CS` for talk bubbles) and leaves out
       every nodule, flag, crab and piece of debris outside it; on a canvas no wider than the stage
-      nothing is left out.
+      nothing is left out. The band is kept in `visL`/`visR` for the frame, and the particle passes
+      (puffs, embers, sparks, confetti, floaters, rings, bubbles, plankton and motes) and the food web
+      (`env.visL`/`env.visR` in `drawWater` and `drawFloor`) skip what lies outside it too.
    6. On k = 2: energy-bot cables and the octopus. The trader stands among the buildings on k = 2.
 3. Tide currents, the whale's shadow, ink, rings and flights.
 4. The sea turtle and the manta ray (`drawManta()`, riders spaced along its back in `drawCrab()`), then crabs in the air, riding the vent, the turtle or the manta.
@@ -501,7 +519,9 @@ richness `K.FINE_Q` or more wears a gold star. The first fine ingot raises a toa
 
 **Role marks.** `drawRoleMark(role, s, by, dark)` draws each kind's shape on the shell under the eyes, and
 `markSVG(role)` / `roleDot(role)` put the same shape (`MARK_PATH`) inside the coloured dot in the crew rows, the
-roster, the Tech cards and the intro (`[data-mark]` spans, filled in `wire()`). `tests/colour.js` is the report that
+roster, the Tech cards and the intro (`[data-mark]` spans, filled in `wire()`). `markStyle` (the View tab's select,
+`setMarks()`, kept in `localStorage` as `crabminer-marks`) chooses shapes, letters (`MARK_LETTER`) or none; `none`
+also hides the dots' marks through `body.no-marks`. `tests/colour.js` is the report that
 showed why: under protanopia and deuteranopia the hauler and the maintenance bot are a ΔE of about 6 apart.
 
 **Pets.** `updatePets(dt)` moves each of `S.pets` on view-only fields (`vx`, `vd`, `vmode`: rest, wander,
@@ -680,7 +700,7 @@ side are a third of a cycle apart, and the two sides half a cycle.
   `suppressClick`, which the click handler consumes. Ctrl or ⌘ with the wheel zooms about the cursor, and the View tab
   has − ×1 + and Fit.
 - **Storage:** `localStorage` keeps `crabminer-save` (the game, from `sim.save()`),
-  `crabminer-best` (best Tycoon time), `crabminer-big` (layout), and
+  `crabminer-best` (best Tycoon time), `crabminer-big` (layout), `crabminer-marks` (shell marks), and
   `crabminer-talk` (the crab-talk tally), and `reader-rate`/`reader-voice` (read aloud). Every access is wrapped in `try`/`catch`.
 - **Save and load:** `saveGame()` runs every 10 s of real time, when the page is hidden, on
   `pagehide`, and right after `newGame()`. At start-up `loadGame()` restores the save if
@@ -831,7 +851,9 @@ player's choices (separate from the sim's own), and `act()`, one random player a
   - dance pairs symmetric
   - no sleeping in the air, no claims held while asleep
   - finite position, wear, battery and `bload`
-  - every fine count within its pile or load: `oreFine ≤ ore`, `barsFine ≤ bars`, `stockFine ≤ stock`, `loadFine ≤ load`, `bloadFine ≤ bload`
+  - every fine count within its pile or load: `oreFine ≤ ore`, `barsFine ≤ bars`, `stockFine ≤ stock`, `ore2Fine ≤ ore2`, `loadFine ≤ load`, `bloadFine ≤ bload`
+  - the annex's buildings on different annex plots, and no ore on an annex pile that is not built
+  - the belt's nodules in strictly descending order between its head and its end
 
   Checking every second matters: a stale claim often clears itself within a few seconds, and
   a check every 10 s missed a release bug planted on purpose. The fuzzer first corrupts a game
@@ -849,7 +871,8 @@ player's choices (separate from the sim's own), and `act()`, one random player a
 - **Browser checks.** Headless Chromium driven over the DevTools protocol at desktop, iPhone
   SE, and dark sizes. Each starts a new game from the ? menu, checks that the sim runs, that
   the page does not scroll sideways, that the hire buttons and tabs work, that fine nodules put on
-  the pile come out as fine ingots on the shelf and a smelter uses the lava pocket, that two synthetic
+  the pile come out as fine ingots on the shelf and a smelter uses the lava pocket, that the annex is refused before the middle dune and then fills its pile and presses bars at its yard,
+  that the shell-mark option is remembered, that two synthetic
   pointers pinch the zoom, one drags the field and one held on a crab opens its card, and that a reload
   resumes the game, and fails on any console error. Tests reach state through
   `window.crabminer`. It runs Chromium with `--disable-gpu --no-sandbox`, since in a VM the GPU

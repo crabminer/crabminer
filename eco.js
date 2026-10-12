@@ -668,7 +668,8 @@ function CrabEco() {
     use(e); if (!stocked) reset(e);
     var i, j, list, n;
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    for (i = 0; i < WATER_ORDER.length; i++) { list = pop[WATER_ORDER[i]]; for (j = 0; j < list.length; j++) if (!list[j].dead) drawOne(ctx, list[j], CS * list[j].grow); }
+    var vl = e.visL === undefined ? -1e9 : e.visL, vr = e.visR === undefined ? 1e9 : e.visR;   // the view's visible band: nothing is drawn off screen
+    for (i = 0; i < WATER_ORDER.length; i++) { list = pop[WATER_ORDER[i]]; for (j = 0; j < list.length; j++) if (!list[j].dead && list[j].x >= vl && list[j].x <= vr) drawOne(ctx, list[j], CS * list[j].grow); }
     ctx.strokeStyle = pal.bubble || pal.foam; ctx.lineWidth = 1; ctx.globalAlpha = 0.7;
     for (i = 0; i < bubbles.length; i++) { n = bubbles[i]; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, TAU); ctx.stroke(); }
     ctx.restore();
@@ -683,8 +684,9 @@ function CrabEco() {
     var i, j, list, an;
     ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.fillStyle = pal.rock; ctx.strokeStyle = pal.rockLine; ctx.lineWidth = 1;
+    var vl = e.visL === undefined ? -1e9 : e.visL, vr = e.visR === undefined ? 1e9 : e.visR;
     for (i = 0; i < rocks.length; i++) if (rocks[i].k === k) drawRock(ctx, rocks[i]);
-    for (i = 0; i < FLOOR_ORDER.length; i++) { list = pop[FLOOR_ORDER[i]]; for (j = 0; j < list.length; j++) { an = list[j]; if (an.k === k && !an.dead) drawOne(ctx, an, G.scaleAt(an.d) * an.grow); } }
+    for (i = 0; i < FLOOR_ORDER.length; i++) { list = pop[FLOOR_ORDER[i]]; for (j = 0; j < list.length; j++) { an = list[j]; if (an.k === k && !an.dead && an.x >= vl && an.x <= vr) drawOne(ctx, an, G.scaleAt(an.d) * an.grow); } }
     ctx.restore();
   }
   function drawBoat(c) {

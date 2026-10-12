@@ -26,7 +26,8 @@ function act(sim, r) {
   if (x < 0.50) return sim.buy(pick(Object.keys(K.UP)));
   if (x < 0.56) return sim.research(pick(Object.keys(K.TECH)));
   if (x < 0.64) return sim.upgradeWorker(pick(Object.keys(K.WUP)));
-  if (x < 0.68) return sim.place(pick(K.BUILDINGS), Math.floor(r() * K.PLOTS.length));
+  if (x < 0.67) return sim.place(pick(K.BUILDINGS), Math.floor(r() * K.PLOTS.length));
+  if (x < 0.68) return sim.place(pick(K.ANNEX_BUILDINGS), Math.floor(r() * K.ANNEX_PLOTS.length));
   if (x < 0.72) return sim.placePost(K.FIELD0 + r() * (K.STIRLING - K.FIELD0), 0.6 + r() * 0.4);
   if (x < 0.74) return sim.setPostAuto(true);
   if (x < 0.79) return sim.setShift(pick(K.SHIFTS));

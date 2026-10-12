@@ -20,22 +20,17 @@ apprentices, contracts, the hydrothermal chimney, the lighthouse lamp, the kelp 
 conveyor, the charging pad, the new dig site after Crab Tycoon, insurance, the food web's two bites at the
 game (the shark and the gulls), sound, the tutorial, metal grades (fine ingots from rich deposits, on their own
 shelf with their own reserve), the second smelting rim, a mark on every kind's shell (with `tests/colour.js`, the
-colour-vision report that showed why), pinch zoom, drag to pan and the long-press crab card, and skipping the
-sprites outside the visible part of the field.
+colour-vision report that showed why), pinch zoom, drag to pan and the long-press crab card, skipping the
+sprites and particles outside the visible part of the field, the annex on the middle dune (a second ore pile and
+yard among the deep deposits, haulers choosing the nearer pile, crushers following the ore, and a cableway for its
+bars), and the shell marks as an option (shapes, letters or none).
 
-## Buildings and layout
+## Nothing left
 
-- **More plots.** A den upgrade or claim that adds plots on the middle dune for a second
-  ore pile near the deep deposits. Needs haulers to choose a pile, crushers to work from
-  both, and the belt and the pad to know which pile they serve, so it is a round of its own.
+Every idea that was listed here has been built. New ones go here first, in the same spirit: a pitch in a line
+and a sketch of how it fits the systems in [ARCHITECTURE.md](ARCHITECTURE.md). Some seeds, none committed to:
 
-## Interface and accessibility
-
-- **Role marks as an option.** The shell marks are always on. A View-tab toggle could make
-  them bolder (a letter instead of a shape) or hide them for players who prefer bare shells.
-
-## Engineering
-
-- **Skip offscreen particles.** Nodules, flags, crabs and debris outside the visible band of
-  the canvas are skipped. Puffs, sparks, confetti, plankton and the food web still draw
-  everywhere; on a zoomed phone they are the next cost worth cutting.
+- **A night market.** The trader's stall stays open all night on festival eve, with a seventh good.
+- **A wreck on the back dune.** A sunken boat the scouts can strip for a one-off haul of bars.
+- **Crab portraits.** The Ledger's crew table with a little drawn face per crab, in its mood.
+- **A tide pool.** A pool on the front dune the pets and idle crabs paddle in at high water.

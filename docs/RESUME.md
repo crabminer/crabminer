@@ -40,12 +40,14 @@ the line, which the advisor and the Ledger tab point out.
   fine ingot on its own shelf beside the stockpile, with its own reserve in the top bar, selling for half as much again.
   The forge, the trader and the octopus take plain metal first.
 - **Progression:** upgrades (including a lighthouse lamp that lights the field's edge at night, a kelp forest claim at the
-  field's left end with richer deposits and slow walking, an ore conveyor haulers drop onto, a charging pad, and a second
-  smelting rim, a lava pocket nearer the plots that smelters and the forge spread over), 5 technologies unlocking 20 worker upgrades (including night
+  field's left end with richer deposits and slow walking, an ore conveyor haulers drop onto, a charging pad, a second
+  smelting rim, a lava pocket nearer the plots that smelters and the forge spread over, and an annex: three plots mid-way
+  along the middle dune with a second ore pile and yard, haulers choosing the nearer pile, crushers following the ore, and
+  a cableway carrying the annex's bars down to the bar stack), 5 technologies unlocking 20 worker upgrades (including night
   scouting), movable building plots, apprentices: half-price crabs at half pace that graduate after a day, and after Crab Tycoon a
   new dig site with one perk carried over (a technology, the decorations or the best crab) and a career record.
 - **Money and bonuses:** overclock and a flow bonus, a drifting market price with surface news
-  (booms, gluts and rumours that move it for a minute), thirty-one achievements listed in the Ledger, cargo-ship
+  (booms, gluts and rumours that move it for a minute), thirty-two achievements listed in the Ledger, cargo-ship
   orders with reputation stars, contracts from the surface (so many ingots in three days, accepted or let lapse,
   paying credits and a unique decoration), and insurance (a daily premium against what the octopus and the sea take). From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.
@@ -71,7 +73,7 @@ the line, which the advisor and the Ledger tab point out.
   also has a button and a key: visitor buttons over the field, the crew by name, plots with
   ◀ ▶, and shortcuts listed in the intro. On touch screens the field pans by dragging, zooms by pinching (up to 2.5×,
   also + − 0 and Ctrl-wheel, and buttons in the View tab) and a long press on a crab pins its card. Every kind wears a
-  mark on its shell as well as its colour (`tests/colour.js` is the colour-vision report). Sprites outside the visible
+  mark on its shell as well as its colour (`tests/colour.js` is the colour-vision report; the View tab offers shapes, letters or none). Sprites outside the visible
   band of the canvas are skipped. A read-aloud "Listen all" button lives in the intro. The paper below the
   game holds the rules and an economy review.
 
@@ -91,6 +93,6 @@ committing a change:
 The working style so far: commit locally, and push only when asked.
 
 **What next** (from `docs/BACKLOG.md`; none is committed to):
-1. **Engineering:** watch the GitHub Action runs (`.github/workflows/test.yml`); skip offscreen particles too.
-2. **Game:** the backlog is nearly empty: more plots with a second ore pile is the one big item left, and the
-   role marks could become an option. New charm ideas are welcome.
+1. **Engineering:** watch the GitHub Action runs (`.github/workflows/test.yml`).
+2. **Game:** the backlog is empty: every idea in it has been built. The next round needs fresh ideas, in the
+   backlog's spirit of visitors, crew charm, buildings and the sea; the backlog lists a few seeds.

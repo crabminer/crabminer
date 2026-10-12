@@ -233,7 +233,7 @@ async function check(b, size) {
 
   // metal grades and the second rim: fine nodules on the pile press into fine bars and smelt into fine ingots on their shelf,
   // the top bar shows the shelf, and with the rim built a smelter goes to the lava pocket
-  await js('crabminer.sim.buy("rim"); crabminer.sim.drain().forEach(() => 0); const S4 = crabminer.state(); S4.ore = 8; S4.oreFine = 8; S4.bars = 2; S4.barsFine = 2; document.querySelector(\'[data-speed="4"]\').click(); true');
+  await js('crabminer.state().credits = 5000; crabminer.sim.buy("rim"); crabminer.sim.hire("smelt"); crabminer.sim.drain().forEach(() => 0); const S4 = crabminer.state(); S4.ore = 8; S4.oreFine = 8; S4.bars = 4; S4.barsFine = 4; document.querySelector(\'[data-speed="4"]\').click(); true');
   for (let i = 0; i < 400 && !(await js('crabminer.state().stat.fineIngots > 0 && crabminer.state().stat.rim2 > 0')); i++) await wait(100);
   await key('1');
   await wait(400);
@@ -247,6 +247,22 @@ async function check(b, size) {
   await js('document.getElementById("t-ledger").click(); true'); await wait(600);
   expect(await js('/Ore conveyor/.test(document.getElementById("ledger").textContent) && /Kelp forest/.test(document.getElementById("ledger").textContent) && /Insurance/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no conveyor, kelp or insurance rows');
   expect(await js('/Metal grades/.test(document.getElementById("ledger").textContent) && /Second smelting rim/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no metal grades or second rim rows');
+
+  // the annex: refused before the middle dune, then a second pile and yard that fill, a crusher that follows the ore, and bars down the cableway
+  await js('document.getElementById("t-build").click(); true'); await wait(400);
+  expect(await js('crabminer.state().lv.field >= 2 || crabminer.sim.buy("annex") === "locked"'), 'the annex was not refused before the middle dune');
+  await js('crabminer.state().credits = 6000; crabminer.sim.buy("field"); crabminer.sim.buy("field"); crabminer.sim.buy("den"); crabminer.sim.hire("crush"); crabminer.sim.hire("crush"); crabminer.sim.buy("annex"); crabminer.sim.drain().forEach(() => 0); const S5 = crabminer.state(); for (let i = 0; i < 10; i++) S5.nodules.push({ x: 300 + i * 6, d: 0.6, alive: true, eddy: -1, by: null }); document.querySelector(\'[data-speed="4"]\').click(); true');
+  for (let i = 0; i < 400 && !(await js('crabminer.state().stat.bars2 > 0')); i++) await wait(100);
+  await key('1');
+  await wait(400);
+  expect(await js('crabminer.state().lv.annex === 1'), 'the annex did not build after the middle dune');
+  expect(await js('crabminer.state().stat.stacked2 > 0'), 'no hauler stacked the annex pile');
+  expect(await js('crabminer.state().stat.bars2 > 0'), 'no crusher pressed a bar at the annex yard');
+  expect(await js('/A1/.test(document.getElementById("layout-list").textContent) && /Annex/.test(document.getElementById("layout-list").textContent)'), 'the Build tab does not list the annex plots');
+  await shot('annex');
+  await js('document.getElementById("t-view").click(); document.getElementById("marks").value = "letter"; document.getElementById("marks").dispatchEvent(new Event("change")); true');
+  expect(await js('localStorage.getItem("crabminer-marks") === "letter"'), 'the shell-mark option was not remembered');
+  await js('document.getElementById("marks").value = "shape"; document.getElementById("marks").dispatchEvent(new Event("change")); true');
 
   // the field under the fingers: two pointers pinch the zoom, one dragged pans, one held on a crab opens its card
   await js('document.getElementById("t-view").click(); true');
@@ -268,12 +284,13 @@ async function check(b, size) {
   expect(drag > sl0 + 50, 'a drag did not pan the field (' + sl0 + ' → ' + drag + ')');
   await js('document.getElementById("zoom-fit").click(); true');
   expect(await js('crabminer.view().zoom') === 1 && !(await js('document.getElementById("stage").classList.contains("zoomed")')), 'Fit did not reset the zoom');
-  await js('crabminer.select(null); const c5 = crabminer.state().crabs[0]; crabminer._lp = c5.id; const p = crabminer.at(c5); document.getElementById("stage").scrollLeft = Math.max(0, p.x - 200); true');
+  await js('document.querySelector(\'[data-speed="0"]\').click(); crabminer.select(null); const c5 = crabminer.state().crabs[0]; crabminer._lp = c5.id; const p = crabminer.at(c5); document.getElementById("stage").scrollLeft = Math.max(0, p.x - 200); true');   // paused, so the crab stays under the finger
   await wait(300);
   await js('(() => { const c = crabminer.state().crabs.find(k => k.id === crabminer._lp), p = crabminer.at(c), cv = document.getElementById("scene"), r = cv.getBoundingClientRect(); cv.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 9, pointerType: "touch", clientX: r.left + p.x, clientY: r.top + p.y, bubbles: true, isPrimary: true })); return true; })()');
   await wait(750);
   await js('document.getElementById("scene").dispatchEvent(new PointerEvent("pointerup", { pointerId: 9, pointerType: "touch", bubbles: true, isPrimary: true })); true');
   expect(await js('crabminer.view().selected') === await js('crabminer._lp'), 'a long press on a crab did not open its card (got ' + (await js('crabminer.view().selected')) + ')');
+  await key('1');
   await js('document.getElementById("t-ledger").click(); true'); await wait(300);
   await js('const S2 = crabminer.state(); S2.rank = 5; S2.earned = 7000; S2.tech.sonar = true; document.getElementById("t-ledger").click(); true'); await wait(1200);
   await js('document.querySelector("#ledger [data-site]").click(); true');

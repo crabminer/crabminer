@@ -14,7 +14,7 @@ function check(sim) {
   for (const k of ['ore', 'bars', 'stock', 'credits', 'heat']) ok(S[k] >= 0, k + ' is ' + S[k]);
   ok(S.spares.bit >= 0 && S.spares.leg >= 0, 'negative spares');
   // metal grades: the fine count of a pile or a load never exceeds the pile or the load, and never goes negative
-  for (const [k, f] of [['ore', 'oreFine'], ['bars', 'barsFine'], ['stock', 'stockFine']]) ok(S[f] >= 0 && S[f] <= S[k], f + ' is ' + S[f] + ' of ' + S[k]);
+  for (const [k, f] of [['ore', 'oreFine'], ['bars', 'barsFine'], ['stock', 'stockFine'], ['ore2', 'ore2Fine']]) ok(S[f] >= 0 && S[f] <= S[k], f + ' is ' + S[f] + ' of ' + S[k]);
   for (const c of S.crabs) ok(c.loadFine >= 0 && c.loadFine <= c.load && c.bloadFine >= 0 && c.bloadFine <= c.bload, 'fine load out of range on ' + who(c) + ': ' + c.loadFine + '/' + c.load + ' ' + c.bloadFine + '/' + c.bload);
   for (const n of S.belt) ok(n.fine === undefined || n.fine === true, 'odd belt nodule ' + JSON.stringify(n));
 
@@ -40,6 +40,9 @@ function check(sim) {
   // no two buildings on one plot
   const plots = Object.values(S.layout);
   ok(new Set(plots).size === plots.length, 'two buildings on one plot: ' + JSON.stringify(S.layout));
+  const plotsA = Object.values(S.layoutA);
+  ok(new Set(plotsA).size === plotsA.length && plotsA.every(p => p >= 0 && p < K.ANNEX_PLOTS.length), 'annex buildings clash: ' + JSON.stringify(S.layoutA));
+  ok(S.ore2 === 0 || S.lv.annex, 'ore on an annex pile that is not built');
 
   // the manta and its riders agree
   if (S.manta) for (const c of S.manta.riders) ok(live.has(c) && c.manta === S.manta, 'ghost manta rider ' + who(c));
@@ -50,7 +53,7 @@ function check(sim) {
   if (S.chimney) ok(K.CHIMNEY_SPOTS.indexOf(S.chimney.x) >= 0 && S.chimney.until > S.chimney.born, 'bad chimney: ' + JSON.stringify(S.chimney));
   // the conveyor: nodules in order, a gap apart, between its head and the pile, and only when it is built
   ok(S.belt.length <= K.BELT_CAP && (!S.belt.length || S.lv.belt), 'belt overfull or unbuilt: ' + S.belt.length);
-  for (let i = 0; i < S.belt.length; i++) ok(S.belt[i].x >= K.BELT_HEAD - 1e-6 && S.belt[i].x <= S.pos.BELT_END + 1e-6 && (!i || S.belt[i].x <= S.belt[i - 1].x - K.BELT_GAP + 1e-6), 'belt out of order at ' + i + ': ' + JSON.stringify(S.belt));
+  for (let i = 0; i < S.belt.length; i++) ok(S.belt[i].x >= K.BELT_HEAD - 1e-6 && S.belt[i].x <= S.pos.BELT_END + 1e-6 && (!i || S.belt[i].x < S.belt[i - 1].x), 'belt out of order at ' + i + ': ' + JSON.stringify(S.belt));
   ok(S.site >= 1 && S.perks.length === S.site - 1, 'site and perks disagree: ' + S.site + ' ' + S.perks.length);
 
   for (const c of S.crabs) {

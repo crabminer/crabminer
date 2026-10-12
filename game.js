@@ -230,7 +230,7 @@
     legOff: ['🦵💔😭', '🦵🙈😱'], needLeg: ['🦵❓', '🦵😩❓'], onLeg: ['🦵👍', '🔧🏃'], bringLeg: ['🦵➡️🦀', '🦵🏃💨'], mended: ['🦵✅❤️', '🦵✨💃'],
     strike: ['🪨✅🎉', '🪨🪨😆'], dry: ['🪨❌😤', '🕳️❌😒'], flag: ['🚩❗', '🚩👀✨'], miss: ['🚩❓🤷', '🚩🙈❓'],
     needOre: ['🪨❓', '🪨😴❓'], oreFull: ['🪨⛔', '🪨📦😅'], needBar: ['🧱❓', '🧱👀❓'], barFull: ['🧱⛔', '🧱🧱😅'],
-    needIngot: ['🪙❓', '🪙👀❓'], stockFull: ['🪙⛔', '🪙📦😅'], smelted: ['🪙✅🎶', '🔥🪙😎'], fineIngot: ['🪙✨🤩', '✨🪙✨'],
+    needIngot: ['🪙❓', '🪙👀❓'], stockFull: ['🪙⛔', '🪙📦😅'], smelted: ['🪙✅🎶', '🔥🪙😎'], fineIngot: ['🪙✨🤩', '✨🪙✨'], annex: ['🪨⬆️🏗️', '🪨🏗️👍'], yard: ['🏗️🏃', '🪨❓🏗️'],
     toForgeIngot: ['🪙➡️🔥', '🪙🏃🔥'], toForgeBar: ['🧱➡️🔥', '🧱🏃🔥'], needHeat: ['🔥❓', '🔥🥶❓'],
     wake: ['☀️👋', '🥱☀️'], ride: ['🌋⬆️😆', '💨⬆️🤩'], land: ['🦀✅', '🦀👌'], oc: ['⚡💪', '⚡🏃💨'], rave: ['🎉🦀🎶', '🕺🦀💃'],
     dance: ['🎶🦀🦀🎶', '💃🦀🕺', '🦀❤️🦀'], morning: ['☀️💪', '☀️😄👋'],
@@ -255,7 +255,7 @@
     legOff: 'A leg coming off', needLeg: 'Asking for a new leg', onLeg: 'On the way with a leg', bringLeg: 'Carrying a leg over', mended: 'A leg mended',
     strike: 'Striking metal', dry: 'A dry hole', flag: 'Flagging a deposit', miss: 'A scan that found nothing',
     needOre: 'Waiting for nodules', oreFull: 'The ore pile is full', needBar: 'Waiting for bars', barFull: 'The bar stack is full',
-    needIngot: 'Waiting for ingots', stockFull: 'The stockpile is full', smelted: 'An ingot smelted', fineIngot: 'A fine ingot smelted',
+    needIngot: 'Waiting for ingots', stockFull: 'The stockpile is full', smelted: 'An ingot smelted', fineIngot: 'A fine ingot smelted', annex: 'A nodule stacked at the annex', yard: 'A crusher moving to the other yard',
     toForgeIngot: 'An ingot to the forge', toForgeBar: 'A bar to the forge', needHeat: 'The engine is cold',
     wake: 'Waking up', ride: 'Riding the vent', land: 'Landing from the vent', oc: 'Overclocked', rave: 'The crab rave',
     dance: 'Dancing with a friend', morning: 'Morning bonus', help: 'Lending a claw', helpRun: 'Running claw in claw', dig: 'Digging in to sleep', postGrab: 'Moving the refuel post', postGrabTide: 'Fetching the post back from the tide', postDrift: 'The tide moving the post',
@@ -280,7 +280,7 @@
     '😴': 'zz', '📦': 'stack', '😅': 'phew', '😎': 'cool', '🥶': 'cold', '🥱': 'yawn', '🤩': 'wow', '👌': 'ok', '🕺': 'dance', '💃': 'dance',
     '😄': ':D', '😮': 'oh', '🎀': 'bow', '😍': '<3', '🥳': 'party', '😬': 'yikes', '🏆': 'won', '👊': 'pow', '🧰': 'chest', '💰': 'loot', '🐍': 'eel',
     '🎪': 'festival', '🏮': 'lantern', '🪁': 'manta', '🐾': 'pet', '💢': 'grr', '📰': 'news', '📈': 'up', '📉': 'down', '💫': 'dizzy',
-    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp', '🌿': 'kelp', '🛤': 'belt', '🏕': 'site', '🐦': 'gull' };
+    '🎓': 'apprentice', '📜': 'contract', '♨': 'chimney', '🔦': 'lamp', '🌿': 'kelp', '🛤': 'belt', '🏕': 'site', '🐦': 'gull', '🏗': 'annex' };
   var NEWS_HEADLINES = {   // three headlines a kind; the sim picks which (S.news.n)
     boom: ['Copper boom at the surface!', 'Shipyards bid up every ingot!', 'Metal shortage on land: prices soar!'],
     glut: ['Glut at the docks: ingots pile up unsold', 'A rival port floods the market', 'Smelters on land undercut the sea'],
@@ -321,8 +321,8 @@
     if (c.role !== 'energy' && c.bat < 0.3 && !c.claimedBy) return TALK.needCharge;
     if (c.limp && !c.mendBy) return TALK.needLeg;
     if (c.role === 'drill' && !c.bitOk && !c.fixBy) return TALK.needBit;
-    if (c.role === 'haul' && c.state === 'stack' && S.ore >= sim.oreCap()) return TALK.oreFull;
-    if (c.role === 'crush' && c.state === 'wait' && S.ore < 2) return TALK.needOre;
+    if (c.role === 'haul' && c.state === 'stack' && (sim.pileOf(c) === 2 ? S.ore2 : S.ore) >= sim.oreCap()) return TALK.oreFull;
+    if (c.role === 'crush' && c.state === 'wait' && (sim.yardOf(c) === 2 ? S.ore2 : S.ore) < 2) return TALK.needOre;
     if (c.role === 'crush' && c.state === 'hold') return TALK.barFull;
     if (c.role === 'smelt' && c.state === 'grab' && c.carry !== 'bar' && S.bars <= 0) return TALK.needBar;
     if (c.role === 'smelt' && c.state === 'drop' && S.stock >= K.STOCK_CAP) return TALK.stockFull;
@@ -333,10 +333,10 @@
   }
   function crabX(c) { return X(c.x); }
   function clawPos(c, side) { var s = scaleAt(c.d), px = crabX(c); return { x: px + side * 15 * s, y: groundY(px, c.d) - 12 * s }; }
-  function oreSlot(i) {                // the ore pile is a pyramid, six nodules wide
-    var row = 0, size = 6, k = i, s = scaleAt(0.8), rp = 4 * s, px = X(S.pos.ORE);
+  function oreSlot(i, pile) {          // the ore pile is a pyramid, six nodules wide; the annex pile the same on the middle dune
+    var d = pile === 2 ? K.ANNEX_D : 0.8, row = 0, size = 6, k = i, s = scaleAt(d), rp = 4 * s, px = X(pile === 2 ? S.pos.ORE2 : S.pos.ORE);
     while (k >= size && size > 1) { k -= size; size--; row++; }
-    return { x: px + (k - (size - 1) / 2) * rp * 2.3, y: groundY(px, 0.8) - rp * 0.8 - row * rp * 1.45 };
+    return { x: px + (k - (size - 1) / 2) * rp * 2.3, y: groundY(px, d) - rp * 0.8 - row * rp * 1.45 };
   }
   function barSlot(i) {                // bars are stacked like bricks, two wide
     var s = scaleAt(0.78), px = X(S.pos.BAR);
@@ -420,7 +420,8 @@
       case 'miss': express(a, 'shrug', 1.4); say(a, TALK.miss, 1.4); play(a, ['shrug', 'think', 'sigh'], 1.5); break;
       case 'flagDone': p = X(a.x); poof(p, groundY(p, a.d) - 6, 5, 0.5); near(a.x, 40).forEach(function (n) { if (n.role === 'drill') play(n, ['bow', 'wave'], 1.4); }); break;
       case 'stack':
-        if (/belt/.test(e.b)) { fly('nod', clawPos(a, 1), beltPoint(K.BELT_HEAD), 0.3, { tag: 'belt', fine: /fine/.test(e.b) }); if (Math.random() < 0.15) say(a, TALK.belt, 1.4); }
+        if (/belt/.test(e.b)) { fly('nod', clawPos(a, 1), beltPoint(K.BELT_HEAD), 0.3, { tag: 'belt', fine: /Fine/.test(e.b) }); if (Math.random() < 0.15) say(a, TALK.belt, 1.4); }
+        else if (/annex/.test(e.b)) { fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore2 - 1), 2), 0.32, { tag: 'ore2', fine: /Fine/.test(e.b) }); if (Math.random() < 0.15) say(a, TALK.annex, 1.4); }
         else fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore', fine: /fine/.test(e.b) });
         if (a.load === 0) { express(a, 'phew', 1); if (Math.random() < 0.4) play(a, ['flex', 'sigh'], 1.2); }
         break;
@@ -446,8 +447,9 @@
         toast('Dig site ' + a + ': fresh dunes', (e.b.kind === 'tech' ? TECH_INFO[e.b.id].name + ' came along, researched already.' : e.b.kind === 'decor' ? 'The den\'s ' + e.b.n + ' decorations came along.' : e.b.name + ' the ' + ROLE_NOUN[e.b.role] + ' came along, stars and all.') + ' Your career record is in the Ledger.');
         S.crabs.forEach(function (n, j2) { play(n, ['salute', 'pointUp', 'lookAround'], 2); if (j2 % 2 === 0) say(n, TALK.newSite, 2.2); });
         break;
-      case 'feed': fly('nod', oreSlot(S.ore + 1), clawPos(a, -1), 0.3, { fine: a.fine }); fly('nod', oreSlot(S.ore), clawPos(a, -1), 0.36, { fine: a.fine }); break;
-      case 'bar': p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars', fine: e.b }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); if (e.b) spark(p.x, p.y, 5, pal.ingot); if (Math.random() < 0.35) play(a, ['clap', 'flex'], 1.2); break;
+      case 'feed': m = sim.yardOf(a); p = m === 2 ? S.ore2 : S.ore; fly('nod', oreSlot(p + 1, m), clawPos(a, -1), 0.3, { fine: a.fine }); fly('nod', oreSlot(p, m), clawPos(a, -1), 0.36, { fine: a.fine }); break;
+      case 'bar': p = clawPos(a, 1); m = sim.yardOf(a) === 2; fly('bar', p, barSlot(Math.max(0, S.bars - 1)), m ? 2.2 : 0.32, { tag: 'bars', fine: e.b, cable: m }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); if (e.b) spark(p.x, p.y, 5, pal.ingot); if (Math.random() < 0.35) play(a, ['clap', 'flex'], 1.2); break;
+      case 'yard': express(a, 'determined', 1.4); say(a, TALK.yard, 1.5); play(a, ['pointUp', 'salute', 'determined'], 1.4); break;
       case 'grab': fly('bar', barSlot(S.bars), clawPos(a, -1), 0.26, { fine: a.nFine > 0 }); break;
       case 'ingot':
         express(a, 'proud', 1.4); if (Math.random() < 0.5) say(a, e.b ? TALK.fineIngot : TALK.smelted, 1.3); play(a, e.b ? ['sparkleEyes', 'spin', 'hopJoy'] : ['flex', 'pump', 'clap'], 1.2); spark(clawPos(a, 1).x, clawPos(a, 1).y, 5, pal.lavaHot);
@@ -726,9 +728,11 @@
         if (a === K.RANKS.length - 1 && !won && started) { won = true; setTimeout(showWin, 1600); }
         break;
       case 'build': p = buildSpot(a); if (p) { poof(p.x, p.y, 14, 1, pal.sandLine); spark(p.x, p.y - 10, 10, pal.hat); }
+        if (a === 'annex') { p = oreSlot(0, 2); poof(p.x, p.y, 16, 1, pal.sandLine); p = cableEnds(); spark(p.a.x, p.a.y - 30 * p.a.s, 8, pal.hat); spark(p.b.x, p.b.y - 30 * p.b.s, 8, pal.hat); toast('The annex is open', 'A second ore pile and crushing yard stand in the middle of the middle dune, among the deep deposits. Haulers drop at the nearer pile, crushers follow the ore between the two yards, and the annex\'s bars ride the cableway down to the bar stack. Both annex buildings can be moved along its three plots from the Build tab.'); }
         if (a === 'rim') { p = rim2Pos(); spark(p.x, p.y - 6 * CS, 24, pal.lavaHot); for (i = 0; i < 10; i++) bombs.push({ x: p.x + rr(-6, 6) * CS, y: p.y, vx: rr(-40, 40), vy: rr(-120, -60), life: 0, max: rr(0.6, 1.1) }); }
         S.crabs.forEach(function (n) {
           if (a === 'rim' && (n.role === 'smelt' || n.role === 'repair' || n.role === 'mech')) play(n, ['cheer', 'sparkleEyes', 'jazz'], 2);
+          if (a === 'annex' && (n.role === 'haul' || n.role === 'crush')) play(n, ['cheer', 'backflip', 'pointUp'], 2);
           if (a === 'kelp' && (n.role === 'scout' || n.role === 'drill')) play(n, ['sparkleEyes', 'pointUp', 'jazz'], 2);
           if (a === 'belt' && n.role === 'haul') play(n, ['cheer', 'backflip', 'jazz'], 2);
           if (a === 'pad' && n.role !== 'energy') play(n, ['sparkleEyes', 'clap'], 1.6);
@@ -749,6 +753,7 @@
     if (id === 'belt') { px = beltPoint((K.BELT_HEAD + S.pos.BELT_END) / 2); return { x: px.x, y: px.y }; }
     if (id === 'pad') { px = padPos(); return { x: px.x, y: px.y - 6 * CS }; }
     if (id === 'rim') { px = rim2Pos(); return { x: px.x, y: px.y - 4 * CS }; }
+    if (id === 'annex') { px = X(S.pos.ORE2); return { x: px, y: groundY(px, K.ANNEX_D) }; }
     return null;
   }
 
@@ -944,7 +949,7 @@
   }
   function drawBubbles() {
     ctx.strokeStyle = pal.bubble; ctx.lineWidth = 1;
-    for (var i = 0; i < bubbles.length; i++) { ctx.beginPath(); ctx.arc(bubbles[i].x, bubbles[i].y, bubbles[i].r, 0, TAU); ctx.stroke(); }
+    for (var i = 0; i < bubbles.length; i++) { if (bubbles[i].x < visL || bubbles[i].x > visR) continue; ctx.beginPath(); ctx.arc(bubbles[i].x, bubbles[i].y, bubbles[i].r, 0, TAU); ctx.stroke(); }
   }
 
   // ----- drawing: the paper dunes -----
@@ -1482,11 +1487,11 @@
     ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.8; ctx.fillRect(-11, -2.2, 22, 2.2); ctx.globalAlpha = 1;             // the anvil plate
     ctx.restore();
   }
-  function drawRollers() {               // the roller table the front row of presses stands on; an empty press marks a yard with no crushers
-    var i, c, st, px, x0 = 1e9, x1 = -1e9, s = scaleAt(0.78), y = groundY(X(S.pos.CRUSH), 0.78);
-    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role !== 'crush') continue; st = sim.crushSpot(c); if (st.d > 0.75) { px = X(st.x); x0 = Math.min(x0, px); x1 = Math.max(x1, px); } }
+  function drawRollers(yard) {           // the roller table the front row of presses stands on; an empty press marks a yard with no crushers
+    var two = yard === 2, d = two ? K.ANNEX_D : 0.78, i, c, st, px, x0 = 1e9, x1 = -1e9, s = scaleAt(d), y = groundY(X(two ? S.pos.CRUSH2 : S.pos.CRUSH), d);
+    for (i = 0; i < S.crabs.length; i++) { c = S.crabs[i]; if (c.role !== 'crush' || sim.yardOf(c) !== (two ? 2 : 1)) continue; st = sim.crushSpot(c); if (st.d > d - 0.03) { px = X(st.x); x0 = Math.min(x0, px); x1 = Math.max(x1, px); } }
     if (x0 > x1) {
-      px = X(S.pos.CRUSH);
+      px = X(two ? S.pos.CRUSH2 : S.pos.CRUSH);
       ctx.save(); ctx.translate(px, y); ctx.scale(s, s); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.globalAlpha = 0.6;
       ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-9, -26); ctx.lineTo(9, -26); ctx.lineTo(9, 0); ctx.stroke(); ctx.fillStyle = pal.metal; ctx.fillRect(-10, -27.5, 20, 3); ctx.restore();
       return;
@@ -1496,9 +1501,9 @@
     for (px = x0 - 12 * s; px <= x1 + 12 * s; px += 5 * s) { ctx.beginPath(); ctx.arc(px, y + 1.5 * s, 1.4 * s, 0, TAU); ctx.stroke(); }
     ctx.restore();
   }
-  function drawOrePile() {               // the fine nodules sit on top of the pile
-    var n = Math.max(0, S.ore - incoming('ore')), nf = Math.min(n, S.oreFine), i, s, sc = scaleAt(0.8);
-    for (i = 0; i < n; i++) { s = oreSlot(i); drawNod(s.x, s.y, (3.6 + ((i * 37) % 7) / 10) * sc, 1, ((i * 53) % 9) / 10 - 0.4, i >= n - nf); }
+  function drawOrePile(pile) {           // the fine nodules sit on top of the pile
+    var two = pile === 2, n = Math.max(0, (two ? S.ore2 : S.ore) - incoming(two ? 'ore2' : 'ore')), nf = Math.min(n, two ? S.ore2Fine : S.oreFine), i, s, sc = scaleAt(two ? K.ANNEX_D : 0.8);
+    for (i = 0; i < n; i++) { s = oreSlot(i, pile); drawNod(s.x, s.y, (3.6 + ((i * 37) % 7) / 10) * sc, 1, ((i * 53) % 9) / 10 - 0.4, i >= n - nf); }
   }
   function drawBarStack() {
     var n = Math.max(0, S.bars - incoming('bars')), nf = Math.min(n, S.barsFine), i, s;
@@ -1664,6 +1669,32 @@
     ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.ellipse(0, 0.5 * s, 15 * s, 5.5 * s, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
     ctx.restore();
   }
+  function cableEnds() {               // the cableway: a pylon by the annex yard, a pylon by the bar stack, a cable between
+    var ax = X(S.pos.CRUSH2 + 18), ay = groundY(ax, K.ANNEX_D - 0.03), bx = X(S.pos.BAR - 14), by = groundY(bx, 0.76);
+    return { a: { x: ax, y: ay, s: scaleAt(K.ANNEX_D) }, b: { x: bx, y: by, s: scaleAt(0.76) } };
+  }
+  function cablePoint(t) { var e = cableEnds(), ya = e.a.y - 30 * e.a.s, yb = e.b.y - 30 * e.b.s; return { x: e.a.x + (e.b.x - e.a.x) * t, y: ya + (yb - ya) * t + Math.sin(Math.PI * t) * 10 * CS }; }
+  function drawCableway() {            // drawn over the middle dune, under the front dune's crabs: bars from the annex yard ride buckets down it
+    var e = cableEnds(), i, p, t;
+    ctx.save(); ctx.strokeStyle = pal.metalDark; ctx.lineCap = 'round';
+    for (i = 0; i < 2; i++) {          // the pylons
+      p = i ? e.b : e.a; ctx.lineWidth = 2.2 * p.s;
+      ctx.beginPath(); ctx.moveTo(p.x - 5 * p.s, p.y); ctx.lineTo(p.x, p.y - 32 * p.s); ctx.lineTo(p.x + 5 * p.s, p.y); ctx.stroke();
+      ctx.lineWidth = 1.2 * p.s; ctx.beginPath(); ctx.moveTo(p.x - 3 * p.s, p.y - 14 * p.s); ctx.lineTo(p.x + 3 * p.s, p.y - 14 * p.s); ctx.stroke();
+      ctx.fillStyle = pal.metal; ctx.beginPath(); ctx.arc(p.x, p.y - 32 * p.s, 2.4 * p.s, 0, TAU); ctx.fill();
+    }
+    ctx.lineWidth = 1.1; ctx.globalAlpha = 0.85;              // the cable, sagging a little
+    ctx.beginPath(); for (t = 0; t <= 1.001; t += 0.05) { p = cablePoint(t); if (t === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); } ctx.stroke();
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 0.8;              // the return cable
+    ctx.beginPath(); for (t = 0; t <= 1.001; t += 0.05) { p = cablePoint(t); if (t === 0) ctx.moveTo(p.x, p.y + 4 * CS); else ctx.lineTo(p.x, p.y + 4 * CS); } ctx.stroke();
+    for (i = 0; i < 3; i++) {          // empty buckets going back up
+      t = 1 - ((T * 0.09 + i / 3) % 1); p = cablePoint(t);
+      ctx.globalAlpha = 0.7; ctx.fillStyle = pal.metal; ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y + 4 * CS); ctx.lineTo(p.x, p.y + 9 * CS); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p.x - 4 * CS, p.y + 9 * CS); ctx.lineTo(p.x + 4 * CS, p.y + 9 * CS); ctx.lineTo(p.x + 3 * CS, p.y + 14 * CS); ctx.lineTo(p.x - 3 * CS, p.y + 14 * CS); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
   function padPos() { var px = X(S.pos.PAD); return { x: px, y: groundY(px, K.PAD_D), s: scaleAt(K.PAD_D) }; }
   function drawPad() {                 // the charging pad: a disc with rings and a bolt, glowing while a crab stands on it
     if (!S.lv.pad) return;
@@ -1789,14 +1820,19 @@
     var px = X(K.PLOTS[i]), half = (X(43) - X(0)) * 0.46;
     return { x: px, half: half, y0: groundY(px, 0.7), y1: groundY(px, 0.97) };
   }
-  function drawPlots() {
-    var i, p, b, occ = {}, k;
-    for (k in S.layout) occ[S.layout[k]] = k;
-    for (i = 0; i < K.PLOTS.length; i++) {
-      p = plotRect(i); b = occ[i];
+  function plotRectA(i) {                // an annex plot: a tile of middle-dune sand
+    var px = X(K.ANNEX_PLOTS[i]), half = (X(43) - X(0)) * 0.46 * scaleAt(K.ANNEX_D) / scaleAt(0.83);
+    return { x: px, half: half, y0: groundY(px, K.ANNEX_D0), y1: groundY(px, K.ANNEX_D1) };
+  }
+  function drawPlots(annex) {            // the front dune's plots, or with `annex` the annex's on the middle dune
+    var i, p, b, occ = {}, k, L = annex ? S.layoutA : S.layout, n = annex ? K.ANNEX_PLOTS.length : K.PLOTS.length, fd = annex ? K.ANNEX_D + 0.02 : 0.83;
+    if (annex && !S.lv.annex) return;
+    for (k in L) occ[L[k]] = k;
+    for (i = 0; i < n; i++) {
+      p = annex ? plotRectA(i) : plotRect(i); b = occ[i];
       if (b) {                           // a paper foundation under each building, so it sits on the sand rather than in it
         ctx.save(); ctx.fillStyle = pal.sandBack; ctx.globalAlpha = 0.28;
-        ctx.beginPath(); ctx.ellipse(p.x, groundY(p.x, 0.83), p.half * 0.85, p.half * 0.22, 0, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(p.x, groundY(p.x, fd), p.half * 0.85, p.half * 0.22, 0, 0, TAU); ctx.fill();
         ctx.globalAlpha = 0.5; ctx.strokeStyle = pal.sandLine; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
       }
       if (!arrange) continue;
@@ -1810,8 +1846,8 @@
       ctx.restore();
     }
   }
-  var BLD_NAMES = { den: 'Den', workshop: 'Workshop', ore: 'Ore pile', crush: 'Crushing yard', bar: 'Bar stack', stock: 'Stockpile', collector: 'Collector' };
-  var BLD_SHORT = { den: 'Den', workshop: 'Workshop', ore: 'Ore', crush: 'Crusher', bar: 'Bars', stock: 'Stock', collector: 'Riser' };
+  var BLD_NAMES = { den: 'Den', workshop: 'Workshop', ore: 'Ore pile', crush: 'Crushing yard', bar: 'Bar stack', stock: 'Stockpile', collector: 'Collector', ore2: 'Annex ore pile', crush2: 'Annex yard' };
+  var BLD_SHORT = { den: 'Den', workshop: 'Workshop', ore: 'Ore', crush: 'Crusher', bar: 'Bars', stock: 'Stock', collector: 'Riser', ore2: 'Ore', crush2: 'Crusher' };
   var arrange = false, pick = null;
 
   // ----- sea life: the food web in eco.js (Script 4), and the ship at the top of the riser -----
@@ -1926,13 +1962,13 @@
     ctx.save();
     if (day > 0.05) {                      // by day: faint drifting specks
       ctx.fillStyle = pal.foam;
-      for (i = 0; i < n; i++) { p = plankton[i]; if (p.y === undefined) continue; ctx.globalAlpha = 0.14 * day * p.s; ctx.fillRect(p.x, p.y, 1.4, 1.4); }
+      for (i = 0; i < n; i++) { p = plankton[i]; if (p.y === undefined || p.x < visL || p.x > visR) continue; ctx.globalAlpha = 0.14 * day * p.s; ctx.fillRect(p.x, p.y, 1.4, 1.4); }
     }
     if (nightA > 0.05) {
       ctx.globalCompositeOperation = 'lighter';
       drawGlowPatches(); drawLampLight();
       for (i = 0; i < n; i++) {
-        p = plankton[i]; if (p.y === undefined) continue;
+        p = plankton[i]; if (p.y === undefined || p.x < visL || p.x > visR) continue;
         tw = still ? 1 : 0.6 + 0.4 * Math.sin(p.ph * 3.1 + i);
         a = nightA * (0.3 + 0.45 * bloom + 0.9 * p.fl) * tw;
         if (a < 0.02) continue;
@@ -1940,7 +1976,7 @@
         ctx.fillStyle = 'rgba(' + GLOW + ',' + Math.min(1, a).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, 1.3 * p.s * CS, 0, TAU); ctx.fill();
       }
       for (i = 0; i < motes.length; i++) {
-        var m = motes[i], k = 1 - m.life / m.max;
+        var m = motes[i], k = 1 - m.life / m.max; if (m.x < visL || m.x > visR) continue;
         ctx.fillStyle = 'rgba(' + GLOW + ',' + (nightA * k * 0.22).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 3, 0, TAU); ctx.fill();
         ctx.fillStyle = 'rgba(' + GLOW + ',' + (nightA * k * 0.8).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 0.7, 0, TAU); ctx.fill();
       }
@@ -1968,7 +2004,7 @@
     if (o.state === 'come' && o.tg) alt = clamp((o.tg.x - 6 - o.x) / 260, 0, 1);
     if (o.state === 'flee') alt = clamp((o.fx - o.x) / 260, 0, 1);
     alt = alt * alt * (3 - 2 * alt);
-    return { x: px, y: gy - alt * (gy - H * 0.2), alt: alt };
+    return { visL: visL, visR: visR, x: px, y: gy - alt * (gy - H * 0.2), alt: alt };
   }
   function drawOcto() {                  // a sneaky octopus: eight wavy arms, big eyes, loot held over its head
     var o = S.octo; if (!o) return;
@@ -2240,6 +2276,12 @@
   function drawFlights() {
     for (var i = 0; i < flights.length; i++) {
       var f = flights[i], t = clamp(f.t, 0, 1), x = f.x0 + (f.to.x - f.x0) * t, y = f.y0 + (f.to.y - f.y0) * t - Math.sin(Math.PI * t) * 10 * CS;
+      if (f.cable) {                     // a bar in a bucket on the cableway: up to the cable, along it, and down to the stack
+        var cp = cablePoint(clamp((t - 0.1) / 0.8, 0, 1)), lift = t < 0.1 ? t / 0.1 : t > 0.9 ? (1 - t) / 0.1 : 1;
+        x = t < 0.1 ? f.x0 + (cp.x - f.x0) * lift : t > 0.9 ? cp.x + (f.to.x - cp.x) * (1 - lift) : cp.x;
+        y = t < 0.1 ? f.y0 + (cp.y + 12 * CS - f.y0) * lift : t > 0.9 ? cp.y + 12 * CS + (f.to.y - cp.y - 12 * CS) * (1 - lift) : cp.y + 12 * CS;
+        if (lift >= 1) { ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x, cp.y); ctx.lineTo(x, y - 3 * CS); ctx.stroke(); ctx.fillStyle = pal.metal; ctx.beginPath(); ctx.moveTo(x - 5 * CS, y - 3 * CS); ctx.lineTo(x + 5 * CS, y - 3 * CS); ctx.lineTo(x + 4 * CS, y + 3 * CS); ctx.lineTo(x - 4 * CS, y + 3 * CS); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      }
       if (f.kind === 'pearl') { ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(x, y, 7 * CS, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; ctx.fillStyle = '#f4f0ff'; ctx.beginPath(); ctx.arc(x, y, 3.4 * CS, 0, TAU); ctx.fill(); ctx.strokeStyle = pal.scout; ctx.lineWidth = 0.8; ctx.stroke(); }
       else if (f.kind === 'nod') drawNod(x, y, 3.8 * CS, 1, t * 4, f.fine);
       else if (f.kind === 'bar') drawBar(x, y, CS, 0, f.fine);
@@ -2248,7 +2290,7 @@
   }
   function drawRings() {
     for (var i = 0; i < rings.length; i++) {
-      var r = rings[i];
+      var r = rings[i]; if (r.x < visL || r.x > visR) continue;
       ctx.strokeStyle = r.c; ctx.lineWidth = 2; ctx.globalAlpha = 1 - r.t;
       ctx.beginPath(); ctx.ellipse(r.x, r.y, 8 + r.t * 40 * CS, (8 + r.t * 40 * CS) * 0.35, 0, 0, TAU); ctx.stroke();
     }
@@ -2257,21 +2299,21 @@
   function drawParticles() {
     var i, p;
     for (i = 0; i < puffs.length; i++) {
-      p = puffs[i]; ctx.globalAlpha = (1 - p.life / p.max) * 0.5; ctx.fillStyle = p.color;
+      p = puffs[i]; if (p.x < visL || p.x > visR) continue; ctx.globalAlpha = (1 - p.life / p.max) * 0.5; ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
     }
     ctx.fillStyle = pal.lavaHot;
-    for (i = 0; i < embers.length; i++) { p = embers[i]; ctx.globalAlpha = 1 - p.life / p.max; ctx.beginPath(); ctx.arc(p.x, p.y, 1.3, 0, TAU); ctx.fill(); }
-    for (i = 0; i < sparks.length; i++) { p = sparks[i]; ctx.fillStyle = p.c; ctx.globalAlpha = 1 - p.life / p.max; ctx.beginPath(); ctx.arc(p.x, p.y, 1.6, 0, TAU); ctx.fill(); }
+    for (i = 0; i < embers.length; i++) { p = embers[i]; if (p.x < visL || p.x > visR) continue; ctx.globalAlpha = 1 - p.life / p.max; ctx.beginPath(); ctx.arc(p.x, p.y, 1.3, 0, TAU); ctx.fill(); }
+    for (i = 0; i < sparks.length; i++) { p = sparks[i]; if (p.x < visL || p.x > visR) continue; ctx.fillStyle = p.c; ctx.globalAlpha = 1 - p.life / p.max; ctx.beginPath(); ctx.arc(p.x, p.y, 1.6, 0, TAU); ctx.fill(); }
     ctx.globalAlpha = 1;
     for (i = 0; i < confetti.length; i++) {
-      p = confetti[i]; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-3, -1.5, 6, 3); ctx.restore();
+      p = confetti[i]; if (p.x < visL || p.x > visR) continue; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-3, -1.5, 6, 3); ctx.restore();
     }
   }
   function drawFloaters() {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (var i = 0; i < floaters.length; i++) {
-      var f = floaters[i], a = f.life < 0.2 ? f.life / 0.2 : 1 - Math.max(0, f.life - f.max + 0.5) / 0.5;
+      var f = floaters[i]; if (f.x < visL || f.x > visR) continue; var a = f.life < 0.2 ? f.life / 0.2 : 1 - Math.max(0, f.life - f.max + 0.5) / 0.5;
       ctx.globalAlpha = clamp(a, 0, 1);
       ctx.font = '700 ' + Math.round((f.big ? 15 : 12) * CS + 2) + 'px ' + cssFont;
       ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.strokeText(f.text, f.x, f.y);
@@ -2717,8 +2759,14 @@
     return '<svg class="mark" viewBox="0 0 12 12" aria-hidden="true"><path d="' + MARK_PATH[role] + '"' + (MARK_FILLED[role] ? ' fill="currentColor"' : ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"') + '/></svg>';
   }
   function roleDot(role) { var c = role === 'haul' ? 'crab' : role; return '<span class="dot" style="background:var(--c-' + c + ');color:var(--c-' + c + '-dark)">' + markSVG(role) + '</span>'; }
+  var MARK_LETTER = { scout: 'S', drill: 'D', haul: 'H', crush: 'C', smelt: 'M', energy: 'E', repair: 'R', mech: 'L' };   // the letter option: Scout, Drill, Hauler, Crusher, sMelter, Energy, Repair, Legs
+  var markStyle = 'shape';               // 'shape', 'letter' or 'none', the View tab's choice, remembered
+  try { markStyle = localStorage.getItem('crabminer-marks') || 'shape'; } catch (e) {}
+  function setMarks(v) { markStyle = v; try { localStorage.setItem('crabminer-marks', v); } catch (e) {} document.body.classList.toggle('no-marks', v === 'none'); if (ui.marks) ui.marks.value = v; }
   function drawRoleMark(role, s, by, dark) {
     var y = by - 0.8 * s, r = 2.3 * s;
+    if (markStyle === 'none') return;
+    if (markStyle === 'letter') { ctx.save(); ctx.fillStyle = dark; ctx.globalAlpha = 0.9; ctx.font = '700 ' + Math.round(6.2 * s) + 'px ' + cssFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(MARK_LETTER[role], 0, y + 0.2 * s); ctx.restore(); return; }
     ctx.save(); ctx.fillStyle = dark; ctx.strokeStyle = dark; ctx.globalAlpha = 0.85; ctx.lineWidth = 1.1 * s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
     if (role === 'scout') { ctx.moveTo(0, y - r); ctx.lineTo(r, y + r * 0.8); ctx.lineTo(-r, y + r * 0.8); ctx.closePath(); ctx.fill(); }
@@ -3008,8 +3056,8 @@
     var t = {
       scout: { go: 'heading out to scan', scan: 'scanning for metal', rest: 'resting: plenty of flags already' },
       drill: { go: c.flag ? 'walking to a flag' : 'no flags, so drilling blind', drill: 'drilling', rest: 'resting: the sand is littered' },
-      haul: { seek: c.target ? 'fetching a nodule' : 'looking for nodules', pick: 'picking up a nodule', haul: S.lv.belt ? 'carrying nodules to the conveyor' : 'carrying nodules to the ore pile', stack: S.lv.belt ? (S.belt.length >= K.BELT_CAP ? 'waiting: the conveyor is full' : 'dropping nodules on the conveyor') : S.ore >= sim.oreCap() ? 'waiting: the ore pile is full' : 'stacking the ore pile' },
-      crush: { home: 'walking to the press', wait: 'waiting for two nodules', crush: 'crushing nodules into a bar', hold: 'waiting: the bar stack is full' },
+      haul: { seek: c.target ? 'fetching a nodule' : 'looking for nodules', pick: 'picking up a nodule', haul: sim.pileOf(c) === 2 ? 'carrying nodules up to the annex pile' : S.lv.belt ? 'carrying nodules to the conveyor' : 'carrying nodules to the ore pile', stack: sim.pileOf(c) === 2 ? (S.ore2 >= sim.oreCap() ? 'waiting: the annex pile is full' : 'stacking the annex pile') : S.lv.belt ? (S.belt.length >= K.BELT_CAP ? 'waiting: the conveyor is full' : 'dropping nodules on the conveyor') : S.ore >= sim.oreCap() ? 'waiting: the ore pile is full' : 'stacking the ore pile' },
+      crush: { home: 'walking to the press' + (sim.yardOf(c) === 2 ? ' at the annex yard' : ''), wait: 'waiting for two nodules' + (sim.yardOf(c) === 2 ? ' at the annex' : ''), crush: 'crushing nodules into a bar' + (sim.yardOf(c) === 2 ? ' at the annex yard' : ''), hold: 'waiting: the bar stack is full' },
       smelt: { toBar: 'walking to the bar stack', grab: S.bars ? 'grabbing a bar' : 'waiting for bars', toLava: 'carrying a ' + (c.nFine ? 'fine ' : '') + 'bar to the ' + (c.rim === 2 && S.lv.rim ? 'second rim' : 'lava'), smelt: 'smelting in the lava' + (c.rim === 2 && S.lv.rim ? ' pocket' : ''), toStock: 'carrying a' + (c.nFine ? ' fine' : 'n') + ' ingot to the stockpile', drop: 'stacking a' + (c.nFine ? ' fine' : 'n') + ' ingot' },
       energy: { idle: 'standing by', go: 'running to recharge a crab', charge: 'recharging a crab', toEngine: 'heading to the Stirling engine', queue: 'queuing at the engine', refill: S.heat < 1 ? 'waiting: the engine is out of charge' : 'charging up at the engine' },
       repair: { idle: 'waiting in the workshop', toMat: 'fetching an ingot for a new bit', fetch: S.stock ? 'taking an ingot' : 'waiting: no metal on the stockpile', toForge: 'taking the ingot to the lava forge', forge: 'forging a new part in the lava', toJob: 'taking the new part to a crab', fix: 'fitting the new part' },
@@ -3048,6 +3096,7 @@
     ctx.restore();
   }
 
+  var visL = -1e9, visR = 1e9;           // the visible band of the canvas for this frame (set in draw()): particles outside it are skipped
   function draw() {
     if (!W || !H || !S) return;
     var i, k, list, o, px, layers = [[], [], []], shaking = S.quake && !mqReduce.matches;
@@ -3055,6 +3104,7 @@
     // make the canvas wider than the stage, and nothing a crab does reaches further than a talk bubble)
     var vm = 110 * CS, vis0 = stage.scrollLeft / Z - vm, vis1 = (stage.scrollLeft + stage.clientWidth) / Z + vm;
     if (W <= stage.clientWidth / Z + 2) { vis0 = -1e9; vis1 = 1e9; }
+    visL = vis0; visR = vis1;
     ctx.clearRect(0, 0, W, H);
     if (shaking) { ctx.save(); ctx.translate(rr(-3, 3) * CS, rr(-2, 2) * CS); }   // the whole sea judders through an earthquake
     drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawCargo(); drawWhale(); drawEcoSurface(); drawSnow();
@@ -3076,10 +3126,14 @@
     layers[2].push({ y: basePos().y, kind: 3, f: drawBase });
     layers[2].push({ y: postPos().y, kind: 3, f: drawPost });
     if (S.trader) layers[2].push({ y: traderPos().y, kind: 3, f: drawTrader });
-    layers[2].push({ y: groundY(X(S.pos.ORE), 0.8), kind: 3, f: drawOrePile });
+    layers[2].push({ y: groundY(X(S.pos.ORE), 0.8), kind: 3, f: drawOrePile.bind(null, 1) });
     layers[2].push({ y: groundY(X(S.pos.BAR), 0.78), kind: 3, f: drawBarStack });
-    layers[2].push({ y: groundY(X(S.pos.CRUSH), 0.78) - 1, kind: 3, f: drawRollers });
-    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; if (o.role === 'crush') { var st = sim.crushSpot(o); px = X(st.x); layers[2].push({ y: groundY(px, st.d) - 0.5, kind: 3, f: drawPress.bind(null, o) }); } }
+    layers[2].push({ y: groundY(X(S.pos.CRUSH), 0.78) - 1, kind: 3, f: drawRollers.bind(null, 1) });
+    if (S.lv.annex) {
+      layers[1].push({ y: groundY(X(S.pos.ORE2), K.ANNEX_D), kind: 3, f: drawOrePile.bind(null, 2) });
+      layers[1].push({ y: groundY(X(S.pos.CRUSH2), K.ANNEX_D) - 1, kind: 3, f: drawRollers.bind(null, 2) });
+    }
+    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; if (o.role === 'crush') { var st = sim.crushSpot(o); px = X(st.x); layers[layerOf(st.d)].push({ y: groundY(px, st.d) - 0.5, kind: 3, f: drawPress.bind(null, o) }); } }
     layers[2].push({ y: groundY(X(S.pos.STOCK), 0.84), kind: 3, f: drawStockpile });
     layers[2].push({ y: groundY(X(S.pos.COLLECTOR), 0.7), kind: 3, f: drawCollector });
     layers[2].push({ y: groundY(X(K.STIRLING), 0.72), kind: 3, f: drawEngine });
@@ -3095,7 +3149,8 @@
       sheet(k, dunePaths[k], pal[SAND[k]], function (x) { return crestY(k, x); }, k < 2 ? function (x) { return crestY(k + 1, x); } : null, 1);
       drawRipples(k); drawEcoFloor(k);
       if (k === 0) { drawWeeds(0); drawRidge(); }
-      if (k === 2) { drawCavern(); drawVent(); drawChimney(); drawRiser(); drawLifts(); drawPlots(); drawCord(); }
+      if (k === 1) drawPlots(true);
+      if (k === 2) { drawCavern(); drawVent(); drawChimney(); drawRiser(); drawLifts(); drawPlots(false); if (S.lv.annex) drawCableway(); drawCord(); }
       if (k > 0) drawLocked(k);
       drawKelp(k, false);
       list = layers[k];
@@ -3149,6 +3204,7 @@
     kelp: { name: 'Kelp forest claim', fx: function (v) { return v ? 'The kelp at the field\'s left end is yours: deposits there are richer (+0.1) and bigger (+1 nodule), walking through the fronds is slow, and idle crabs weave kelp pieces for the den' : 'The kelp forest at the field\'s left end is roped off'; } },
     belt: { name: 'Ore conveyor', fx: function (v) { return v ? 'A belt from the field\'s edge to the ore pile: haulers drop nodules on it and turn straight back' : 'Haulers walk every nodule all the way to the ore pile'; } },
     pad: { name: 'Charging pad', fx: function (v) { return v ? 'Crabs standing on it (between the ore pile and the crushing yard) charge ' + (v * 100).toFixed(1) + '% a second by themselves' : 'Only energy bots charge crabs'; } },
+    annex: { name: 'Annex on the middle dune', fx: function (v) { return v ? 'A second ore pile and crushing yard in the middle of the middle dune: haulers drop at the nearer pile, crushers follow the ore, and the annex\'s bars ride a cableway to the bar stack' : 'One ore pile and one yard, on the front dune (needs the middle dune claimed)'; } },
     rim: { name: 'Second smelting rim', fx: function (v) { return v ? 'A lava pocket in the cavern side, nearer the plots: smelters spread over both rims, and the repair crews forge at the nearer one' : 'One lava rim: every smelter and forge shares it'; } }
   };
   var STAGE_NAME = { scout: 'Scouting', drill: 'Drilling', haul: 'Hauling', crush: 'Crushing', smelt: 'Smelting', sell: 'Selling' };
@@ -3158,7 +3214,7 @@
     contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), insureBtn: $('insure-btn'), insureText: $('insure-text'), soundBtn: $('sound-btn'), tutorial: $('tutorial'), tutStep: $('tut-step'), tutText: $('tut-text'), tutSkip: $('tut-skip'), tutorialBtn: $('tutorial-btn'), siteTech: $('site-tech'), siteTechBtn: $('site-tech-btn'), siteDecorBtn: $('site-decor-btn'), siteCrabBtn: $('site-crab-btn'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
-    fineWrap: $('h-fine-wrap'), fine: $('h-fine'), reserveFine: $('h-reserve-fine'), rfMinus: $('rf-minus'), rfPlus: $('rf-plus'), zoomOut: $('zoom-out'), zoomIn: $('zoom-in'), zoomFit: $('zoom-fit'), zoomLevel: $('zoom-level'),
+    fineWrap: $('h-fine-wrap'), fine: $('h-fine'), reserveFine: $('h-reserve-fine'), rfMinus: $('rf-minus'), rfPlus: $('rf-plus'), zoomOut: $('zoom-out'), zoomIn: $('zoom-in'), zoomFit: $('zoom-fit'), zoomLevel: $('zoom-level'), marks: $('marks'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
     roles: $('roles'), cards: $('cards'), ledger: $('ledger'), toasts: $('toasts'),
     intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
@@ -3251,7 +3307,7 @@
   }
   var layoutSig = '';
   function renderLayout() {              // the plots in order from the field to the lava, each building with buttons to move it
-    var sig = JSON.stringify(S.layout), i, k, at = {}, html = '', lo = Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), hi = K.STIRLING - 40, b;
+    var sig = JSON.stringify(S.layout) + JSON.stringify(S.layoutA) + S.lv.annex, i, k, at = {}, html = '', lo = Math.max(K.FIELD0 + 30, K.STIRLING - K.CORD), hi = K.STIRLING - 40, b;
     if (sig !== layoutSig) {
       layoutSig = sig;
       for (k in S.layout) at[S.layout[k]] = k;
@@ -3260,6 +3316,16 @@
         html += '<div class="plot"><span class="n">' + (i + 1) + '</span><span>' + (b ? BLD_NAMES[b] : '<span class="note">empty plot</span>') + '</span>' +
           (b ? '<button type="button" class="mini" data-move="' + b + '" data-to="' + (i - 1) + '"' + (i ? '' : ' disabled') + ' aria-label="Move the ' + BLD_NAMES[b].toLowerCase() + ' toward the field">◀</button>' +
             '<button type="button" class="mini" data-move="' + b + '" data-to="' + (i + 1) + '"' + (i < K.PLOTS.length - 1 ? '' : ' disabled') + ' aria-label="Move the ' + BLD_NAMES[b].toLowerCase() + ' toward the lava">▶</button>' : '<span></span><span></span>') + '</div>';
+      }
+      if (S.lv.annex) {
+        var atA = {}, LA = S.layoutA;
+        for (k in LA) atA[LA[k]] = k;
+        for (i = 0; i < K.ANNEX_PLOTS.length; i++) {
+          b = atA[i];
+          html += '<div class="plot"><span class="n">A' + (i + 1) + '</span><span>' + (b ? BLD_NAMES[b] : '<span class="note">empty annex plot</span>') + '</span>' +
+            (b ? '<button type="button" class="mini" data-move="' + b + '" data-to="' + (i - 1) + '"' + (i ? '' : ' disabled') + ' aria-label="Move the ' + BLD_NAMES[b].toLowerCase() + ' toward the kelp">◀</button>' +
+              '<button type="button" class="mini" data-move="' + b + '" data-to="' + (i + 1) + '"' + (i < K.ANNEX_PLOTS.length - 1 ? '' : ' disabled') + ' aria-label="Move the ' + BLD_NAMES[b].toLowerCase() + ' toward the plots">▶</button>' : '<span></span><span></span>') + '</div>';
+        }
       }
       html += '<div class="plot"><span class="n">⚡</span><span>Refuel post</span><button type="button" class="mini" data-post="-1" aria-label="Move the refuel post toward the field">◀</button>' +
         '<button type="button" class="mini" data-post="1" aria-label="Move the refuel post toward the lava">▶</button></div>';
@@ -3608,6 +3674,7 @@
       '<tr><th scope="row">Ore conveyor</th><td class="n">' + (S.lv.belt ? S.stat.belted + ' nodules ridden to the pile, ' + S.belt.length + ' on the belt now' : 'not built (Build tab)') + '</td></tr>' +
       '<tr><th scope="row">Charging pad</th><td class="n">' + (S.lv.pad ? S.stat.padCharge.toFixed(1) + ' batteries\' worth given, ' + S.crabs.filter(function (c2) { return c2.onPad; }).length + ' crab' + (S.crabs.filter(function (c2) { return c2.onPad; }).length === 1 ? '' : 's') + ' on it now' : 'not built (Build tab)') + '</td></tr>' +
       '<tr><th scope="row">Second smelting rim</th><td class="n">' + (S.lv.rim ? S.stat.rim2 + ' smeltings at the lava pocket, ' + S.crabs.filter(function (c2) { return c2.role === 'smelt' && c2.rim === 2 && (c2.state === 'toLava' || c2.state === 'smelt'); }).length + ' smelter' + (S.crabs.filter(function (c2) { return c2.role === 'smelt' && c2.rim === 2 && (c2.state === 'toLava' || c2.state === 'smelt'); }).length === 1 ? '' : 's') + ' there now' : 'not built (Build tab)') + '</td></tr>' +
+      '<tr><th scope="row">Annex</th><td class="n">' + (S.lv.annex ? S.stat.stacked2 + ' nodules stacked on the annex pile (' + S.ore2 + ' there now), ' + S.stat.bars2 + ' bars down the cableway, ' + S.crabs.filter(function (c2) { return c2.role === 'crush' && sim.yardOf(c2) === 2; }).length + ' crusher' + (S.crabs.filter(function (c2) { return c2.role === 'crush' && sim.yardOf(c2) === 2; }).length === 1 ? '' : 's') + ' at its yard' : S.lv.field < K.ANNEX_FIELD ? 'claim the middle dune, then build it (Build tab)' : 'not built (Build tab)') + '</td></tr>' +
       '<tr><th scope="row">Metal grades</th><td class="n">fine now: ' + S.oreFine + ' nodule' + (S.oreFine === 1 ? '' : 's') + ' on the pile, ' + S.barsFine + ' bar' + (S.barsFine === 1 ? '' : 's') + ', ' + S.stockFine + ' ingot' + (S.stockFine === 1 ? '' : 's') + ' on the shelf · ' + S.stat.fineIngots + ' fine ingots smelted, ' + S.stat.fineSold + ' sold for ' + money(S.stat.fineCredits) + ' extra (deposits of richness ' + K.FINE_Q + ' and up)</td></tr>' +
       '</tbody></table>';
     var cov = sim.coverage(), ri, si2, cell;
@@ -3946,14 +4013,14 @@
         sim.placePost(S.post.x + 30 * dir, S.post.d); sim.drain().forEach(handle);
         toast('Moved the refuel post', 'It stays put until you let the energy bots move it again.');
       } else {
-        m = b.getAttribute('data-move'); to = +b.getAttribute('data-to'); dir = to > S.layout[m] ? 1 : -1;
-        for (k in S.layout) if (S.layout[k] === to) here = k;
+        m = b.getAttribute('data-move'); to = +b.getAttribute('data-to'); var LM = K.ANNEX_BUILDINGS.indexOf(m) >= 0 ? S.layoutA : S.layout; dir = to > LM[m] ? 1 : -1;
+        for (k in LM) if (LM[k] === to) here = k;
         if (sim.place(m, to)) toast('Moved the ' + BLD_NAMES[m].toLowerCase(), here ? 'It swapped places with the ' + BLD_NAMES[here].toLowerCase() + '.' : 'The crabs will find it there.');
         sim.drain();
       }
       renderPanel(); draw();
       // keep the focus on the same button, which the rebuilt list replaced
-      var again = ui.layoutList.querySelector(m ? '[data-move="' + m + '"][data-to="' + (S.layout[m] + dir) + '"]' : '[data-post="' + dir + '"]');
+      var again = ui.layoutList.querySelector(m ? '[data-move="' + m + '"][data-to="' + ((K.ANNEX_BUILDINGS.indexOf(m) >= 0 ? S.layoutA : S.layout)[m] + dir) + '"]' : '[data-post="' + dir + '"]');
       if (again && !again.disabled) again.focus();
     });
     ui.tech.addEventListener('click', function (e) {
@@ -3990,7 +4057,9 @@
     ui.cards.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var id = b.closest('.card').getAttribute('data-up');
-      if (sim.buy(id) === true) toast('Built: ' + UP_INFO[id].name, UP_INFO[id].fx(K.UP[id].vals[S.lv[id]]) + '.');
+      var res = sim.buy(id);
+      if (res === true) toast('Built: ' + UP_INFO[id].name, UP_INFO[id].fx(K.UP[id].vals[S.lv[id]]) + '.');
+      else if (res === 'locked') toast('Claim the middle dune first', 'The annex stands on the middle dune. Buy the Dune claims upgrade, then come back.');
       sim.drain().forEach(handle);
       renderPanel(); renderHUD();
     });
@@ -4001,6 +4070,8 @@
     ui.zoomIn.addEventListener('click', function () { setZoom(zoom * 1.25); });
     ui.zoomOut.addEventListener('click', function () { setZoom(zoom / 1.25); });
     ui.zoomFit.addEventListener('click', function () { setZoom(1); });
+    ui.marks.addEventListener('change', function () { setMarks(ui.marks.value); });
+    setMarks(markStyle);
     wireGestures();
     for (var i = 0; i < ui.speeds.length; i++) ui.speeds[i].addEventListener('click', function () { setSpeed(parseFloat(this.getAttribute('data-speed'))); });
     var tabs = document.querySelectorAll('[role="tab"]');
@@ -4076,10 +4147,14 @@
           sim.drain().forEach(handle); renderPanel(); draw(); return;
         }
         if (Math.abs(x - pp.x) < 18 * CS && y > pp.y - 45 * CS && y < pp.y + 6) { pick = 'post'; renderPanel(); draw(); return; }
+        var hitA = -1;
+        if (S.lv.annex) for (i = 0; i < K.ANNEX_PLOTS.length; i++) { pr = plotRectA(i); if (Math.abs(x - pr.x) <= pr.half && y >= pr.y0 - 40 * CS && y <= pr.y1 + 6) hitA = i; }
         for (i = 0; i < K.PLOTS.length; i++) { pr = plotRect(i); if (Math.abs(x - pr.x) <= pr.half && y >= pr.y0 - 50 * CS && y <= pr.y1 + 10) hit = i; }
-        if (hit < 0) { pick = null; renderPanel(); return; }
-        for (k2 in S.layout) if (S.layout[k2] === hit) here = k2;
+        if (hit < 0 && hitA < 0) { pick = null; renderPanel(); return; }
+        var onAnnex = hit < 0, LH = onAnnex ? S.layoutA : S.layout; if (onAnnex) hit = hitA;
+        for (k2 in LH) if (LH[k2] === hit) here = k2;
         if (!pick) { pick = here; }
+        else if ((K.ANNEX_BUILDINGS.indexOf(pick) >= 0) !== onAnnex) { toast('Not there', onAnnex ? 'Only the annex\'s own pile and yard can stand on the annex.' : 'The annex\'s pile and yard stay on the annex\'s plots.'); pick = null; }
         else { if (sim.place(pick, hit)) toast('Moved the ' + BLD_NAMES[pick].toLowerCase(), here ? 'It swapped places with the ' + BLD_NAMES[here].toLowerCase() + '.' : 'The crabs will find it there.'); pick = null; }
         sim.drain(); renderPanel(); draw();
         return;

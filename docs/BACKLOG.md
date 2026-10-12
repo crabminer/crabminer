@@ -23,14 +23,24 @@ shelf with their own reserve), the second smelting rim, a mark on every kind's s
 colour-vision report that showed why), pinch zoom, drag to pan and the long-press crab card, skipping the
 sprites and particles outside the visible part of the field, the annex on the middle dune (a second ore pile and
 yard among the deep deposits, haulers choosing the nearer pile, crushers following the ore, and a cableway for its
-bars), and the shell marks as an option (shapes, letters or none).
+bars), the shell marks as an option (shapes, letters or none), the night market on festival eve with its cake, the wreck on
+the back dune that scouts strip for bars, crab portraits in the Ledger's crew table, the tide pool on the front dune, and
+an automatic player in `tests/balance.js` that buys upgrades, with a second economy review in the paper.
 
-## Nothing left
+## Engineering
 
-Every idea that was listed here has been built. New ones go here first, in the same spirit: a pitch in a line
+- **Split `game.js`.** It is 380 KB in one file. A few script tags (drawing, crabs and animations, controls) need no
+  build step; `tests/browser.js` catches load-order mistakes. Do it as its own commit with no change in behaviour, so
+  the screenshots can be compared before and after.
+
+## Seeds
+
+Every game idea that was listed here has been built. New ones go here first, in the same spirit: a pitch in a line
 and a sketch of how it fits the systems in [ARCHITECTURE.md](ARCHITECTURE.md). Some seeds, none committed to:
 
-- **A night market.** The trader's stall stays open all night on festival eve, with a seventh good.
-- **A wreck on the back dune.** A sunken boat the scouts can strip for a one-off haul of bars.
-- **Crab portraits.** The Ledger's crew table with a little drawn face per crab, in its mood.
-- **A tide pool.** A pool on the front dune the pets and idle crabs paddle in at high water.
+- **A crab choir.** On festival eve, crabs by the den sing in rounds (view-only: a `sing` animation with notes, in
+  parts by role) while the night market is open.
+- **Seagull raids on the ship.** A gull that steals from the cargo ship's deck now and then, with the ship's crew
+  shooing it (view-only, in `eco.js`).
+- **A lighthouse keeper.** A hermit crab who lives in the lamp once it is built and waves at crabs passing at night.
+- **Postcards.** The run summary as a drawn postcard (a canvas snapshot of the field with the crew's names), shareable.

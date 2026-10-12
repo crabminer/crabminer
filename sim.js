@@ -62,8 +62,15 @@ function CrabSim() {
       cells: { pay: { ingots: 1 } },  // a crate of cells: the engine's store and every energy bot filled up
       gear: { pay: { bars: 3 } },     // a gold gear: the whole crew gets a morning bonus right away
       lucky: { pay: { bars: 4 } },    // a lucky shell: the next strike on a rich flag finds a pearl for sure
-      pet: { pay: { ingots: 2 } }     // a pet for the den: a starfish, then a snail (offered while there is a kind the den lacks)
+      pet: { pay: { ingots: 2 } },    // a pet for the den: a starfish, then a snail (offered while there is a kind the den lacks)
+      cake: { pay: { ingots: 1 }, market: true }   // a festival cake, only at the night market: every crab's mood lifts, and a cake stand for the den
     },
+    // the night market: on the eve of a festival the trader comes at dusk (or turns back if it was leaving) and keeps shop
+    // until dawn, with four goods instead of three, the cake among them
+    MARKET_OFFERS: 4, CAKE_MOOD: 0.2,
+    // the wreck: once the back dune is claimed, now and then a sunken boat settles on it. Scouts strip its plates, one bar
+    // each, and carry them to the bar stack; two at a time work it, and the bare hull sinks into the sand a minute later
+    WRECK_FIRST: 420, WRECK_EVERY: [540, 840], WRECK_PLATES: [6, 10], T_STRIP: 5, WRECK_CREW: 2, WRECK_LINGER: 60,
     // crab festival day: every tenth day. A long rave at dawn, every crab starts fresh, the flow bonus is doubled
     // all day, and the den gets a string of festival lanterns.
     FESTIVAL_EVERY: 10, FESTIVAL_FLOW: 2,
@@ -240,6 +247,7 @@ function CrabSim() {
     'backup', 'helps', 'cheered', 'nightFlags', 'trades', 'turtleRides', 'glowLit', 'chests', 'chestCredits', 'eels', 'eelSnaps', 'eelDropped', 'eelShooed',
     'festivals', 'pets', 'mantaRides', 'happy', 'grumpy', 'happyTime', 'grumpyTime', 'quakes', 'quakeBuried', 'quakeFlags', 'news', 'newsCredits', 'quietNights',
     'apprentices', 'graduates', 'contracts', 'contractsFilled', 'contractsFailed', 'contractCredits', 'chimneys', 'chimneyRides', 'lampLit',
+    'markets', 'marketTrades', 'wrecks', 'wrecksStripped', 'plates', 'wreckBars',
     'kelpFlags', 'belted', 'padCharge', 'premiums', 'payouts', 'sharkScares', 'gullSnatched', 'fineIngots', 'fineSold', 'fineCredits', 'rim2', 'stacked2', 'bars2'];
   // achievements: checked once a second; each is won once, at the time kept in S.ach
   var ACH = [
@@ -274,6 +282,8 @@ function CrabSim() {
     ['web', 'Nature\'s way', 'The shark chases the octopus off three times', function () { return S.stat.sharkScares >= 3; }],
     ['fine', 'Fine metal', 'Deliver fifty fine ingots up the riser', function () { return S.stat.fineSold >= 50; }],
     ['annex', 'Up the dune', 'Two hundred nodules stacked on the annex pile', function () { return S.stat.stacked2 >= 200; }],
+    ['market', 'Night owl', 'Swap at the night market', function () { return S.stat.marketTrades >= 1; }],
+    ['wreck', 'Salvage crew', 'Strip a wreck bare', function () { return S.stat.wrecksStripped >= 1; }],
     ['tycoon', 'Crab Tycoon', 'Reach the top rank', function () { return S.rank >= K.RANKS.length - 1; }]
   ];
   var RESUME = { scout: 'pick', drill: 'pick', haul: 'seek', crush: 'wait', smelt: 'toBar', energy: 'idle', repair: 'idle', mech: 'idle' };
@@ -374,7 +384,7 @@ function CrabSim() {
       order: null, nextOrder: K.ORDER_FIRST, rep: 0, trader: null, nextTrader: K.TRADER_FIRST, spares: { bit: 0, leg: 0 }, luckyPearls: 0,
       glow: K.GLOW_X.map(function (x, i) { return { x: x, d: K.GLOW_D[i] }; }), bloom: 0.25,
       rival: null, turtle: null, nextTurtle: K.TURTLE_FIRST, decor: [], decorWork: 0, decorTheme: null,
-      festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST,
+      festival: false, pets: [], manta: null, nextManta: K.MANTA_FIRST, market: 0, wreck: null, nextWreck: K.WRECK_FIRST,
       quake: null, nextQuake: K.QUAKE_FIRST, news: null, nextNews: K.NEWS_FIRST, ach: {}, nightBreaks: 0, nightWork: 0,
       contract: null, nextContract: K.CONTRACT_FIRST, chimney: null, nextChimney: K.CHIMNEY_FIRST, belt: [],
       site: opts.site || 1, perks: opts.perks || [], career: opts.career || { sites: 0, earned: 0, sold: 0, time: 0 }, insured: false,
@@ -415,7 +425,7 @@ function CrabSim() {
   }
   function addCrab(role) {
     var p, c = {
-      id: S.nextId++, role: role, x: 0, d: 0.8, dir: 1, bat: 1, state: 'init', timer: 0, load: 0, loadFine: 0, bloadFine: 0, carry: null,
+      id: S.nextId++, role: role, x: 0, d: 0.8, dir: 1, bat: 1, state: 'init', timer: 0, load: 0, loadFine: 0, bloadFine: 0, plate: 0, carry: null,
       target: null, claimedBy: null, fixBy: null, mendBy: null, flag: null, charges: charges(), bitOk: true, broken: false, limp: false,
       wear: 0, air: null, alt: 0, dance: null, rested: 0, fresh: 0, lastRest: S.t, bload: 0, moving: false, working: false, heat: 0, scan: 0, nod: null, k: 0, born: S.t
     };
@@ -441,9 +451,10 @@ function CrabSim() {
     c.stars = c.stars || 0;
     if (c.mood === undefined) { c.mood = K.MOOD_START; c.moodZone = 'ok'; }
     if (c.loadFine === undefined) { c.loadFine = 0; c.bloadFine = 0; }   // a save from before metal grades
+    if (c.plate === undefined) c.plate = 0;                              // a save from before the wreck
     if (c.air && !c.air.vent) { c.air.vent = 'main'; c.air.inX = K.VENT_IN; c.air.inD = 0.8; c.air.col = K.VENT_X; c.air.rise = K.T_RISE; }   // a ride saved before the chimney
   }
-  var JOB = { scout: { flag: 1 }, drill: { strike: 1, dry: 1, chest: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
+  var JOB = { scout: { flag: 1, plate: 1 }, drill: { strike: 1, dry: 1, chest: 1 }, haul: { stack: 1 }, crush: { bar: 1 }, smelt: { ingot: 1 }, energy: { charge: 1 }, repair: { fixed: 1 }, mech: { fixed: 1 } };
   function tally(type, a, b) {             // each crab's personal record, kept from the events it takes part in
     if ((type === 'bitBreak' || type === 'ebotBreak' || type === 'legOff') && S.si && S.si.night) S.nightBreaks++;
     if (!a || !a.rec) return;
@@ -656,14 +667,34 @@ function CrabSim() {
   function work(c) { c.working = true; return dt * pace(c); }
 
   // ----- one rule set per role; no crab is told what the others are doing -----
+  function strippers() {                   // how many scouts are at the wreck or on their way
+    var n = 0, i;
+    for (i = 0; i < S.crabs.length; i++) if (S.crabs[i].role === 'scout' && (S.crabs[i].state === 'toWreck' || S.crabs[i].state === 'strip')) n++;
+    return n;
+  }
   function scout(c) {
     var sc, z, f;
     if (c.state === 'init' || c.state === 'pick' || c.state === 'rest') {
       if (offShift(c)) return;
+      if (c.plate) { c.tx = S.pos.BAR - 14; c.td = 0.8; c.state = 'toStack'; return; }   // a plate off the wreck goes to the bar stack first
+      if (S.wreck && S.wreck.left > 0 && strippers() < K.WRECK_CREW) { c.tx = S.wreck.x + srr(-12, 12); c.td = S.wreck.d; c.state = 'toWreck'; return; }
       if (S.flags.length >= flagCap()) { if (!tryBackup(c)) c.state = 'rest'; return; }   // plenty of flags: carry nodules, or rest
       f = spot(); c.tx = f.x; c.td = f.d; c.state = 'go';
     }
-    if (c.state === 'go') {
+    if (c.state === 'toWreck') {           // the wreck: walk to it, prise a plate off, and carry it to the bar stack
+      if (!S.wreck || S.wreck.left <= 0) { c.state = 'pick'; return; }
+      if (go(c, c.tx, c.td, spd(c))) { c.state = 'strip'; c.timer = K.T_STRIP; }
+    } else if (c.state === 'strip') {
+      if (!S.wreck || S.wreck.left <= 0) { c.state = 'pick'; return; }
+      c.timer -= work(c);
+      if (c.timer <= 0) {
+        S.wreck.left--; c.plate = 1; S.stat.plates++; emit('plate', c, S.wreck);
+        if (!S.wreck.left) { S.wreck.bareAt = S.t; S.stat.wrecksStripped++; emit('wreckBare', S.wreck); }
+        c.state = 'pick';
+      }
+    } else if (c.state === 'toStack') {
+      if (go(c, c.tx, c.td, spd(c)) && S.bars < barCap()) { S.bars++; c.plate = 0; S.stat.wreckBars++; emit('plateStacked', c); c.state = 'pick'; }   // a full stack: wait beside it
+    } else if (c.state === 'go') {
       if (go(c, c.tx, c.td, spd(c))) { c.state = 'scan'; c.timer = c.scanT = K.T_SCAN * (has('wideSonar') ? 0.65 : 1) * (S.si.night && has('nightEyes') ? 0.7 : 1); c.scan = 0; }
     } else if (c.state === 'scan') {
       c.timer -= work(c);
@@ -968,7 +999,7 @@ function CrabSim() {
     switch (c.role) {
       case 'haul': return c.load > 0 || freeNodule();
       case 'drill': return c.bitOk && S.nodules.length < K.FIELD_CAP;
-      case 'scout': return S.flags.length < flagCap();
+      case 'scout': return S.flags.length < flagCap() || c.plate > 0 || !!(S.wreck && S.wreck.left > 0 && strippers() < K.WRECK_CREW);   // a wreck to strip is a scout's own work
       case 'crush': return S[PILE[yardOf(c)].ore] >= K.NOD_PER_BAR;
       case 'smelt': return S.bars > 0;
       case 'energy': return needsCharge() || c.charges < charges() || postWanted(c);
@@ -1344,6 +1375,7 @@ function CrabSim() {
     turtle();
     manta();
     trader();
+    wreck();
     quake();
     news();
     chimney();
@@ -1769,21 +1801,48 @@ function CrabSim() {
     emit('contractLapse', co, true); contractNext();
     return true;
   }
+  // The wreck: once the back dune is claimed, a sunken boat settles on it now and then, and scouts strip its plates
+  // (see scout()). The bare hull sinks into the sand a minute after the last plate comes off.
+  function wreck() {
+    var w = S.wreck;
+    if (!w) {
+      if (S.t < S.nextWreck || up('field') < 3) return;
+      w = { x: srr(K.KELP1 + 40, K.FIELD1 - 60), d: srr(K.ZONES[2].d0 + 0.05, K.ZONES[2].d1 - 0.05), plates: Math.floor(srr(K.WRECK_PLATES[0], K.WRECK_PLATES[1] + 1)), born: S.t, bareAt: 0 };
+      w.left = w.plates; S.wreck = w; S.stat.wrecks++;
+      emit('wreck', w);
+      return;
+    }
+    if (!w.left && S.t >= w.bareAt + K.WRECK_LINGER && !strippers()) { S.wreck = null; S.nextWreck = S.t + srr(K.WRECK_EVERY[0], K.WRECK_EVERY[1]); emit('wreckGone', w); }
+  }
+  function dawnAt() { return S.t + ((K.NIGHT_TO - S.si.hour + 24) % 24) / 24 * K.DAY; }   // when this night ends
   // The hermit-crab trader walks in from the left, keeps shop beside the den for a minute with three goods
-  // out of seven (the pet only while the den lacks a kind), and walks off again.
+  // out of seven (the pet only while the den lacks a kind), and walks off again. On the eve of a festival it
+  // holds the night market instead: it comes at dusk (or turns back if it was leaving), keeps shop until dawn,
+  // and has four goods, the festival cake among them.
+  function offers(list, n) {
+    var keys = Object.keys(K.TRADES).filter(function (k) { return !K.TRADES[k].market && (k !== 'pet' || S.pets.length < K.PET_KINDS.length); }), j;
+    while (list.length < n) { j = keys[Math.floor(sr() * keys.length)]; if (list.indexOf(j) < 0) list.push(j); }
+    return list;
+  }
   function trader() {
-    var tr = S.trader, keys, offers = [], i, j;
+    var tr = S.trader, eve = (S.day + 1) % K.FESTIVAL_EVERY === 0 && S.si.night;
+    if (eve && S.market !== S.day) {       // festival eve: the night market opens
+      S.market = S.day; S.stat.markets++;
+      if (!tr) { tr = S.trader = { x: -40, d: 0.9, state: 'come', offers: [], sold: {}, until: 0, market: true }; emit('traderArrive', tr); }
+      else { tr.market = true; if (tr.state === 'leave') tr.state = 'come'; }
+      if (tr.offers.indexOf('cake') < 0) tr.offers.push('cake');
+      offers(tr.offers, K.MARKET_OFFERS);
+      if (tr.state === 'stay') { tr.until = dawnAt(); emit('marketOpen', tr); }
+    }
     if (!tr) {
       if (S.t < S.nextTrader) return;
-      keys = Object.keys(K.TRADES).filter(function (k) { return k !== 'pet' || S.pets.length < K.PET_KINDS.length; });
-      while (offers.length < 3) { j = keys[Math.floor(sr() * keys.length)]; if (offers.indexOf(j) < 0) offers.push(j); }
-      S.trader = { x: -40, d: 0.9, state: 'come', offers: offers, sold: {}, until: 0 };
+      S.trader = { x: -40, d: 0.9, state: 'come', offers: offers([], 3), sold: {}, until: 0 };
       emit('traderArrive', S.trader);
       return;
     }
     if (tr.state === 'come') {
       tr.x += K.TRADER_SPEED * dt;
-      if (tr.x >= K.TRADER_SPOT) { tr.x = K.TRADER_SPOT; tr.state = 'stay'; tr.until = S.t + K.TRADER_STAY; emit('traderOpen', tr); }
+      if (tr.x >= K.TRADER_SPOT) { tr.x = K.TRADER_SPOT; tr.state = 'stay'; tr.until = tr.market ? dawnAt() : S.t + K.TRADER_STAY; emit('traderOpen', tr); if (tr.market) emit('marketOpen', tr); }
     } else if (tr.state === 'stay') {
       if (S.t >= tr.until) { tr.state = 'leave'; emit('traderLeave', tr); }
     } else {
@@ -1797,7 +1856,7 @@ function CrabSim() {
     if ((T.pay.bars || 0) > S.bars || (T.pay.ingots || 0) > S.stock) return 'short';
     takePlain('bars', 'barsFine', T.pay.bars || 0); takePlain('stock', 'stockFine', T.pay.ingots || 0);
     give(id);
-    tr.sold[id] = true; S.stat.trades++;
+    tr.sold[id] = true; S.stat.trades++; if (tr.market) S.stat.marketTrades++;
     emit('trade', id, tr);
     return true;
   }
@@ -1817,6 +1876,10 @@ function CrabSim() {
       for (i = 0; i < S.crabs.length; i++) S.crabs[i].fresh = K.MORNING_TIME;
     } else if (id === 'lucky') S.luckyPearls++;
     else if (id === 'pet') adopt(K.PET_SHOP[0], 'shop');
+    else if (id === 'cake') {              // the festival cake: a slice for everyone, and the stand goes on the den's porch
+      for (i = 0; i < S.crabs.length; i++) S.crabs[i].mood = clamp(S.crabs[i].mood + K.CAKE_MOOD, 0, 1);
+      S.decor.push({ kind: 'cake', at: S.t }); S.stat.decorations++;
+    }
   }
   // A pet moves in by the den. If the den has that kind already, the next kind it lacks comes instead,
   // and once it has every kind, a second of the kind asked for.

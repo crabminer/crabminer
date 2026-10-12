@@ -140,7 +140,7 @@ async function check(b, size) {
 
   // a click on a crab on the canvas opens its card: canvas coordinates line up with the screen
   await js('document.getElementById("t-view").click(); true');            // tuck the panel away
-  const spot = await js(`(() => { const c = crabminer.state().crabs.find(c => !c.alt && !c.turtle), p = crabminer.at(c),
+  const spot = await js(`(() => { const cs = crabminer.state().crabs.filter(c => !c.alt && !c.turtle && !c.manta).sort((a, b) => crabminer.at(b).x - crabminer.at(a).x), c = cs[0], p = crabminer.at(c),   // the rightmost crab: the stage can centre it, clear of the panel
     stage = document.getElementById('stage'), r = document.getElementById('scene').getBoundingClientRect();
     stage.scrollLeft += r.left + p.x - innerWidth / 2;
     const r2 = document.getElementById('scene').getBoundingClientRect();
@@ -264,6 +264,31 @@ async function check(b, size) {
   expect(await js('localStorage.getItem("crabminer-marks") === "letter"'), 'the shell-mark option was not remembered');
   await js('document.getElementById("marks").value = "shape"; document.getElementById("marks").dispatchEvent(new Event("change")); true');
 
+  // the night market, the wreck, the tide pool and the portraits: the market hook opens the stall with the cake, the swap puts the
+  // cake stand on the den, scouts strip the wreck and stack its plates as bars, the full pool draws without an error, the Ledger shows faces
+  await js('crabminer.market(); crabminer.state().stock = 5; document.getElementById("t-build").click(); true');
+  for (let i = 0; i < 50 && !(await js('!!document.querySelector(\'[data-trade="cake"]:not([disabled])\')')); i++) await wait(100);
+  expect(await js('!!crabminer.state().trader && crabminer.state().trader.market === true && /Festival cake/.test(document.getElementById("trader-offers").textContent)'), 'the night market hook did not open the stall with the cake on offer');
+  expect(await js('/Night market/.test(document.getElementById("a-trader-label").textContent)'), 'the trader button does not say the night market is open');
+  await js('const b5 = document.querySelector(\'[data-trade="cake"]:not([disabled])\'); if (b5) b5.click(); true');
+  expect(await js('crabminer.state().stat.marketTrades === 1 && crabminer.state().decor.some(d => d.kind === "cake")'), 'swapping for the cake did not count as a night-market swap and put the cake stand on the den');
+  await js('crabminer.state().credits = 3000; crabminer.sim.buy("den"); crabminer.sim.hire("scout"); crabminer.sim.hire("scout"); crabminer.sim.hire("scout"); crabminer.state().bars = 0; crabminer.wreck(); crabminer.pool(1); true');
+  await key('4');
+  const tw = await js('crabminer.state().t');
+  for (let i = 0; i < 150 && !(await js('crabminer.advance(2); crabminer.state().stat.wreckBars > 0')); i++) await wait(50);   // frames can stall headless: step the game by hand
+  await key('1');
+  await wait(300);
+  expect(await js('crabminer.state().stat.wrecks > 0'), 'the wreck hook did not settle a wreck on the back dune');
+  const diag = await js('Math.round(crabminer.state().t - ' + tw + ') + " s passed; scouts " + crabminer.state().crabs.filter(c => c.role === "scout").map(c => c.state + (c.plate ? "+plate" : "")).join(" ") + "; wreck " + JSON.stringify(crabminer.state().wreck) + "; bars " + crabminer.state().bars + "/" + crabminer.sim.barCap() + "; shift " + crabminer.state().shift + " night " + crabminer.state().si.night');
+  expect(await js('crabminer.state().stat.plates > 0'), 'no scout prised a plate off the wreck (' + diag + ')');
+  expect(await js('crabminer.state().stat.wreckBars > 0'), 'no plate reached the bar stack as a bar (' + diag + ')');
+  await shot('wreck');
+  await js('crabminer.pool(); document.getElementById("t-ledger").click(); true'); await wait(300);
+  expect(await js('document.querySelectorAll("#ledger canvas.portrait").length') === await js('Math.min(12, crabminer.state().crabs.length)'), 'the Ledger crew table is missing its portraits');
+  expect(await js('/Night market/.test(document.getElementById("ledger").textContent) && /Wrecks/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no night-market or wreck rows');
+  await js('const pc = document.querySelector("#ledger canvas.portrait"); if (pc) { pc.scrollIntoView({ block: "center" }); window.scrollTo(0, 0); } true');
+  await shot('portraits');
+
   // the field under the fingers: two pointers pinch the zoom, one dragged pans, one held on a crab opens its card
   await js('document.getElementById("t-view").click(); true');
   const pinch = async (d0, d1) => {
@@ -284,7 +309,7 @@ async function check(b, size) {
   expect(drag > sl0 + 50, 'a drag did not pan the field (' + sl0 + ' → ' + drag + ')');
   await js('document.getElementById("zoom-fit").click(); true');
   expect(await js('crabminer.view().zoom') === 1 && !(await js('document.getElementById("stage").classList.contains("zoomed")')), 'Fit did not reset the zoom');
-  await js('document.querySelector(\'[data-speed="0"]\').click(); crabminer.select(null); const c5 = crabminer.state().crabs[0]; crabminer._lp = c5.id; const p = crabminer.at(c5); document.getElementById("stage").scrollLeft = Math.max(0, p.x - 200); true');   // paused, so the crab stays under the finger
+  await js('document.querySelector(\'[data-speed="0"]\').click(); crabminer.select(null); const c5 = crabminer.state().crabs.find(k => !k.air && !k.turtle && !k.manta && !(k.alt > 0) && k.state !== "sleep") || crabminer.state().crabs[0]; crabminer._lp = c5.id; const p = crabminer.at(c5); document.getElementById("stage").scrollLeft = Math.max(0, p.x - 200); true');   // paused, so the crab stays under the finger
   await wait(300);
   await js('(() => { const c = crabminer.state().crabs.find(k => k.id === crabminer._lp), p = crabminer.at(c), cv = document.getElementById("scene"), r = cv.getBoundingClientRect(); cv.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 9, pointerType: "touch", clientX: r.left + p.x, clientY: r.top + p.y, bubbles: true, isPrimary: true })); return true; })()');
   await wait(750);
@@ -320,6 +345,7 @@ async function check(b, size) {
   let failed = 0;
   try {
     for (const size of SIZES) {
+      if (process.env.SIZE && size.name !== process.env.SIZE) continue;   // SIZE=desktop runs one size
       const problems = await check(b, size);
       if (problems.length) { failed++; console.log('FAIL ' + size.name + '\n  ' + problems.join('\n  ')); }
       else console.log('ok   ' + size.name + ' (' + size.width + '×' + size.height + ')');

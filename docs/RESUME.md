@@ -47,12 +47,12 @@ the line, which the advisor and the Ledger tab point out.
   scouting), movable building plots, apprentices: half-price crabs at half pace that graduate after a day, and after Crab Tycoon a
   new dig site with one perk carried over (a technology, the decorations or the best crab) and a career record.
 - **Money and bonuses:** overclock and a flow bonus, a drifting market price with surface news
-  (booms, gluts and rumours that move it for a minute), thirty-two achievements listed in the Ledger, cargo-ship
+  (booms, gluts and rumours that move it for a minute), thirty-four achievements listed in the Ledger, cargo-ship
   orders with reputation stars, contracts from the surface (so many ingots in three days, accepted or let lapse,
   paying credits and a unique decoration), and insurance (a daily premium against what the octopus and the sea take). From Ingot Magnate a rival lobster crew behind the ridge
   races you for every order, with a rubber-band drive.
 - **The sea:** tides (which also push the refuel post around), storms, earthquakes that bury a band of a dune and bare a rich patch elsewhere, lava surges, a hydrothermal chimney that opens behind the plots for two days as a second vent and extra heat, an octopus
-  thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, a manta ray that sweeps walking crabs along the back of the claim, sunken chests on the back dune,
+  thief, a moray eel that snaps at haulers, pearl jackpots, the thermal vent ride, whales, the hermit-crab trader, the sea turtle, a manta ray that sweeps walking crabs along the back of the claim, sunken chests on the back dune, a wreck that settles there now and then for the scouts to strip for bars,
   sea life in the deep shadows, a plankton cycle that glows at night after ship wakes and storms, and a closed
   food web (`eco.js`, view-only): shoals, shrimp, jellies and crawlers, their hunters, a shark or two, gulls on
   the ships, and a fisherman whose jellyfish bait feeds more fish than it catches, with a lab report in the Ledger. The web
@@ -64,8 +64,9 @@ the line, which the advisor and the Ledger tab point out.
   and a crab rave on rank-up. The crushing yard is a line of press stations, one a crusher, and
   haulers and smelters queue up to the piles in lines; the den is a big two-storey crab house, with
   pets (a sea slug and a baby octopus from ranks, a starfish and a snail from the trader) that idle
-  crabs stop to pet. Every tenth day is a festival: a long rave at dawn, everyone fresh, the flow
-  bonus doubled, bunting on the den and a string of lanterns for it.
+  crabs stop to pet, and a tide pool on the front dune the pets paddle in at high water. Every tenth day is a festival: a long rave at dawn, everyone fresh, the flow
+  bonus doubled, bunting on the den and a string of lanterns for it; on its eve the trader holds a night market until dawn, with
+  a festival cake that lifts every mood. The Ledger's crew table draws each crab's portrait in its mood.
 - **Save and load:** the game saves itself to `localStorage` every 10 seconds and when the
   page hides, and a reload resumes it exactly (the seed is saved too). New game is under ?.
 - **Interface:** a six-step tutorial on every new game, synthesised sound behind a toggle (off by default), starts straight into play on the big field, with a phone layout for small screens
@@ -87,12 +88,13 @@ the game only through its API. `eco.js` (`CrabEco()`) is the food web, view-only
 committing a change:
 1. `node tests/fuzz.js`, `node tests/save.js` and `node tests/eco.js` (random play with invariants; save round trips; the food web).
 2. `node tests/browser.js` (headless Chromium: console errors, controls, gestures, reload, screenshots).
-3. `node tests/balance.js` before and after any change to the economy, and compare; `node tests/colour.js` after any change to the role colours.
+3. `node tests/balance.js` before and after any change to the economy, and compare (its automatic player buys upgrades in the last two rows, so the late upgrades count); `node tests/colour.js` after any change to the role colours.
 4. Update the game, `RULES.md`, `ARCHITECTURE.md` and the paper together.
 
 The working style so far: commit locally, and push only when asked.
 
 **What next** (from `docs/BACKLOG.md`; none is committed to):
-1. **Engineering:** watch the GitHub Action runs (`.github/workflows/test.yml`).
-2. **Game:** the backlog is empty: every idea in it has been built. The next round needs fresh ideas, in the
-   backlog's spirit of visitors, crew charm, buildings and the sea; the backlog lists a few seeds.
+1. **Engineering:** split `game.js` into a few script tags with no change in behaviour; watch the GitHub Action runs
+   (`.github/workflows/test.yml`; the public API at `api.github.com/repos/crabminer/crabminer/actions/runs` shows them).
+2. **Game:** every listed idea has been built. The backlog holds a few seeds (a crab choir, gull raids on the ship, a
+   lighthouse keeper, postcards); the next round means building those or inventing more in the same spirit.

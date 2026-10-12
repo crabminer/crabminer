@@ -411,6 +411,7 @@ are slow haulers.
     | Ship order filled | Ship in a bottle |
     | Lava surge ends | Lava lamp |
     | Festival day | String of festival lanterns (not inspired: given outright, even to a full den) |
+    | Festival cake swapped at the night market | Festival cake stand (given outright, like the lanterns) |
     | Contract filled | A brass ship's bell, then a golden anchor, a contract plaque and a ship's wheel, in turn (given outright, like the lanterns) |
 
   - With the kelp forest claimed (section 14), the everyday pieces also include a kelp-rope garland, a kelp hammock and a kelp lantern.
@@ -425,12 +426,16 @@ are slow haulers.
   - **Running out** costs a reputation star, like a missed order.
   - **Letting it lapse** (the button, or the 90 s passing) costs nothing. The Ledger counts contracts filled, run out and let lapse, and the credits earned.
 - **A new dig site.** Once you are Crab Tycoon, the win card (and a button in the Ledger's Career note) offers a new dig site: fresh dunes with a new random stream, the starting crew, the same workday, and **one perk** carried over: a technology you researched (chosen from a list), the den's decorations (all of them, beyond the den's room if need be), or your best crab (most stars, then most jobs) with its name, record, stars and mood. Everything else starts over, achievements included. The site number shows in the top bar and the run summary, and the Ledger's Career note keeps the sites, credits, ingots and crab time before this one and what came along. New game under ? starts site 1 again.
-- **Achievements.** Thirty-two, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), forester (20 deposits flagged in the kelp forest), belt and braces (200 nodules ridden on the conveyor), self-service (10 batteries' worth from the charging pad), second claim (a new dig site), covered (100 credits paid out by the insurer), nature's way (the shark chases the octopus off 3 times), fine metal (50 fine ingots delivered), up the dune (200 nodules stacked on the annex pile), and Crab Tycoon.
+- **Achievements.** Thirty-four, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), forester (20 deposits flagged in the kelp forest), belt and braces (200 nodules ridden on the conveyor), self-service (10 batteries' worth from the charging pad), second claim (a new dig site), covered (100 credits paid out by the insurer), nature's way (the shark chases the octopus off 3 times), fine metal (50 fine ingots delivered), up the dune (200 nodules stacked on the annex pile), and Crab Tycoon.
 - **Flow bonus.** An ingot sold within 6 s of the last keeps the flow going. Each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow.
 - **Overclock.**
   - Every sale banks 0.6 s of overclock, multiplied by (1 + streak / 10), up to 30 s.
   - Press ⚡ (or O) to spend it. While it runs, the whole crew moves and works 50% faster, drains 60% more power, and wears twice as fast.
 - **Pearl jackpots.** A strike on a flag of richness 0.75 or more turns up a pearl 4% of the time. It pays 60, 90 or 130 credits on the front, middle or back dune, straight away, and counts toward rank.
+- **The wreck.** Once the back dune is claimed, a sunken boat settles on it 420 s in, then 540 to 840 s after each one sinks away.
+  - It lands at a random spot on the back dune (x = 170 to 480, clear of the kelp forest), with 6 to 10 metal plates on its hull.
+  - Scouts salvage it ahead of scouting: up to 2 at a time walk to it, and each plate takes 5 s of work to prise off (at the crab's pace, so it drags at night like any job). A scout then carries its plate to the bar stack, where it becomes a plain bar (it waits beside a full stack), and goes back for more while plates remain. A plate counts as a job for the scout's record.
+  - Stripped bare, the hull sinks into the sand over 60 s and the next wreck is scheduled. The Salvage crew achievement is for the first wreck stripped bare.
 - **Sunken chests.** A deposit flagged on the back dune is a sunken chest 6% of the time. It shows as a chest in the sand, not a pennant, and drill crabs go for it first. The first hole into it always opens it, broken bit or not: 150 to 250 credits straight away, counting toward rank, and one of the trader's six goods at random, for free (section 17).
 - **Ship orders.**
   - At 150 s, and 180 to 300 s after each order closes, a cargo ship asks for 5 to 40 ingots within 100 s. The number is about 15% above the last minute's sales rate.
@@ -579,6 +584,12 @@ Everything costs 4,450 in total.
     | Gold gear | 3 bars | Every crab gets the morning bonus at once |
     | Lucky shell | 4 bars | The next strike on a rich flag (0.75 or more) finds a pearl for sure |
     | A pet for the den | 2 ingots | A starfish, then a sea snail, moves in by the den (section 12) |
+    | Festival cake | 1 ingot | Night market only: every crab's mood +0.2, and a cake stand for the den's porch (given outright, like the lanterns) |
+
+- **The night market.** On the eve of a festival (day 9, 19, 29, ...), as night falls at 20:00, the trader holds the night market:
+  - If no trader is about, one sets out at once; if one is keeping shop it stays on; if one is leaving it turns back.
+  - The stall keeps shop until dawn (06:00) with 4 goods instead of 3, the festival cake always among them, and lanterns strung along it.
+  - A swap there counts as a night-market swap for the Ledger and the Night owl achievement. The trader's usual visits go on as before.
 
 - **The sea turtle.** The first comes at 180 s, then 150 to 270 s after each one leaves.
   - It swims across low over a claimed dune at 85 units a second. It comes in from the side most travelling crabs are heading away from, and it can turn back once for a passenger it has passed.
@@ -637,13 +648,13 @@ trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Crew tab | Panel | Hire (+), hire an apprentice (🎓, or the toggle on phones), retire (−), workday, timeline, the crew by name (Show finds a crab and opens its card), crab-talk legend |
 | Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods, the contract on offer or under way (Accept, Let it lapse), Insure |
 | Tech tab | Panel | Research and worker upgrades |
-| Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, the food web's lab report, prices, stage capacities, overheads, coverage, the sea, bonuses |
+| Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, the food web's lab report, prices, the crew table with a portrait of each crab in its mood, stage capacities, overheads, coverage, the sea, bonuses |
 | View tab | Panel | Fold the panel away, scroll the field, and zoom it (− ×1 + and Fit) |
 | [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |
 | Click the octopus | Field | Shoo it |
 | Click the eel | Field | Send it back into its crack |
-| Click the trader | Field | Jump to its goods |
+| Click the trader | Field | Jump to its goods (at the night market the button over the field says so) |
 | Click a locked dune | Field | Jump to the Dune claims upgrade |
 | Click the kelp forest's tag | Field | Jump to the Kelp forest claim |
 | Keep that technology / the den's decorations / your best crab | Win card, or the Ledger's Career note after Crab Tycoon | Start a new dig site with that perk (section 13) |

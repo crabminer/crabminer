@@ -55,6 +55,14 @@ function check(sim) {
   ok(S.belt.length <= K.BELT_CAP && (!S.belt.length || S.lv.belt), 'belt overfull or unbuilt: ' + S.belt.length);
   for (let i = 0; i < S.belt.length; i++) ok(S.belt[i].x >= K.BELT_HEAD - 1e-6 && S.belt[i].x <= S.pos.BELT_END + 1e-6 && (!i || S.belt[i].x < S.belt[i - 1].x), 'belt out of order at ' + i + ': ' + JSON.stringify(S.belt));
   ok(S.site >= 1 && S.perks.length === S.site - 1, 'site and perks disagree: ' + S.site + ' ' + S.perks.length);
+  // the wreck: plates come off one at a time and never go negative, only scouts strip it, and only while it is there
+  if (S.wreck) ok(S.wreck.left >= 0 && S.wreck.left <= S.wreck.plates && S.wreck.d < K.ZONES[2].d1, 'bad wreck: ' + JSON.stringify(S.wreck));
+  for (const c of S.crabs) {
+    ok(c.plate === 0 || c.plate === 1, 'odd plate count on ' + who(c) + ': ' + c.plate);
+    if (c.state === 'strip' || c.state === 'toWreck') ok(c.role === 'scout' && !!S.wreck, 'stripping a wreck that is not there: ' + who(c));
+  }
+  // the night market: the cake is on offer only there, and the trader's offers are never doubled up
+  if (S.trader) ok(new Set(S.trader.offers).size === S.trader.offers.length && (S.trader.offers.indexOf('cake') < 0 || S.trader.market), 'bad trader offers: ' + JSON.stringify(S.trader.offers));
 
   for (const c of S.crabs) {
     ok(!c.gone, 'retired crab still in the crew: ' + who(c));
@@ -83,7 +91,8 @@ function check(sim) {
     S => { S.ore = -1; }, S => { S.nodules[0].by = ghost; }, S => { S.docks.push(ghost); },
     S => { S.crabs[0].dance = S.crabs[1]; }, S => { S.layout.den = S.layout.ore; }, S => { S.crabs[0].x = NaN; },
     S => { S.crabs[0].manta = { riders: [] }; }, S => { S.crabs[0].air = { phase: 'rise' }; }, S => { S.contract = { state: 'on', need: 5, got: 6 }; },
-    S => { S.belt.push({ x: 10 }); }, S => { S.site = 3; }
+    S => { S.belt.push({ x: 10 }); }, S => { S.site = 3; }, S => { S.wreck = { plates: 4, left: 5, d: 0.2 }; }, S => { S.crabs[0].state = 'strip'; },
+    S => { S.trader = { offers: ['cake', 'bits', 'bits'], sold: {} }; }
   ];
   cases.forEach((corrupt, i) => {
     sim.load(clean); corrupt(sim.state());

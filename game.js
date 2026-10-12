@@ -247,7 +247,9 @@
     apprentice: ['🎓❓🦀', '🎓👀😅'], graduate: ['🎓✅🎉', '🎓💪😎'], contractOffer: ['📜🪙❓', '📜👀🪙'], contractDone: ['📜✅🎉', '📜🪙🥳'], contractFail: ['📜❌😩', '📜💔😤'],
     chimney: ['♨️⬆️😆', '♨️💨🤩'], lamp: ['🔦👀😊', '🔦🦀👍'],
     kelp: ['🌿🌿😅', '🌿🦀💨', '🌿👀✨'], belt: ['🪨🛤️👍', '🛤️🪨😎'], pad: ['🔌⚡😊', '⚡🦀👍'], newSite: ['🏕️🦀❗', '🏕️✨🤩', '🏕️💪'],
-    gull: ['🐦🪨😱', '🪨💔🐦', '🐦👊😤']
+    gull: ['🐦🪨😱', '🪨💔🐦', '🐦👊😤'],
+    market: ['🏮🛒🌙', '🌙🐚🛒', '🏮🦀😍'], cake: ['🎂😋', '🎂🦀❤️', '🍰🥳'], wreck: ['⛵❗👀', '⛵🔩😮', '🛶❓🦀'], plate: ['🔩🧱👍', '⛵🔩💪'], plateStack: ['🧱✅😎', '⛵🧱👍'],
+    paddle: ['💦🦀😆', '🌊🦀😊', '💦🐾🦀']
   };
   var TALK_LABEL = {   // what each kind of talk means, for the tally in the Ledger
     needCharge: 'Asking for a charge', bringCharge: 'Bringing a charge', gotCharge: 'Thanks for a charge', ebotBreak: 'An energy bot wearing out',
@@ -268,7 +270,8 @@
     happy: 'In a good mood', grumpy: 'In a bad mood', boom: 'A copper boom', glut: 'A glut at the surface', rumour: 'A rumour from the surface', quake: 'An earthquake', achievement: 'An achievement won',
     apprentice: 'An apprentice starting', graduate: 'An apprentice graduating', contractOffer: 'A contract offered', contractDone: 'A contract filled', contractFail: 'A contract run out',
     chimney: 'Riding the hydrothermal chimney', lamp: 'Seeing by the lighthouse lamp',
-    kelp: 'Pushing through the kelp forest', belt: 'Dropping ore on the conveyor', pad: 'Topping up on the charging pad', newSite: 'A new dig site', gull: 'A gull snatching a nodule'
+    kelp: 'Pushing through the kelp forest', belt: 'Dropping ore on the conveyor', pad: 'Topping up on the charging pad', newSite: 'A new dig site', gull: 'A gull snatching a nodule',
+    market: 'The night market', cake: 'A slice of festival cake', wreck: 'A wreck on the back dune', plate: 'Prising a plate off the wreck', plateStack: 'A plate stacked as a bar', paddle: 'Paddling in the tide pool'
   };
   var TALK_KEY = new Map(), talkCount = {}, TALK_SAVE_KEY = 'crabminer-talk';   // which situation a phrase list is, and how often each was said
   Object.keys(TALK).forEach(function (k) { TALK_KEY.set(TALK[k], k); });
@@ -400,7 +403,7 @@
     sell: function (e) { sfx.coin(e.a >= 15); }, pearl: sfx.chime, chest: sfx.chime, strike: sfx.tick, dry: sfx.sigh, bitBreak: sfx.crack, legOff: sfx.crack, ebotBreak: sfx.crack,
     rank: function () { sfx.fanfare(); sfx.rave(5); }, festival: function () { sfx.fanfare(); sfx.rave(20); }, orderDone: sfx.fanfare, contractDone: function () { sfx.fanfare(); sfx.rave(4); }, achievement: sfx.chime, veteran: sfx.chime, graduate: sfx.chime,
     ride: sfx.bubble, land: sfx.splash, quakeStart: function () { sfx.rumble(6); }, stormStart: sfx.wind, lavaStart: function () { sfx.rumble(2); }, octoShoo: sfx.splash, eelShoo: sfx.splash, sharkScare: sfx.splash,
-    bar: sfx.thud, stack: sfx.tick, chimneyOpen: function () { sfx.rumble(1.5); }, build: sfx.thud, tech: sfx.chime, wup: sfx.coin, join: sfx.bubble, pet: sfx.chime, newSite: sfx.fanfare
+    bar: sfx.thud, stack: sfx.tick, marketOpen: sfx.chime, plateStacked: sfx.thud, wreck: sfx.splash, chimneyOpen: function () { sfx.rumble(1.5); }, build: sfx.thud, tech: sfx.chime, wup: sfx.coin, join: sfx.bubble, pet: sfx.chime, newSite: sfx.fanfare
   };
   function handle(e) {
     var a = e.a, p, m, i, j;
@@ -562,7 +565,24 @@
       case 'backup':
         say(a, a.role === 'drill' && !a.bitOk ? TALK.stackBroken : TALK.stack, 1.6);
         break;
-      case 'traderArrive': toast('A hermit-crab trader is coming', 'It keeps shop by the den for a minute. Its goods are in the Build tab.'); break;
+      case 'traderArrive':
+        if (a.market) toast('The night market is coming', 'Festival eve: the trader keeps shop by the den all night, with a fourth good, the festival cake.');
+        else toast('A hermit-crab trader is coming', 'It keeps shop by the den for a minute. Its goods are in the Build tab.');
+        break;
+      case 'marketOpen':
+        toast('The night market is open', 'Lanterns on the stall until dawn. The festival cake is in the Build tab.');
+        near(K.TRADER_SPOT, 160).forEach(function (n) { play(n, ['sparkleEyes', 'bigWave', 'hopJoy', 'curious'], 1.6); if (Math.random() < 0.5) say(n, TALK.market, 1.8); });
+        traderBubble = T + 4;
+        break;
+      case 'wreck':
+        p = X(a.x); i = groundY(p, a.d);
+        rings.push({ x: p, y: i, t: 0, c: pal.foam }); spark(p, i - 8 * CS, 16, pal.foam);
+        toast('A wreck has settled on the back dune', a.plates + ' plates on its hull. Scouts prise them off, a bar each, and carry them to the bar stack.');
+        near(a.x, 140).forEach(function (n) { play(n, ['curious', 'shock', 'lookAround'], 1.6); if (Math.random() < 0.5) say(n, TALK.wreck, 1.8); });
+        break;
+      case 'plate': p = crabX(a); i = groundY(p, a.d); spark(p, i - 8 * CS, 8, pal.metal); say(a, TALK.plate, 1.6); break;
+      case 'plateStacked': p = X(S.pos.BAR); i = groundY(p, 0.78); spark(p, i - 8 * CS, 6, pal.metal); say(a, TALK.plateStack, 1.4); play(a, ['salute', 'flex', 'nod'], 1.4); break;
+      case 'wreckBare': toast('The wreck is stripped bare', a.plates + ' plates became bars. The hull sinks into the sand.'); break;
       case 'traderOpen':
         near(K.TRADER_SPOT, 120).forEach(function (n) { play(n, ['wave', 'sparkleEyes', 'curious', 'bigWave'], 1.4); });
         traderBubble = T + 3;
@@ -571,6 +591,7 @@
         var tp = traderPos(); spark(tp.x, tp.y - 30 * CS, 14, pal.ingot);
         toast('Swapped: ' + TRADE_INFO[a][0], TRADE_INFO[a][1]); traderBubble = T + 2;
         if (a === 'map') S.flags.forEach(function (f) { if (f.map && !f.vborn) { f.vborn = T; var fx = X(f.x); rings.push({ x: fx, y: groundY(fx, f.d), t: 0, c: pal.ingot }); } });
+        if (a === 'cake') S.crabs.forEach(function (n) { if (n.state !== 'sleep') { play(n, ['hopJoy', 'cheer', 'clap', 'sparkleEyes', 'hug'], 2); if (Math.random() < 0.4) say(n, TALK.cake, 1.8); } });
         break;
       case 'spareUsed': say(a, a.role === 'repair' ? TALK.spareBit : TALK.spareLeg, 1.6); break;
       case 'turtleArrive': if (!turtleToast) { turtleToast = true; toast('A sea turtle is passing', 'It gives a crab with a long way to go a lift across the dunes.'); } break;
@@ -861,6 +882,7 @@
       ecoLogSeen = lg.length;
     }
     updatePets(dtReal);
+    updatePool();
     if (S.quake && !reduce && Math.random() < dtReal * 24) {   // the shaking dune throws up sand along the band that will slide
       var qz2 = K.ZONES[S.quake.zone], qx2 = X(S.quake.x + rr(-K.QUAKE_BAND / 2, K.QUAKE_BAND / 2));
       poof(qx2, groundY(qx2, rr(qz2.d0, qz2.d1)), 2, 0.6, pal.sandLine);
@@ -1217,13 +1239,24 @@
     coral: 'coral sculpture', sandCastle: 'sand castle', noduleTotem: 'nodule totem', trophy: 'rank trophy', pearlLamp: 'pearl lamp',
     inkPainting: 'octopus-ink painting', driftwood: 'storm driftwood sculpture', shipBottle: 'ship in a bottle', lavaLamp: 'lava lamp', lanterns: 'string of festival lanterns',
     brassBell: 'brass ship\'s bell', goldAnchor: 'golden anchor', contractPlaque: 'contract plaque', shipWheel: 'ship\'s wheel',
-    kelpRope: 'kelp-rope garland', kelpHammock: 'kelp hammock', kelpLantern: 'kelp lantern' };
+    kelpRope: 'kelp-rope garland', kelpHammock: 'kelp hammock', kelpLantern: 'kelp lantern', cake: 'festival cake stand' };
   var PET_NAMES = { slug: 'sea slug', babyOcto: 'baby octopus', starfish: 'starfish', snail: 'sea snail' };
   var DEN_S = 2;                         // the den is drawn at twice the scale of the crabs: four times the house
   function decorSlot(i) {                // decorations ring the den on the sand, nearest first
     var p = X(S.pos.DEN), y = groundY(p, 0.82), s = scaleAt(0.82), spots = [[-44, 2], [44, 2], [-56, 7], [56, 7], [-50, -6], [50, -6], [-66, 0], [66, 0], [-74, 6], [74, 6], [-62, -12], [62, -12], [-84, 0], [84, 0]];
     var sp = spots[i % spots.length];
     return { x: p + sp[0] * s, y: y + sp[1] * s, s: s };
+  }
+  function drawCake(x, y, s) {           // a two-tier festival cake: pink icing, a cherry and a candle
+    var i;
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = '#f7e0b5'; ctx.fillRect(-7, -5, 14, 5); ctx.fillRect(-4.5, -9.5, 9, 4.5);
+    ctx.fillStyle = '#ff9ec4'; ctx.fillRect(-7, -6, 14, 1.6); ctx.fillRect(-4.5, -10.5, 9, 1.6);
+    for (i = -2; i <= 2; i++) { ctx.beginPath(); ctx.arc(i * 3, -4.6, 0.9, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#e2443b'; ctx.beginPath(); ctx.arc(-1, -11.5, 1.2, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(2.5, -10.5); ctx.lineTo(2.5, -14); ctx.stroke();
+    ctx.fillStyle = pal.lavaHot; ctx.beginPath(); ctx.ellipse(2.5, -15, 0.8, 1.3 + Math.sin(T * 9) * 0.2, 0, 0, TAU); ctx.fill();
+    ctx.restore();
   }
   function drawDecor(kind, x, y, s) {
     var i;
@@ -1328,6 +1361,11 @@
         ctx.strokeStyle = pal.weed; ctx.lineWidth = 1.1; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.ellipse(0, -11, 1.2 + i * 1.4, 4.2, 0, 0, TAU); ctx.stroke(); }
         ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.arc(0, -11, 1.4, 0, TAU); ctx.fill();
         break;
+      case 'cake':                       // the night market's cake, on a little stand on the porch
+        ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(-4, -6); ctx.moveTo(5, 0); ctx.lineTo(4, -6); ctx.stroke();
+        ctx.fillStyle = '#d9c7a8'; ctx.fillRect(-7, -7, 14, 1.6);
+        drawCake(0, -7, 0.9);
+        break;
       case 'shipWheel':
         ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -6); ctx.stroke();
         ctx.save(); ctx.translate(0, -12); ctx.rotate(mqReduce.matches ? 0 : T * 0.4);
@@ -1388,7 +1426,10 @@
       if (night) p.vmode = 'sleep';
       else if (p.vmode === 'sleep' || p.vt <= 0) {
         var r = Math.random();
-        if (p.kind === 'babyOcto' && r < 0.35) {              // the baby octopus tags along after a crab passing the den
+        if (p.vmode === 'paddle' && p.vd0 !== undefined) { p.vd = p.vd0; p.vd0 = undefined; }
+        if (poolFill() > 0.6 && r < 0.3) {                      // high water: a paddle in the tide pool
+          p.vmode = 'paddle'; p.vtx = POOL_X + rr(-9, 9); p.vt = rr(6, 12); p.vd0 = p.vd; p.vd = POOL_D + rr(-0.012, 0.012);
+        } else if (p.kind === 'babyOcto' && r < 0.35) {              // the baby octopus tags along after a crab passing the den
           cand = near(home, 110).filter(function (n) { return n.d > 0.75 && !n.manta && !n.turtle; });
           p.vfriend = cand.length ? anyOf(cand) : null; p.vmode = p.vfriend ? 'follow' : 'wander'; p.vtx = home + rr(-70, 70); p.vt = rr(4, 9);
         } else if (r < 0.55) { p.vmode = 'wander'; p.vtx = home + rr(-70, 70); p.vt = rr(3, 8); }
@@ -1401,6 +1442,7 @@
         if (p.vfriend && !p.vfriend.gone && p.vfriend.state !== 'sleep' && Math.abs(p.vfriend.x - home) < 140) tx = p.vfriend.x - p.vfriend.dir * 14;
         else { p.vmode = 'wander'; tx = p.vtx; }
       } else if (p.vmode === 'wander') tx = p.vtx;
+      else if (p.vmode === 'paddle') { tx = p.vtx; if (poolFill() < 0.3) p.vt = 0; }   // the tide going out ends the paddle
       if (tx !== null && Math.abs(tx - p.vx) > 2) {
         v = PET_SPEED[p.kind] * dtv; st = clamp(tx - p.vx, -v, v);
         p.vdir = st > 0 ? 1 : -1; p.vx += st; p.vmoving = true;
@@ -1428,8 +1470,14 @@
         else { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ex, y, r, 0, TAU); ctx.fill(); ctx.fillStyle = pal.pupil; ctx.beginPath(); ctx.arc(ex + 0.3, y, r * 0.5, 0, TAU); ctx.fill(); }
       }
     };
+    var paddling = p.vmode === 'paddle' && !p.vmoving && Math.abs(p.vx - POOL_X) < 14 && poolFill() > 0.3;
+    if (paddling) gy += Math.sin(T * 2.2 + p.vph) * 1.2 * s + 1.5 * s;   // afloat in the pool, bobbing
     ctx.save(); ctx.translate(px, gy); ctx.scale(s * p.vdir, s); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.fillStyle = 'rgba(0,0,0,.1)'; ctx.beginPath(); ctx.ellipse(0, 0.5, 9, 2, 0, 0, TAU); ctx.fill();
+    if (paddling) {                      // ripples round a paddling pet, and the odd bubble
+      ctx.strokeStyle = pal.foam; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.ellipse(0, 0, 11 + Math.sin(T * 3 + p.vph) * 1.5, 3, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
+      if (Math.random() < 0.03) bubbles.push({ x: px + rr(-6, 6) * s, y: gy - 2 * s, r: rr(0.8, 1.6) * s, vy: rr(12, 20), ph: rr(0, TAU) });
+    }
     if (k === 'slug') {                  // a nudibranch: an orange body, purple cerata with yellow tips along its back, two rhinophores
       var inch = p.vmoving ? Math.abs(Math.sin(T * 5 + p.vph)) : 0;
       ctx.fillStyle = '#ff9a3c'; ctx.beginPath(); ctx.ellipse(0, -3, 10 + inch * 2, 3.2, 0, 0, TAU); ctx.fill();
@@ -2160,8 +2208,80 @@
     ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-14, -26 - bob); ctx.lineTo(-14, -42 - bob); ctx.moveTo(6, -26 - bob); ctx.lineTo(6, -42 - bob); ctx.stroke();   // the stall
     for (i = 0; i < 5; i++) { ctx.fillStyle = i % 2 ? '#fff' : pal.mark; ctx.fillRect(-16 + i * 4.6, -46 - bob, 4.6, 5); }
     drawBar(-8, -30 - bob, 0.7, 0); drawIngot(1, -31 - bob, 0.6);
+    if (tr.market) {                     // the night market: paper lanterns along the stall, lit at night, and the cake on the counter
+      for (i = 0; i < 4; i++) {
+        var lx = -13.5 + i * 6.3 + Math.sin(T * 2 + i) * 0.5, ly = -37 - bob + Math.abs(i - 1.5) * 0.6;
+        ctx.fillStyle = 'rgba(255,230,150,' + (0.15 + 0.5 * nightA).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(lx, ly, 4.2, 0, TAU); ctx.fill();
+        ctx.fillStyle = i % 2 ? '#ffb347' : '#ff5c5c'; ctx.beginPath(); ctx.ellipse(lx, ly, 1.8, 2.4, 0, 0, TAU); ctx.fill();
+        ctx.fillStyle = pal.ingot; ctx.fillRect(lx - 0.8, ly - 2.9, 1.6, 0.8);
+      }
+      drawCake(-3, -27 - bob, 0.5);
+    }
     ctx.restore();
-    if (tr.state === 'stay' || T < traderBubble) drawBubble(p.x + 18 * s, p.y - 58 * s, emojiOK ? '🐚🛒❓' : spoken('🐚🛒❓'), s, 1, true);
+    if (tr.state === 'stay' || T < traderBubble) drawBubble(p.x + 18 * s, p.y - 58 * s, emojiOK ? (tr.market ? '🏮🛒🌙' : '🐚🛒❓') : spoken(tr.market ? '🏮🛒🌙' : '🐚🛒❓'), s, 1, true);
+  }
+  // ----- the wreck: a sunken boat on the back dune, its hull plated until the scouts have prised the plates off -----
+  function drawWreck() {
+    var w = S.wreck; if (!w) return;
+    var px = X(w.x), gy = groundY(px, w.d), s = scaleAt(w.d) * 1.9, sink = w.bareAt ? clamp((S.t - w.bareAt) / K.WRECK_LINGER, 0, 1) : 0, i, n = w.plates, gone = n - w.left;
+    if (px + 40 * s < visL || px - 40 * s > visR) return;
+    ctx.save(); ctx.translate(px, gy + sink * sink * 16 * s); ctx.scale(s, s); ctx.globalAlpha = 1 - sink * 0.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.ellipse(0, 1, 30, 4, 0, 0, TAU); ctx.fill();   // its shadow in the sand
+    ctx.save(); ctx.rotate(-0.12);
+    ctx.fillStyle = '#6b4a33'; ctx.beginPath(); ctx.moveTo(-28, -10); ctx.quadraticCurveTo(-24, 4, -10, 5); ctx.lineTo(14, 5); ctx.quadraticCurveTo(30, 3, 34, -12); ctx.lineTo(28, -12); ctx.quadraticCurveTo(26, -3, 14, -1); ctx.lineTo(-10, -1); ctx.quadraticCurveTo(-20, -2, -22, -10); ctx.closePath(); ctx.fill();   // the hull
+    ctx.strokeStyle = '#4a3122'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = '#4a3122'; ctx.lineWidth = 0.8; for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-24 + i * 2, -9 + i * 3); ctx.quadraticCurveTo(0, -5 + i * 3.4, 30, -10 + i * 3); ctx.stroke(); }   // planking
+    for (i = 0; i < n; i++) {            // the plates along the hull: riveted while they are on, a dark gap once prised off
+      var pxp = -20 + i * (44 / Math.max(1, n - 1)) - 2, pyp = -7;
+      if (i < gone) { ctx.fillStyle = '#3a2619'; ctx.fillRect(pxp - 2.6, pyp - 2.2, 5.2, 4.4); continue; }
+      ctx.fillStyle = pal.metal; ctx.fillRect(pxp - 2.8, pyp - 2.4, 5.6, 4.8); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 0.6; ctx.strokeRect(pxp - 2.8, pyp - 2.4, 5.6, 4.8);
+      ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.arc(pxp - 1.6, pyp - 1.2, 0.4, 0, TAU); ctx.arc(pxp + 1.6, pyp + 1.2, 0.4, 0, TAU); ctx.fill();
+    }
+    ctx.fillStyle = '#7d5a40'; ctx.fillRect(-6, -20, 14, 9); ctx.strokeStyle = '#4a3122'; ctx.lineWidth = 0.8; ctx.strokeRect(-6, -20, 14, 9);   // the wheelhouse
+    ctx.fillStyle = 'rgba(120,200,230,.55)'; ctx.beginPath(); ctx.arc(-1, -15.5, 1.8, 0, TAU); ctx.arc(4.5, -15.5, 1.8, 0, TAU); ctx.fill();   // its windows
+    ctx.strokeStyle = '#4a3122'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(18, -11); ctx.lineTo(22, -34); ctx.stroke();   // a snapped mast
+    ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(22, -34); ctx.lineTo(27, -40); ctx.stroke();
+    ctx.fillStyle = 'rgba(240,235,220,.75)';                                                                                   // and a rag of sail in the current
+    ctx.beginPath(); ctx.moveTo(21, -30); ctx.quadraticCurveTo(26 + Math.sin(T * 2) * 2, -27, 30 + Math.sin(T * 1.6) * 3, -20); ctx.quadraticCurveTo(24, -22, 20, -24); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = pal.weed; ctx.lineWidth = 1.1; for (i = 0; i < 4; i++) { var wx = -26 + i * 18; ctx.beginPath(); ctx.moveTo(wx, 3); ctx.quadraticCurveTo(wx + Math.sin(T * 1.4 + i) * 2, -3, wx + 1 + Math.sin(T * 1.1 + i) * 3, -9); ctx.stroke(); }   // weed on the hull
+    ctx.fillStyle = '#e9e2d2'; for (i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(-14 + i * 7 + (i % 2) * 2, 2 - (i % 3), 1, 0, TAU); ctx.fill(); }   // barnacles
+    ctx.restore();
+    ctx.restore();
+  }
+  // ----- the tide pool: a hollow on the front dune that fills at high water; pets paddle in it and crabs splash through -----
+  var POOL_X = 505, POOL_D = 0.93;
+  var poolForce = null;                  // a debug knob: the pool's fill, when set from the console
+  function poolFill() { return poolForce !== null ? poolForce : clamp((S.tide - 0.15) / 0.55, 0, 1); }   // fills on the rising tide, brim full near high water
+  function poolPos() { var px = X(POOL_X); return { x: px, y: groundY(px, POOL_D) }; }
+  function inPool(x, d) { return Math.abs(x - POOL_X) < 22 && Math.abs(d - POOL_D) < 0.045; }
+  function drawPool() {
+    var p = poolPos(), s = scaleAt(POOL_D), fill = poolFill(), rx = 26 * s, ry = 7.5 * s, i, a, r2;
+    if (p.x + rx < visL || p.x - rx > visR) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(70,45,20,.16)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, rx, ry, 0, 0, TAU); ctx.fill();                      // the hollow, wet sand round its rim
+    ctx.fillStyle = 'rgba(40,30,15,.14)'; ctx.beginPath(); ctx.ellipse(p.x, p.y - 1 * s, rx * 0.86, ry * 0.8, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#ffd1dc'; ctx.beginPath(); ctx.arc(p.x - 11 * s, p.y + 1.5 * s, 1.9 * s, Math.PI, TAU); ctx.fill();               // shells on the bottom
+    ctx.fillStyle = '#fff0c8'; ctx.beginPath(); ctx.arc(p.x + 13 * s, p.y + 2.5 * s, 1.5 * s, Math.PI, TAU); ctx.fill();
+    ctx.strokeStyle = '#e88bd0'; ctx.lineWidth = 1.1 * s; ctx.lineCap = 'round';                                                       // an anemone waving its arms
+    for (i = 0; i < 7; i++) { a = i / 7 * TAU; ctx.beginPath(); ctx.moveTo(p.x + 3 * s, p.y + 0.5 * s); ctx.lineTo(p.x + 3 * s + Math.cos(a) * 3.4 * s, p.y - 2.2 * s + Math.sin(a + T * 1.5) * 1.6 * s); ctx.stroke(); }
+    if (fill > 0.02) {                   // the water: a sheet that spreads as the tide comes in, with a glint and slow ripples
+      ctx.globalAlpha = 0.28 + 0.32 * fill; ctx.fillStyle = '#5fb8d6'; ctx.beginPath(); ctx.ellipse(p.x, p.y - 1 * s, rx * (0.55 + 0.35 * fill), ry * (0.55 + 0.35 * fill), 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = pal.foam; ctx.lineWidth = 1;
+      for (i = 0; i < 2; i++) { r2 = ((T * 0.4 + i / 2) % 1); ctx.globalAlpha = 0.45 * fill * (1 - r2); ctx.beginPath(); ctx.ellipse(p.x, p.y - 1 * s, rx * (0.15 + r2 * 0.7), ry * (0.15 + r2 * 0.7), 0, 0, TAU); ctx.stroke(); }
+      ctx.globalAlpha = 0.45 * fill; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(p.x - 7 * s, p.y - 4 * s, 5 * s, 1.1 * s, -0.1, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function updatePool() {                // crabs in the full pool: splashes as they wade, and a paddle when they stand in it
+    var fill = poolFill(), i, c, px, gy;
+    if (fill < 0.5 || speed === 0) return;
+    for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i];
+      if (c.state === 'sleep' || c.alt > 0 || c.turtle || c.manta || !inPool(c.x, c.d)) continue;
+      px = crabX(c); gy = groundY(px, c.d);
+      if (c.moving) { if (Math.random() < 0.25) { rings.push({ x: px, y: gy, t: 0.3, c: pal.foam }); bubbles.push({ x: px + rr(-4, 4) * CS, y: gy - 2 * CS, r: rr(0.8, 1.8) * CS, vy: rr(14, 24), ph: rr(0, TAU) }); } }
+      else if (!c.working && T > (c.vnextPaddle || 0)) { c.vnextPaddle = T + rr(5, 10); play(c, ['swimArms', 'wiggle', 'bounce', 'blowBubbles', 'shakeOff'], 2.2); if (Math.random() < 0.6) say(c, TALK.paddle, 1.6); rings.push({ x: px, y: gy, t: 0, c: pal.foam }); }
+    }
   }
   function turtlePos() { var tu = S.turtle, px = X(tu.x), gy = groundY(px, clamp(tu.d, 0.02, 0.98)); return { x: px, y: gy - 26 * CS + Math.sin(T * 2) * 3 * CS }; }
   function drawTurtle() {                // a sea turtle paddling low over the sand
@@ -2927,6 +3047,11 @@
       ctx.fillStyle = pal.lava; ctx.globalAlpha = 0.5 + 0.5 * (c.state === 'smelt' ? 1 : 0.3); ctx.fillRect(-4 * s, by - 10.5 * s, 8 * s, 1.6 * s); ctx.globalAlpha = 1;
     } else if (role === 'scout') {                           // a dish that sweeps while scanning
       var sweep = c.state === 'scan' ? Math.sin(T * 5) * 0.8 : 0.2;
+      if (c.plate) {                                           // a plate off the wreck, carried on the shell
+        roundRect(-7 * s, by - 17 * s, 14 * s, 7 * s, 1 * s); ctx.fillStyle = pal.metal; ctx.fill(); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.arc(-5 * s, by - 15.5 * s, 0.7 * s, 0, TAU); ctx.arc(5 * s, by - 11.5 * s, 0.7 * s, 0, TAU); ctx.fill();
+      }
+      if (c.state === 'strip') spark(px + c.dir * 14 * s, by - 2 * s, 1, pal.metal);
       ctx.strokeStyle = dark; ctx.lineWidth = 1.2 * s;
       ctx.beginPath(); ctx.moveTo(-2 * s, by - 6 * s); ctx.lineTo(-2 * s, by - 12 * s); ctx.stroke();
       ctx.save(); ctx.translate(-2 * s, by - 13 * s); ctx.rotate(sweep);
@@ -3143,6 +3268,8 @@
     if (S.lv.belt) layers[2].push({ y: groundY(X(K.BELT_HEAD), K.BELT_D) - 0.5, kind: 3, f: drawBelt });
     if (S.lv.pad) layers[2].push({ y: padPos().y - 6 * CS, kind: 3, f: drawPad });
     if (S.lv.rim) layers[2].push({ y: rim2Pos().y - 0.5, kind: 3, f: drawRim2 });
+    layers[2].push({ y: poolPos().y - 2, kind: 3, f: drawPool });
+    if (S.wreck) layers[0].push({ y: groundY(X(S.wreck.x), S.wreck.d) - 0.5, kind: 3, f: drawWreck });
     for (i = 0; i < S.pets.length; i++) layers[2].push({ y: petY(S.pets[i]) + 0.02, kind: 3, f: drawPet.bind(null, S.pets[i]) });
     layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
@@ -3229,7 +3356,8 @@
     cells: ['Crate of cells', 'Fills the Stirling engine\'s store and every energy bot.'],
     gear: ['Gold gear', 'The whole crew gets the morning bonus now.'],
     lucky: ['Lucky shell', 'The next strike on a rich flag finds a pearl.'],
-    pet: ['A pet for the den', 'A starfish, then a sea snail, moves in by the den. Charm only.']
+    pet: ['A pet for the den', 'A starfish, then a sea snail, moves in by the den. Charm only.'],
+    cake: ['Festival cake', 'A slice for every crab lifts its mood, and the cake stand goes on the den\'s porch. Night market only.']
   };
   function priceText(pay) { return pay.bars ? pay.bars + ' bar' + (pay.bars > 1 ? 's' : '') : pay.ingots + ' ingot' + (pay.ingots > 1 ? 's' : ''); }
   var TECH_INFO = {
@@ -3276,7 +3404,7 @@
     ui.aOcto.hidden = !S.octo || S.octo.state === 'flee';
     ui.aEel.hidden = !S.eel.out;
     ui.aTrader.hidden = !tr || tr.state === 'leave';
-    if (tr) ui.aTraderLabel.textContent = tr.state === 'stay' ? 'Trader open ' + fmtTime(tr.until - S.t) : 'Trader coming';
+    if (tr) ui.aTraderLabel.textContent = tr.state === 'stay' ? (tr.market ? 'Night market ' : 'Trader open ') + fmtTime(tr.until - S.t) : (tr.market ? 'Night market coming' : 'Trader coming');
     ui.aContract.hidden = !co || co.state !== 'offer';
     if (co && co.state === 'offer') ui.aContractLabel.textContent = 'Contract offer ' + fmtTime(co.acceptBy - S.t);
   }
@@ -3419,7 +3547,7 @@
     var tr = S.trader, open = tr && tr.state === 'stay';
     ui.traderCard.hidden = !tr;
     if (tr) {
-      ui.traderTime.textContent = open ? 'open ' + fmtTime(tr.until - S.t) : (tr.state === 'come' ? 'on the way' : 'leaving');
+      ui.traderTime.textContent = (tr.market ? 'night market: ' : '') + (open ? 'open ' + fmtTime(tr.until - S.t) : (tr.state === 'come' ? 'on the way' : 'leaving'));
       ui.traderOffers.innerHTML = tr.offers.map(function (id) {
         var T = K.TRADES[id], short = (T.pay.bars || 0) > S.bars || (T.pay.ingots || 0) > S.stock, sold = tr.sold[id];
         return '<div class="offer"><span><b>' + TRADE_INFO[id][0] + '</b><br>' + TRADE_INFO[id][1] + '</span><button type="button" class="hire" data-trade="' + id + '"' + (!open || sold || short ? ' disabled' : '') + '>' + (sold ? 'Swapped' : 'Swap ' + priceText(T.pay)) + '</button></div>';
@@ -3622,6 +3750,50 @@
     if (r.log && r.log.length) html += '<h3>Observations, latest first</h3><ul class="lab-log">' + r.log.slice(-10).reverse().map(function (l) { return '<li><span class="when">' + fmtTime(l.t) + '</span> ' + l.text + '</li>'; }).join('') + '</ul>';
     return html;
   }
+  // ----- crab portraits: a little drawn face per crab in the Ledger's crew table, wearing its mood -----
+  var PORTRAIT = 48;
+  function drawPortrait(c, cv) {
+    var pc = cv.getContext('2d'), old = ctx, dpr = Math.min(2, window.devicePixelRatio || 1), s = 1.4, st = STYLE[c.role](), body = st[0], dark = st[1], f = face(c), by = 30, side, i, look = { x: c.dir * 0.6, y: 0.2 };
+    if (cv.width !== PORTRAIT * dpr) { cv.width = PORTRAIT * dpr; cv.height = PORTRAIT * dpr; }
+    ctx = pc; pc.setTransform(dpr, 0, 0, dpr, 0, 0); pc.clearRect(0, 0, PORTRAIT, PORTRAIT);
+    pc.save(); pc.translate(PORTRAIT / 2, 0); pc.lineCap = 'round'; pc.lineJoin = 'round';
+    if (f.tilt) { pc.translate(0, by); pc.rotate(f.tilt); pc.translate(0, -by); }
+    for (side = -1; side <= 1; side += 2) {                     // claws at the sides, up for a cheer
+      var ax = side * 15 * s, ay = by - (f.arms === 'up' || f.arms === 'pump' ? 12 : 2) * s;
+      pc.strokeStyle = dark; pc.lineWidth = 2 * s; pc.beginPath(); pc.moveTo(side * 8 * s, by - 1 * s); pc.lineTo((side * 8 * s + ax) / 2 + side * 1.5 * s, Math.min(by - 6.5 * s, ay - 2 * s)); pc.lineTo(ax, ay); pc.stroke();
+      pc.fillStyle = c.role === 'smelt' ? pal.lava : body; pc.beginPath(); pc.arc(ax, ay, 2.6 * s, 0, TAU); pc.fill();
+      pc.strokeStyle = dark; pc.lineWidth = 1 * s; pc.beginPath(); pc.moveTo(ax, ay); pc.lineTo(ax + side * 2.6 * s, ay + 1.2 * s); pc.stroke();
+    }
+    pc.fillStyle = body; pc.beginPath(); pc.ellipse(0, by, 11 * s, 6.6 * s, 0, 0, TAU); pc.fill(); pc.strokeStyle = dark; pc.lineWidth = 1; pc.stroke();   // the shell
+    pc.fillStyle = '#fff'; pc.globalAlpha = 0.22; pc.beginPath(); pc.ellipse(-2 * s, by - 2.6 * s, 6 * s, 1.9 * s, -0.12, 0, TAU); pc.fill(); pc.globalAlpha = 1;
+    drawRoleMark(c.role, s, by, dark);
+    if (f.mouth === 'open' || f.mouth === 'grin' || f.eye === 'happy') {
+      pc.fillStyle = pal.tongue; pc.globalAlpha = 0.35; pc.beginPath(); pc.ellipse(-6 * s, by + 0.8 * s, 1.8 * s, 1 * s, 0, 0, TAU); pc.ellipse(6 * s, by + 0.8 * s, 1.8 * s, 1 * s, 0, 0, TAU); pc.fill(); pc.globalAlpha = 1;
+    }
+    for (i = 0; i < c.stars; i++) star((i - (c.stars - 1) / 2) * 4.6 * s, by + 3 * s, 1.9 * s, pal.ingot, dark);
+    if (c.role === 'repair') { pc.fillStyle = pal.hat; pc.beginPath(); pc.ellipse(0, by - 5.2 * s, 7.5 * s, 4.8 * s, 0, Math.PI, TAU); pc.fill(); pc.fillRect(-9 * s, by - 5.6 * s, 18 * s, 1.6 * s); }
+    else if (c.role === 'mech') { pc.fillStyle = dark; pc.beginPath(); pc.ellipse(0, by - 5 * s, 7 * s, 4.2 * s, 0, Math.PI, TAU); pc.fill(); pc.fillStyle = pal.lavaHot; pc.beginPath(); pc.arc(0, by - 8.4 * s, 1.4 * s, 0, TAU); pc.fill(); }
+    if (c.apprentice) {                                          // the paper cap
+      pc.fillStyle = pal.warn; pc.beginPath(); pc.moveTo(-7.5 * s, by - 6 * s); pc.lineTo(-3 * s, by - 15 * s); pc.lineTo(1.5 * s, by - 6 * s); pc.closePath(); pc.fill(); pc.strokeStyle = dark; pc.lineWidth = 0.8 * s; pc.stroke();
+      pc.fillStyle = pal.paper; pc.beginPath(); pc.arc(-3 * s, by - 15.2 * s, 1.6 * s, 0, TAU); pc.fill();
+    }
+    for (side = -1; side <= 1; side += 2) {                     // eyes on stalks, with the mood's expression
+      var ex = side * 4.4 * s, ey = by - (c.role === 'repair' || c.role === 'mech' ? 13 : 11) * s;
+      if (f.eye === 'wide') ey -= 1.5 * s;
+      pc.strokeStyle = dark; pc.lineWidth = 1.1 * s; pc.beginPath(); pc.moveTo(side * 3.6 * s, by - 4.5 * s); pc.lineTo(ex, ey + 1.5 * s); pc.stroke();
+      drawEye(ex, ey, s, f, look, c, side);
+      if (f.brows || f.eye === 'angry') { pc.strokeStyle = pal.pupil; pc.lineWidth = 0.9 * s; pc.beginPath(); pc.moveTo(ex - side * 2.6 * s, ey - 3.6 * s); pc.lineTo(ex + side * 1.6 * s, ey - 2.4 * s); pc.stroke(); }
+    }
+    drawMouth(by + 1.4 * s, s, f, dark);
+    if (f.sweat) { pc.fillStyle = pal.sweat; pc.beginPath(); pc.moveTo(9 * s, by - 10 * s); pc.quadraticCurveTo(10.6 * s, by - 7.6 * s, 9 * s, by - 6.4 * s); pc.quadraticCurveTo(7.4 * s, by - 7.6 * s, 9 * s, by - 10 * s); pc.fill(); }
+    if (f.glyph === 'z') { pc.fillStyle = pal.ink || pal.pupil; pc.font = '700 ' + Math.round(7 * s) + 'px ' + cssFont; pc.textAlign = 'center'; pc.fillText('z', 12 * s, by - 12 * s); }
+    pc.restore(); ctx = old;
+  }
+  function drawPortraits() {
+    var cvs = ui.ledger.querySelectorAll('canvas[data-portrait]'), byId = {}, i, c;
+    for (i = 0; i < S.crabs.length; i++) byId[S.crabs[i].id] = S.crabs[i];
+    for (i = 0; i < cvs.length; i++) { c = byId[cvs[i].getAttribute('data-portrait')]; if (c) drawPortrait(c, cvs[i]); }
+  }
   function renderLedger() {
     var r = sim.rates(60), c = sim.capacity(), b = sim.bottleneck(), flows = sim.FLOW, maxc = 0, i, k, html, broken = 0, limping = 0, cr, avgPrice, bat = sim.avgBattery();
     for (i = 0; i < flows.length; i++) maxc = Math.max(maxc, c[flows[i]]);
@@ -3692,7 +3864,7 @@
     html += '<h3>The crew: names, stars and records</h3><table class="ltable"><thead><tr><th scope="col">Crab</th><th scope="col">Job</th><th scope="col">Record</th></tr></thead><tbody>';
     shown.forEach(function (cr2) {
       var nextAt = cr2.stars < K.VET_LEVELS.length ? K.VET_AT[cr2.role] * K.VET_LEVELS[cr2.stars] : 0;
-      html += '<tr><th scope="row">' + cr2.name + (cr2.stars ? ' <span class="vet" aria-label="' + cr2.stars + ' star' + (cr2.stars === 1 ? '' : 's') + '">' + '★'.repeat(cr2.stars) + '</span>' : '') + '</th><td>' + (cr2.apprentice ? 'apprentice ' : '') + ROLE_NOUN[cr2.role] + '</td><td class="note">' + recText(cr2) +
+      html += '<tr><th scope="row"><canvas class="portrait" data-portrait="' + cr2.id + '" width="96" height="96" aria-hidden="true"></canvas>' + cr2.name + (cr2.stars ? ' <span class="vet" aria-label="' + cr2.stars + ' star' + (cr2.stars === 1 ? '' : 's') + '">' + '★'.repeat(cr2.stars) + '</span>' : '') + '</th><td>' + (cr2.apprentice ? 'apprentice ' : '') + ROLE_NOUN[cr2.role] + '</td><td class="note">' + recText(cr2) +
         (nextAt ? ' (next star at ' + nextAt + ')' : '') + '</td></tr>';
     });
     var nHappy = 0, nGrumpy = 0, moodSum = 0;
@@ -3716,6 +3888,8 @@
       '<tr><th scope="row">Rival crew 🦞</th><td class="n">' + (S.rival ? 'races won ' + S.rival.lost + ', lost ' + S.rival.won + ' · they are pushing at ' + Math.round(S.rival.drive * 100) + '%' : 'arrives at ' + K.RANKS[K.RIVAL_RANK][1]) + '</td></tr>' +
       '<tr><th scope="row">Pearls</th><td class="n">' + S.stat.pearls + ' found, ' + money(S.stat.pearlCredits) + '</td></tr>' +
       '<tr><th scope="row">Sunken chests</th><td class="n">' + S.stat.chests + ' opened, ' + money(S.stat.chestCredits) + '</td></tr>' +
+      '<tr><th scope="row">Wrecks</th><td class="n">' + S.stat.wrecks + ' settled, ' + S.stat.wrecksStripped + ' stripped bare, ' + S.stat.wreckBars + ' bars salvaged' + (S.wreck ? ' (one on the back dune now, ' + S.wreck.left + ' plates left)' : '') + '</td></tr>' +
+      '<tr><th scope="row">Night market</th><td class="n">' + S.stat.markets + ' held, ' + S.stat.marketTrades + ' swaps' + (S.trader && S.trader.market ? ' (open now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Earthquakes</th><td class="n">' + S.stat.quakes + ', burying ' + S.stat.quakeBuried + ' nodules and ' + S.stat.quakeFlags + ' flags' + (S.quake ? ' (shaking now!)' : '') + '</td></tr>' +
       '<tr><th scope="row">Surface news</th><td class="n">' + S.stat.news + ' headlines, ' + (S.stat.newsCredits < 0 ? '−' : '+') + money(Math.abs(S.stat.newsCredits)) + ' from booms and gluts' + (S.news ? ' (' + S.news.kind + ' now)' : '') + '</td></tr>' +
       '<tr><th scope="row">Contracts</th><td class="n">' + S.stat.contractsFilled + ' filled, ' + S.stat.contractsFailed + ' run out, ' + (S.stat.contracts - S.stat.contractsFilled - S.stat.contractsFailed - (S.contract ? 1 : 0)) + ' let lapse; ' + money(S.stat.contractCredits) + ' earned' + (S.contract ? (S.contract.state === 'offer' ? ' (one on offer now)' : ' (' + S.contract.got + ' of ' + S.contract.need + ' under way)') : '') + '</td></tr>' +
@@ -3737,6 +3911,7 @@
       '</tbody></table><p class="note">A delivery within ' + K.FLOW_GAP + ' s of the last keeps the flow going: each one adds 2% to the price, up to 40%, and banks more overclock. Overclock makes the whole crew 50% faster, but they use more power and wear twice as fast.</p>';
     html += '<p class="note">Capacity is what each stage could deliver if nothing else held it back, measured from the simulation. The line can only go as fast as its slowest stage.</p>';
     ui.ledger.innerHTML = html;
+    drawPortraits();
     wireSpark(); wireCharts();
   }
   function sparkline() {
@@ -4304,7 +4479,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z, zoom: zoom, W: W, sound: sfx.isOn(), tutorial: tut.step }; }, setZoom: setZoom, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z, zoom: zoom, W: W, sound: sfx.isOn(), tutorial: tut.step }; }, setZoom: setZoom, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, wreck: function () { while (S.lv.field < 2) { S.credits += 1000; sim.buy('field'); } S.nextWreck = S.t; }, market: function () { S.trader = { x: K.TRADER_SPOT, d: 0.9, state: 'stay', offers: ['cake', 'bits', 'map', 'gear'], sold: {}, until: S.t + 120, market: true }; handle({ type: 'marketOpen', a: S.trader }); }, pool: function (v) { poolForce = v === undefined ? null : v; }, advance: function (secs) { var sp = speed, i; speed = 1; for (i = 0; i < Math.round(secs * 2); i++) update(0.5); speed = sp; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

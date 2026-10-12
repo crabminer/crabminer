@@ -154,7 +154,7 @@ off.
 | Chimney | `chimney{x, d, born, until, rides}` while one is open, `nextChimney` |
 | Conveyor | `belt[{x}]`: nodules on the belt, nearest the pile first |
 | Career | `site` (1 up), `perks[{kind, id or name/role/stars or n, site}]` carried into each new site, `career{sites, earned, sold, time}` for the sites before this one |
-| Visitors | `trader{x,d,state,offers,sold,until}`, `nextTrader`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle`, `manta{x,d,dir,riders[]}`, `nextManta` |
+| Visitors | `trader{x,d,state,offers,sold,until,market?}`, `nextTrader`, `market` (the day whose eve's night market has opened, so it opens once), `wreck{x,d,plates,left,born,bareAt}` or null, `nextWreck`, `spares{bit,leg}`, `luckyPearls`, `turtle{x,d,dir,rider,turned}`, `nextTurtle`, `manta{x,d,dir,riders[]}`, `nextManta` |
 | Ledger | `stat{}` (running totals), `hist[]` (one snapshot a second, last ~5 minutes), `long[]` and `longEvery` (the whole game: a sample every 15 s, halved in resolution each time it passes `K.LONG_MAX` = 240 points) |
 
 **A crab** is a plain object:
@@ -163,6 +163,7 @@ off.
 | --- | --- |
 | Identity | `id`, `role`, `k` (number within its role; used for lanes and groups), `name` |
 | Record | `rec{jobs, helped, rides, legs, dances, pearls, chests}`, `stars` (0–3, veteran level) |
+| Salvage | `plate` (0 or 1: a plate off the wreck on a scout's back) |
 | Position | `x`, `d`, `dir`, `air` (a ride on the vent or the chimney: `{phase, vent ('main' or 'chimney'), inX, inD, col, rise, x0, gx, gd, tx, td, used}`), `alt` (0–1 height on the ride) |
 | Pad | `onPad` while it stands on the charging pad |
 | Training | `apprentice{until}` while it is one (half pace in `pace()`, half a crab in `strength()`); `null` or absent for a full crab |
@@ -203,7 +204,7 @@ Every 1/60 s of crab time, in this order:
 3. `dance()`: pair idle neighbours, apply recharge and rest, and `craft()` den decorations
    from idle time (kelp pieces too once the kelp forest is claimed). `belt()` moves the conveyor's nodules and puts the first on the pile.
 4. `sea()` (tide, wash-ups, burials); `driftPost()`; `octopus()`; `eel()`; `turtle()`; `manta()`; `trader()`;
-   `quake()`; `news()`; `chimney()`; `contract()`. Crabs riding the turtle or the manta skip their own rules for the step.
+   `wreck()`; `quake()`; `news()`; `chimney()`; `contract()`. Crabs riding the turtle or the manta skip their own rules for the step.
 5. `morning()` when the day number changes (fresh starts, `dawn`).
 6. The engine's store gains heat (half again as much while a chimney is open); `weather()` (storms, lava surges, ship orders).
 7. `sell()`: the riser timer, flow streak, order premium and bonus, the contract's tally and reward, overclock banking,
@@ -359,7 +360,9 @@ and emits `festival`; `flowMult()` doubles the bonus while it is set. `adopt(kin
   the player fills a raced order.
 - `turtle()` runs the turtle: it chooses its side, looks ahead for the crab that would gain most from a lift, steers toward it, may turn back once, carries the crab to its goal, and leaves.
 - `manta()` runs the manta ray along the deepest claimed dune: every walking crab under it heading its way (`goal.t === S.t`) joins `riders` with a `ride` of up to `K.MANTA_CARRY` units, is moved with it, and is set down at `ride.gx`. `release(c)` takes a crab off the manta when it leaves or goes off shift.
-- `trader()` runs the trader: `come → stay → leave`, with three offers drawn from `K.TRADES`. `trade(id)` takes payment and delivers the good with `give(id)`. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
+- `trader()` runs the trader: `come → stay → leave`, with three offers drawn by `offers(list, n)` from `K.TRADES` (goods marked `market` left out). `trade(id)` takes payment and delivers the good with `give(id)`. The fixers check `S.spares` before fetching raw material, and `luckyPearls` overrides the pearl roll.
+  On the eve of a festival (`(S.day + 1) % K.FESTIVAL_EVERY === 0` and `S.si.night`), once per day by `S.market`, it holds the night market: a trader is sent for (or the one here stays on or turns back), `tr.market` is set, the `cake` good is pushed onto the offers and they are filled to `K.MARKET_OFFERS`, and `until` becomes `dawnAt()`; `marketOpen` is emitted when the stall opens. `give('cake')` lifts every mood by `K.CAKE_MOOD` and pushes a `cake` decoration outright.
+- `wreck()` settles a wreck on the back dune once `up('field')` is 3 and `S.t >= S.nextWreck`: `S.wreck` with `plates` = `left` from `K.WRECK_PLATES`, and a `wreck` event. Scouts handle it in `scout()`: at `pick`, a scout carrying a `plate` goes `toStack` (to `S.pos.BAR - 14`, where the plate becomes a plain bar if the stack has room, `plateStacked`); else if the wreck has plates left and fewer than `K.WRECK_CREW` scouts are `toWreck` or `strip` (`strippers()`), it goes `toWreck` and then `strip`s for `K.T_STRIP` of `work(c)`, taking a plate (`plate` event, a job in its record; `wreckBare` on the last). `primaryReady()` counts a wreck with plates (or a plate on its back) as a scout's own work, so a scout on the backup job comes back for it. A bare wreck is removed `K.WRECK_LINGER` later once no scout is at it (`wreckGone`), and the next is scheduled from `K.WRECK_EVERY`.
 
 **Market and money.**
 - `market()` sets the price.
@@ -412,7 +415,7 @@ notifications only: the sim never depends on anyone reading them.
 | Movement | `ride` (b: `'main'` or `'chimney'`), `land`, `chimneyOpen`, `chimneyFade` |
 | Bonuses | `ocStart`, `ocEnd`, `flowLost` |
 | Building | `build`, `tech`, `wup`, `layout`, `decor` |
-| Visitors | `traderArrive`, `traderOpen`, `traderLeave`, `trade`, `spareUsed`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone`, `mantaArrive`, `mantaPick`, `mantaDrop`, `mantaGone` |
+| Visitors | `traderArrive` (a has `market` when it is the night market), `traderOpen`, `marketOpen`, `traderLeave`, `trade`, `spareUsed`, `wreck`, `plate` (a scout, b the wreck), `plateStacked`, `wreckBare`, `wreckGone`, `turtleArrive`, `turtleTurn`, `turtlePick`, `turtleDrop`, `turtleGone`, `mantaArrive`, `mantaPick`, `mantaDrop`, `mantaGone` |
 | Den | `decor`, `festival`, `pet` |
 | Crew | `happy`, `grumpy`, `moodOk`, `achievement` |
 | Shocks | `quakeStart`, `quakeEnd`, `newsStart`, `newsEnd` |
@@ -527,7 +530,24 @@ showed why: under protanopia and deuteranopia the hauler and the maintenance bot
 **Pets.** `updatePets(dt)` moves each of `S.pets` on view-only fields (`vx`, `vd`, `vmode`: rest, wander,
 follow or sleep by the porch at night) and makes an idle crab beside one pet it; `drawPet(p)` draws the
 four kinds, sorted into the front dune by `petY(p)`. On festival day `drawDen()` hangs bunting from the
-flagpole, and the `lanterns` decoration glows with `nightA`.
+flagpole, and the `lanterns` decoration glows with `nightA`. At high water (`poolFill()` over 0.6) a pet may
+pick the `paddle` mode: it walks to the tide pool (`POOL_X`, with its `vd` stashed in `vd0` and set to `POOL_D`),
+bobs there with a ripple ring, and goes back to its wandering when the tide drops.
+
+**The tide pool.** View-only: `drawPool()` draws a hollow at `POOL_X = 505`, `POOL_D = 0.93` on the front dune,
+with shells and an anemone on its bottom and a sheet of water whose spread is `poolFill()` (0 below a tide of
+0.15, full at 0.7). `updatePool()` runs each frame: a crab wading through the full pool (`inPool(x, d)`) leaves
+rings and bubbles, and one standing in it plays a paddling animation now and then with `paddle` talk. `poolForce`
+(the `pool(v)` hook) overrides the fill for screenshots and tests.
+
+**The wreck.** `drawWreck()` on the back dune's layer: a hull with planking, a wheelhouse, a snapped mast with a
+rag of sail, weed and barnacles, and `plates` riveted plates along the side of which the first `plates - left`
+are drawn as dark gaps. After `bareAt` it sinks and fades over `K.WRECK_LINGER`. A scout's `plate` is drawn on its
+shell under the dish, and one in the `strip` state throws metal sparks.
+
+**The night market.** `drawTrader()` hangs four lanterns along the stall and puts the cake on the counter while
+`tr.market` is set; the bubble, the trader card's time and the alert button say "night market". The `cake`
+decoration is a cake on a stand on the den's porch, drawn with `drawCake()`.
 
 **Ledger charts and sharing.** `ledgerCharts()` draws two whole-game line charts from
 `S.long` (`wholeGame()`): money earned, with the ranks as dashed reference lines (a label is
@@ -654,7 +674,12 @@ side are a third of a cycle apart, and the two sides half a cycle.
   - Tech: research and worker-upgrade cards
 - **Ledger:** `renderLedger()` builds tables from `rates()`, `capacity()`, `bottleneck()`,
   `coverage()` and `S.stat`, plus an SVG sparkline of the price. The crew table lists the
-  twelve crabs with the most stars (then nearest their next star), using `recText(c)`.
+  twelve crabs with the most stars (then nearest their next star), using `recText(c)`, each with a
+  portrait: a `<canvas class="portrait" data-portrait=id>` that `drawPortraits()` fills after the
+  table is set, by `drawPortrait(c, canvas)`. That swaps the shared `ctx` for the small canvas, draws
+  the shell, mark, claws, hat, stars and the eye stalks and mouth with `face(c)` (so the portrait
+  wears the crab's mood of the moment, and sleeps with a z), then puts `ctx` back. The Ledger
+  re-renders about once a second while open, so the faces change with the crabs.
 - **Crab card:** clicking a crab shows `drawInfo()`: its name, kind and stars, `statusText(c)`,
   and `recText(c)`. `drawCrab` draws one small gold star per veteran level on the shell.
   The `veteran` event cheers the crab and its neighbours; a toast explains the first star of
@@ -711,6 +736,7 @@ side are a third of a cycle apart, and the two sides half a cycle.
   - `sim` and `state()`
   - `view()`, read-only view values, including the selected crab's id, the page zoom `Z`, the pinch `zoom` and `W`
   - `setZoom(z)`
+  - `market()` (opens the night market now, for two minutes), `wreck()` (settles a wreck now, claiming the dunes first if need be), `pool(v)` (forces the tide pool's fill; no argument lets the tide decide), `advance(secs)` (steps the game on by so many simulated seconds through the view's `update()`, for tests on a headless page whose frames stall)
   - `at(crab)`, where a crab is on the canvas in CSS pixels, for tests that click it
   - `select(crab)`, which opens a crab's card as a click would
   - `summonWhale()`
@@ -864,12 +890,16 @@ player's choices (separate from the sim's own), and `act()`, one random player a
   broken saves, which must be refused with the game untouched, and a save with fields
   missing, which must load with them at their defaults.
 - **Balance runs.** Fixed crews from the paper across workday patterns, beside the paper's
-  figures, and an automatic player that follows `bottleneck()` and `gaps()`, timed to each
-  rank. Run it before and after a change to the economy. The automatic player is a rebuild,
-  so its rank times are close to the paper's but not the same. Hill-climbing over crews and
+  figures (from its second review), and an automatic player that follows `bottleneck()` and `gaps()`,
+  timed to each rank; its last two rows give the player an `upgrades` option that spends spare
+  credits on the cheapest upgrade left, which is what exercises the lamp, the kelp claim, the
+  conveyor, the pad, the rim and the annex. Run it before and after a change to the economy. The
+  automatic player is a rebuild, so its rank times are close to the paper's but not the same. Hill-climbing over crews and
   ablations that switch a feature off through `K` were one-off studies and are not checked in.
 - **Browser checks.** Headless Chromium driven over the DevTools protocol at desktop, iPhone
-  SE, and dark sizes. Each starts a new game from the ? menu, checks that the sim runs, that
+  SE, dark and two 4K sizes (`SIZE=desktop node tests/browser.js` runs one). Frames can stall on a
+  headless page, so a step that needs the game to move on calls `crabminer.advance(secs)` rather
+  than waiting. Each starts a new game from the ? menu, checks that the sim runs, that
   the page does not scroll sideways, that the hire buttons and tabs work, that fine nodules put on
   the pile come out as fine ingots on the shelf and a smelter uses the lava pocket, that the annex is refused before the middle dune and then fills its pile and presses bars at its yard,
   that the shell-mark option is remembered, that two synthetic

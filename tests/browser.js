@@ -266,11 +266,11 @@ async function check(b, size) {
 
   // the night market, the wreck, the tide pool and the portraits: the market hook opens the stall with the cake, the swap puts the
   // cake stand on the den, scouts strip the wreck and stack its plates as bars, the full pool draws without an error, the Ledger shows faces
-  await js('crabminer.market(); crabminer.state().stock = 5; document.getElementById("t-build").click(); true');
+  await js('crabminer.sim.setReserve(6); crabminer.state().stock = 5; crabminer.market(); document.getElementById("t-build").click(); true');   // the reserve keeps the riser from selling the ingot the cake costs
   for (let i = 0; i < 50 && !(await js('!!document.querySelector(\'[data-trade="cake"]:not([disabled])\')')); i++) await wait(100);
   expect(await js('!!crabminer.state().trader && crabminer.state().trader.market === true && /Festival cake/.test(document.getElementById("trader-offers").textContent)'), 'the night market hook did not open the stall with the cake on offer');
   expect(await js('/Night market/.test(document.getElementById("a-trader-label").textContent)'), 'the trader button does not say the night market is open');
-  await js('const b5 = document.querySelector(\'[data-trade="cake"]:not([disabled])\'); if (b5) b5.click(); true');
+  await js('crabminer.state().stock = Math.max(crabminer.state().stock, 5); const b5 = document.querySelector(\'[data-trade="cake"]:not([disabled])\'); if (b5) b5.click(); true');
   expect(await js('crabminer.state().stat.marketTrades === 1 && crabminer.state().decor.some(d => d.kind === "cake")'), 'swapping for the cake did not count as a night-market swap and put the cake stand on the den');
   await js('crabminer.state().credits = 3000; crabminer.sim.buy("den"); crabminer.sim.hire("scout"); crabminer.sim.hire("scout"); crabminer.sim.hire("scout"); crabminer.state().bars = 0; crabminer.wreck(); crabminer.pool(1); true');
   await key('4');
@@ -347,7 +347,10 @@ async function check(b, size) {
     for (const size of SIZES) {
       if (process.env.SIZE && size.name !== process.env.SIZE) continue;   // SIZE=desktop runs one size
       const problems = await check(b, size);
-      if (problems.length) { failed++; console.log('FAIL ' + size.name + '\n  ' + problems.join('\n  ')); }
+      if (problems.length) {
+        failed++; console.log('FAIL ' + size.name + '\n  ' + problems.join('\n  '));
+        if (process.env.GITHUB_ACTIONS) problems.forEach(pr => console.log('::error title=' + size.name + '::' + pr.replace(/\n/g, ' ')));   // an annotation on the run, readable without the log
+      }
       else console.log('ok   ' + size.name + ' (' + size.width + '×' + size.height + ')');
     }
   } finally { done = true; await b.close(); }

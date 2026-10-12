@@ -13,6 +13,10 @@ function check(sim) {
   // no negative stocks
   for (const k of ['ore', 'bars', 'stock', 'credits', 'heat']) ok(S[k] >= 0, k + ' is ' + S[k]);
   ok(S.spares.bit >= 0 && S.spares.leg >= 0, 'negative spares');
+  // metal grades: the fine count of a pile or a load never exceeds the pile or the load, and never goes negative
+  for (const [k, f] of [['ore', 'oreFine'], ['bars', 'barsFine'], ['stock', 'stockFine']]) ok(S[f] >= 0 && S[f] <= S[k], f + ' is ' + S[f] + ' of ' + S[k]);
+  for (const c of S.crabs) ok(c.loadFine >= 0 && c.loadFine <= c.load && c.bloadFine >= 0 && c.bloadFine <= c.bload, 'fine load out of range on ' + who(c) + ': ' + c.loadFine + '/' + c.load + ' ' + c.bloadFine + '/' + c.bload);
+  for (const n of S.belt) ok(n.fine === undefined || n.fine === true, 'odd belt nodule ' + JSON.stringify(n));
 
   // no stale claims: every claim points at a crab that is still here and holds the same thing back
   for (const n of S.nodules) if (n.by) ok(live.has(n.by) && n.by.target === n, 'stale nodule claim by ' + who(n.by));

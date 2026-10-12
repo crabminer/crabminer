@@ -68,7 +68,7 @@
   var puffs = [], flights = [], lifts = [], rivalLifts = [], sparks = [], embers = [], weeds = [], kelp = [], snow = [], bubbles = [], lavaBub = [], floaters = [], confetti = [], rings = [];
   var debris = [], nightA = 0, lastShift = '', big = false, lastTrend = 0, surgeToast = false, buryToast = false, inks = [];
   var stormA = 0, lavaA = 0, flash = 0, rain = [], bombs = [];
-  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0, chimneyToast = false, lampToast = false, chimneyA = 0, insureToast = false, gullToast = false;
+  var ecoLogSeen = 0, labToast = false, traderBubble = 0, vetToast = false, turtleToast = false, mantaToast = false, driftToast = false, cargo = { x: -1, phase: 'gone' }, whale = null, nextWhale = 60, whaleId = 0, whaleToast = false, glowToast = false, eelToast = false, eelA = 0, eelSnapT = -9, eelAim = 0, chimneyToast = false, lampToast = false, chimneyA = 0, insureToast = false, gullToast = false, fineToast = false;
   var started = false, won = false, startedAt = 0, partyUntil = 0, selected = null, selectedUntil = 0, stageVisible = true, lastPrice = K.PRICE;
   var best = null;
 
@@ -152,15 +152,16 @@
     // Z is the page's zoom (the root font size over 16px): the canvas is laid out in units of Z pixels,
     // as on a screen at Z times the scaling, and drawn with Z times the pixels.
     Z = parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1;
-    var cw = stage.clientWidth / Z, h = stage.clientHeight / Z, widthChanged;
+    // the pinch zoom lays the canvas out as if the stage were `zoom` times bigger, and the stage scrolls both ways over it
+    var cw = stage.clientWidth / Z * zoom, h = stage.clientHeight / Z * zoom, widthChanged;
     if (!cw || !h) return;
     big = document.body.classList.contains('big') || mqSmall.matches;   // small screens always get the big field's dunes
-    CS = big ? clamp(Math.min(h / 360, cw / 640), 0.8, 1.9) : clamp(Math.min(h / 470, cw / 860), 0.65, 1.45);
+    CS = big ? clamp(Math.min(h / 360, cw / 640), 0.8, 1.9 * zoom) : clamp(Math.min(h / 470, cw / 860), 0.65, 1.45 * zoom);
     var w = Math.max(cw, Math.round((big ? 1150 : 860) * CS));   // the big field is wider than the screen: it scrolls
     widthChanged = w !== W;
     W = w; H = h;
-    DPR = Math.min(window.devicePixelRatio || 1, 2) * Z;
-    inner.style.width = W * Z + 'px';
+    DPR = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(9e6 / (W * H))) * Z;   // zoomed in, no more than about nine million device pixels
+    inner.style.width = W * Z + 'px'; inner.style.height = zoom > 1.002 ? H * Z + 'px' : '';
     cv.style.width = W * Z + 'px'; cv.style.height = H * Z + 'px';
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -229,7 +230,7 @@
     legOff: ['🦵💔😭', '🦵🙈😱'], needLeg: ['🦵❓', '🦵😩❓'], onLeg: ['🦵👍', '🔧🏃'], bringLeg: ['🦵➡️🦀', '🦵🏃💨'], mended: ['🦵✅❤️', '🦵✨💃'],
     strike: ['🪨✅🎉', '🪨🪨😆'], dry: ['🪨❌😤', '🕳️❌😒'], flag: ['🚩❗', '🚩👀✨'], miss: ['🚩❓🤷', '🚩🙈❓'],
     needOre: ['🪨❓', '🪨😴❓'], oreFull: ['🪨⛔', '🪨📦😅'], needBar: ['🧱❓', '🧱👀❓'], barFull: ['🧱⛔', '🧱🧱😅'],
-    needIngot: ['🪙❓', '🪙👀❓'], stockFull: ['🪙⛔', '🪙📦😅'], smelted: ['🪙✅🎶', '🔥🪙😎'],
+    needIngot: ['🪙❓', '🪙👀❓'], stockFull: ['🪙⛔', '🪙📦😅'], smelted: ['🪙✅🎶', '🔥🪙😎'], fineIngot: ['🪙✨🤩', '✨🪙✨'],
     toForgeIngot: ['🪙➡️🔥', '🪙🏃🔥'], toForgeBar: ['🧱➡️🔥', '🧱🏃🔥'], needHeat: ['🔥❓', '🔥🥶❓'],
     wake: ['☀️👋', '🥱☀️'], ride: ['🌋⬆️😆', '💨⬆️🤩'], land: ['🦀✅', '🦀👌'], oc: ['⚡💪', '⚡🏃💨'], rave: ['🎉🦀🎶', '🕺🦀💃'],
     dance: ['🎶🦀🦀🎶', '💃🦀🕺', '🦀❤️🦀'], morning: ['☀️💪', '☀️😄👋'],
@@ -254,7 +255,7 @@
     legOff: 'A leg coming off', needLeg: 'Asking for a new leg', onLeg: 'On the way with a leg', bringLeg: 'Carrying a leg over', mended: 'A leg mended',
     strike: 'Striking metal', dry: 'A dry hole', flag: 'Flagging a deposit', miss: 'A scan that found nothing',
     needOre: 'Waiting for nodules', oreFull: 'The ore pile is full', needBar: 'Waiting for bars', barFull: 'The bar stack is full',
-    needIngot: 'Waiting for ingots', stockFull: 'The stockpile is full', smelted: 'An ingot smelted',
+    needIngot: 'Waiting for ingots', stockFull: 'The stockpile is full', smelted: 'An ingot smelted', fineIngot: 'A fine ingot smelted',
     toForgeIngot: 'An ingot to the forge', toForgeBar: 'A bar to the forge', needHeat: 'The engine is cold',
     wake: 'Waking up', ride: 'Riding the vent', land: 'Landing from the vent', oc: 'Overclocked', rave: 'The crab rave',
     dance: 'Dancing with a friend', morning: 'Morning bonus', help: 'Lending a claw', helpRun: 'Running claw in claw', dig: 'Digging in to sleep', postGrab: 'Moving the refuel post', postGrabTide: 'Fetching the post back from the tide', postDrift: 'The tide moving the post',
@@ -419,11 +420,15 @@
       case 'miss': express(a, 'shrug', 1.4); say(a, TALK.miss, 1.4); play(a, ['shrug', 'think', 'sigh'], 1.5); break;
       case 'flagDone': p = X(a.x); poof(p, groundY(p, a.d) - 6, 5, 0.5); near(a.x, 40).forEach(function (n) { if (n.role === 'drill') play(n, ['bow', 'wave'], 1.4); }); break;
       case 'stack':
-        if (e.b === 'belt') { fly('nod', clawPos(a, 1), beltPoint(K.BELT_HEAD), 0.3, { tag: 'belt' }); if (Math.random() < 0.15) say(a, TALK.belt, 1.4); }
-        else fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore' });
+        if (/belt/.test(e.b)) { fly('nod', clawPos(a, 1), beltPoint(K.BELT_HEAD), 0.3, { tag: 'belt', fine: /fine/.test(e.b) }); if (Math.random() < 0.15) say(a, TALK.belt, 1.4); }
+        else fly('nod', clawPos(a, 1), oreSlot(Math.max(0, S.ore - 1)), 0.32, { tag: 'ore', fine: /fine/.test(e.b) });
         if (a.load === 0) { express(a, 'phew', 1); if (Math.random() < 0.4) play(a, ['flex', 'sigh'], 1.2); }
         break;
-      case 'belted': fly('nod', beltPoint(S.pos.BELT_END), oreSlot(Math.max(0, S.ore - 1)), 0.3, { tag: 'ore' }); break;
+      case 'belted': fly('nod', beltPoint(S.pos.BELT_END), oreSlot(Math.max(0, S.ore - 1)), 0.3, { tag: 'ore', fine: !!e.b }); break;
+      case 'fineSell':                                   // the ingot on its way up was a fine one: mark its flight and sparkle
+        for (i = flights.length - 1; i >= 0; i--) if (flights[i].lift) { flights[i].fine = true; break; }
+        p = chuteMouth(); spark(p.x, p.y, 6, pal.light);
+        break;
       case 'padOn': p = clawPos(a, 0); spark(p.x, p.y + 6 * CS, 4, pal.light); if (Math.random() < 0.25) say(a, TALK.pad, 1.4); break;
       case 'insurance': if (started) toast(a ? 'Insured' : e.b === 'lapsed' ? 'The insurance has lapsed' : 'Insurance cancelled', a ? 'The insurer pays $' + K.INSURE_NODULE + ' for every nodule the octopus gets away with or a quake buries, and $' + K.INSURE_FLAG + ' for every flag the tide, a storm or a quake buries. The premium is $' + K.INSURE_DAY + ' a day, taken at dawn.' : e.b === 'lapsed' ? 'There was not $' + K.INSURE_DAY + ' for the premium at dawn. Insure again from the Build tab.' : 'No more premiums, and no more payouts.'); break;
       case 'insurePay': floater('+$' + a + ' insured', collectorBase().x, collectorBase().y - 70 * CS, false); if (!insureToast && started) { insureToast = true; toast('The insurer paid $' + a, 'For what the ' + e.b + ' took. The Ledger keeps premiums against payouts.'); } break;
@@ -441,11 +446,17 @@
         toast('Dig site ' + a + ': fresh dunes', (e.b.kind === 'tech' ? TECH_INFO[e.b.id].name + ' came along, researched already.' : e.b.kind === 'decor' ? 'The den\'s ' + e.b.n + ' decorations came along.' : e.b.name + ' the ' + ROLE_NOUN[e.b.role] + ' came along, stars and all.') + ' Your career record is in the Ledger.');
         S.crabs.forEach(function (n, j2) { play(n, ['salute', 'pointUp', 'lookAround'], 2); if (j2 % 2 === 0) say(n, TALK.newSite, 2.2); });
         break;
-      case 'feed': fly('nod', oreSlot(S.ore + 1), clawPos(a, -1), 0.3); fly('nod', oreSlot(S.ore), clawPos(a, -1), 0.36); break;
-      case 'bar': p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars' }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); if (Math.random() < 0.35) play(a, ['clap', 'flex'], 1.2); break;
-      case 'grab': fly('bar', barSlot(S.bars), clawPos(a, -1), 0.26); break;
-      case 'ingot': express(a, 'proud', 1.4); if (Math.random() < 0.5) say(a, TALK.smelted, 1.3); play(a, ['flex', 'pump', 'clap'], 1.2); spark(clawPos(a, 1).x, clawPos(a, 1).y, 5, pal.lavaHot); break;
-      case 'stock': fly('ingot', clawPos(a, 1), stockSlot(Math.max(0, S.stock - 1)), 0.34, { tag: 'stock' }); break;
+      case 'feed': fly('nod', oreSlot(S.ore + 1), clawPos(a, -1), 0.3, { fine: a.fine }); fly('nod', oreSlot(S.ore), clawPos(a, -1), 0.36, { fine: a.fine }); break;
+      case 'bar': p = clawPos(a, 1); fly('bar', p, barSlot(Math.max(0, S.bars - 1)), 0.32, { tag: 'bars', fine: e.b }); poof(crabX(a), groundY(crabX(a), a.d) - 6 * CS, 5, 0.5, pal.barDark); if (e.b) spark(p.x, p.y, 5, pal.ingot); if (Math.random() < 0.35) play(a, ['clap', 'flex'], 1.2); break;
+      case 'grab': fly('bar', barSlot(S.bars), clawPos(a, -1), 0.26, { fine: a.nFine > 0 }); break;
+      case 'ingot':
+        express(a, 'proud', 1.4); if (Math.random() < 0.5) say(a, e.b ? TALK.fineIngot : TALK.smelted, 1.3); play(a, e.b ? ['sparkleEyes', 'spin', 'hopJoy'] : ['flex', 'pump', 'clap'], 1.2); spark(clawPos(a, 1).x, clawPos(a, 1).y, 5, pal.lavaHot);
+        if (e.b) { spark(clawPos(a, 1).x, clawPos(a, 1).y - 8 * CS, 8, pal.light); if (!fineToast && started) { fineToast = true; toast((emojiOK ? '✨ ' : '★ ') + 'Fine metal!', a.name + ' smelted a fine ingot from a rich deposit (richness ' + K.FINE_Q + ' or more). It goes on its own shelf by the stockpile and sells for half as much again. Keep some back with the fine reserve beside the stockpile in the top bar.'); } }
+        break;
+      case 'stock':
+        if (e.b) { for (i = 0; i < e.b; i++) fly('ingot', clawPos(a, 1), fineSlot(Math.max(0, S.stockFine - 1 - i)), 0.34 + i * 0.05, { tag: 'stockFine', fine: true }); }
+        if (a.n > e.b) fly('ingot', clawPos(a, 1), stockSlot(Math.max(0, S.stock - S.stockFine - 1)), 0.34, { tag: 'stock' });
+        break;
       case 'sell':
         fly('ingot', stockSlot(S.stock), chuteMouth(), 0.4, { lift: true, value: a, streak: e.b });
         if (a >= 15) near(S.pos.COLLECTOR, 140).forEach(function (n) { play(n, ['cheer', 'headbang', 'disco', 'sparkleEyes', 'cartwheel', 'backflip', 'bigWave'], 2); });
@@ -715,7 +726,9 @@
         if (a === K.RANKS.length - 1 && !won && started) { won = true; setTimeout(showWin, 1600); }
         break;
       case 'build': p = buildSpot(a); if (p) { poof(p.x, p.y, 14, 1, pal.sandLine); spark(p.x, p.y - 10, 10, pal.hat); }
+        if (a === 'rim') { p = rim2Pos(); spark(p.x, p.y - 6 * CS, 24, pal.lavaHot); for (i = 0; i < 10; i++) bombs.push({ x: p.x + rr(-6, 6) * CS, y: p.y, vx: rr(-40, 40), vy: rr(-120, -60), life: 0, max: rr(0.6, 1.1) }); }
         S.crabs.forEach(function (n) {
+          if (a === 'rim' && (n.role === 'smelt' || n.role === 'repair' || n.role === 'mech')) play(n, ['cheer', 'sparkleEyes', 'jazz'], 2);
           if (a === 'kelp' && (n.role === 'scout' || n.role === 'drill')) play(n, ['sparkleEyes', 'pointUp', 'jazz'], 2);
           if (a === 'belt' && n.role === 'haul') play(n, ['cheer', 'backflip', 'jazz'], 2);
           if (a === 'pad' && n.role !== 'energy') play(n, ['sparkleEyes', 'clap'], 1.6);
@@ -735,6 +748,7 @@
     if (id === 'kelp') { px = X(75); return { x: px, y: groundY(px, 0.85) - 20 * CS }; }
     if (id === 'belt') { px = beltPoint((K.BELT_HEAD + S.pos.BELT_END) / 2); return { x: px.x, y: px.y }; }
     if (id === 'pad') { px = padPos(); return { x: px.x, y: px.y - 6 * CS }; }
+    if (id === 'rim') { px = rim2Pos(); return { x: px.x, y: px.y - 4 * CS }; }
     return null;
   }
 
@@ -1096,6 +1110,15 @@
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(0, 0, rx, 0, TAU); ctx.fill();
     ctx.restore();
+    if (S.lv.rim) {                      // and the lava pocket's own smaller glow
+      var p = rim2Pos(), r2 = 70 * p.s;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1, 0.45);
+      g = ctx.createRadialGradient(0, 0, 2, 0, 0, r2);
+      g.addColorStop(0, 'rgba(255,150,50,' + (0.3 + 0.06 * Math.sin(T * 2.6)).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,120,30,0)');
+      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, r2, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
   }
   var wheel = 0;
   function drawEngine() {              // a Stirling engine: hot end in the lava, cold fins in the sea, a flywheel on top
@@ -1473,50 +1496,71 @@
     for (px = x0 - 12 * s; px <= x1 + 12 * s; px += 5 * s) { ctx.beginPath(); ctx.arc(px, y + 1.5 * s, 1.4 * s, 0, TAU); ctx.stroke(); }
     ctx.restore();
   }
-  function drawOrePile() {
-    var n = Math.max(0, S.ore - incoming('ore')), i, s, sc = scaleAt(0.8);
-    for (i = 0; i < n; i++) { s = oreSlot(i); drawNod(s.x, s.y, (3.6 + ((i * 37) % 7) / 10) * sc, 1, ((i * 53) % 9) / 10 - 0.4); }
+  function drawOrePile() {               // the fine nodules sit on top of the pile
+    var n = Math.max(0, S.ore - incoming('ore')), nf = Math.min(n, S.oreFine), i, s, sc = scaleAt(0.8);
+    for (i = 0; i < n; i++) { s = oreSlot(i); drawNod(s.x, s.y, (3.6 + ((i * 37) % 7) / 10) * sc, 1, ((i * 53) % 9) / 10 - 0.4, i >= n - nf); }
   }
   function drawBarStack() {
-    var n = Math.max(0, S.bars - incoming('bars')), i, s;
-    for (i = 0; i < n; i++) { s = barSlot(i); drawBar(s.x, s.y, scaleAt(0.78), 0); }
+    var n = Math.max(0, S.bars - incoming('bars')), nf = Math.min(n, S.barsFine), i, s;
+    for (i = 0; i < n; i++) { s = barSlot(i); drawBar(s.x, s.y, scaleAt(0.78), 0, i >= n - nf); }
+  }
+  function fineSlot(i) {                 // fine ingots on their own shelf, a step to the right of the pile, three to a row
+    var s = scaleAt(0.84), px = X(S.pos.STOCK) + 36 * s, y = groundY(px, 0.84) - 10 * s;
+    return { x: px + ((i % 3) - 1) * 8.6 * s, y: y - 2.2 * s - Math.floor(i / 3) * 4.2 * s };
   }
   function drawStockpile() {
-    var n = Math.max(0, S.stock - incoming('stock')), shown = Math.min(n, 15), i, s, px = X(S.pos.STOCK), y = groundY(px, 0.84), sc = scaleAt(0.84);
+    var n = Math.max(0, S.stock - S.stockFine - incoming('stock')), nf = Math.max(0, S.stockFine - incoming('stockFine')), shown = Math.min(n, 15), shownF = Math.min(nf, 9), i, s, px = X(S.pos.STOCK), y = groundY(px, 0.84), sc = scaleAt(0.84), fx = px + 36 * sc, fy = y - 10 * sc;
     // a pallet under the pile
     ctx.fillStyle = pal.metalDark; ctx.globalAlpha = 0.7; ctx.fillRect(px - 26 * sc, y - 1.5 * sc, 52 * sc, 3 * sc); ctx.globalAlpha = 1;
     for (i = 0; i < shown; i++) { s = stockSlot(i); drawIngot(s.x, s.y, sc * 0.95, i < S.reserve); }
     ctx.font = '700 ' + Math.round(10 * sc + 1) + 'px ' + cssFont; ctx.textAlign = 'center'; ctx.fillStyle = pal.ink;
     if (n > shown) ctx.fillText('+' + (n - shown), px + 30 * sc, y - 4 * sc);
-    // the reserve tag
+    // the fine shelf: a plank on two legs, the fine ingots stacked on it
+    ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1.4 * sc; ctx.globalAlpha = 0.8;
+    ctx.beginPath(); ctx.moveTo(fx - 10 * sc, fy); ctx.lineTo(fx - 10 * sc, y + 0.5 * sc); ctx.moveTo(fx + 10 * sc, fy); ctx.lineTo(fx + 10 * sc, y + 0.5 * sc); ctx.stroke();
+    ctx.fillStyle = pal.barDark; ctx.fillRect(fx - 15 * sc, fy - 1.2 * sc, 30 * sc, 2.4 * sc); ctx.globalAlpha = 1;
+    for (i = 0; i < shownF; i++) { s = fineSlot(i); drawIngot(s.x, s.y, sc * 0.95, i < S.reserveFine, true); }
+    if (nf > shownF) { ctx.fillStyle = pal.ink; ctx.fillText('+' + (nf - shownF), fx + 20 * sc, fy - 4 * sc); }
+    // the reserve tags
     var tag = 'keep ' + S.reserve;
     ctx.save(); ctx.translate(px - 30 * sc, y - 18 * sc); ctx.rotate(-0.08);
     ctx.fillStyle = pal.paper; ctx.fillRect(-15 * sc, -7 * sc, 30 * sc, 12 * sc);
     ctx.fillStyle = pal.ink; ctx.font = '700 ' + Math.round(8 * sc + 1) + 'px ' + cssFont; ctx.textBaseline = 'middle';
     ctx.fillText(tag, 0, -1 * sc);
     ctx.restore();
+    if (S.stockFine || S.reserveFine || S.stat.fineIngots) {
+      ctx.save(); ctx.translate(fx, fy + 7 * sc); ctx.rotate(0.06);
+      ctx.fillStyle = pal.paper; ctx.fillRect(-14 * sc, -5.5 * sc, 28 * sc, 10 * sc);
+      ctx.fillStyle = pal.ink; ctx.font = '700 ' + Math.round(7 * sc + 1) + 'px ' + cssFont; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+      ctx.fillText('fine · keep ' + S.reserveFine, 0, -0.5 * sc);
+      ctx.restore();
+    }
   }
 
   // ----- drawing: goods and flags -----
-  function drawNod(x, y, r, a, rot) {
+  // Fine metal (from the richest deposits) carries a gold glint at every stage: nodule, bar and ingot.
+  function drawNod(x, y, r, a, rot, fine) {
     ctx.globalAlpha = a; ctx.fillStyle = pal.nodule;
     ctx.beginPath(); ctx.ellipse(x, y, r * 1.25, r * 0.85, rot || 0, 0, TAU); ctx.fill();
     ctx.globalAlpha = a * 0.25; ctx.fillStyle = pal.sandLine;
     ctx.beginPath(); ctx.ellipse(x - r * 0.35, y - r * 0.3, r * 0.45, r * 0.22, rot || 0, 0, TAU); ctx.fill();
+    if (fine) { ctx.globalAlpha = a * (0.7 + 0.3 * Math.sin(T * 5 + x)); ctx.fillStyle = pal.ingot; ctx.beginPath(); ctx.arc(x + r * 0.3, y + r * 0.1, r * 0.32, 0, TAU); ctx.fill(); }
     ctx.globalAlpha = 1;
   }
-  function drawBar(x, y, s, heat) {
+  function drawBar(x, y, s, heat, fine) {
     roundRect(x - 4.4 * s, y - 2 * s, 8.8 * s, 4 * s, 1.2 * s);
     ctx.fillStyle = pal.bar; ctx.fill();
     ctx.strokeStyle = pal.barDark; ctx.lineWidth = 0.8; ctx.stroke();
+    if (fine) { ctx.fillStyle = pal.ingot; ctx.fillRect(x - 3.2 * s, y - 0.6 * s, 6.4 * s, 1.2 * s); }
     if (heat > 0) { ctx.globalAlpha = heat; ctx.fillStyle = pal.lavaHot; ctx.fill(); ctx.globalAlpha = 1; }
   }
-  function drawIngot(x, y, s, held) {
-    ctx.fillStyle = pal.ingot; ctx.globalAlpha = held ? 0.12 : 0.3;
+  function drawIngot(x, y, s, held, fine) {
+    ctx.fillStyle = fine ? pal.light : pal.ingot; ctx.globalAlpha = held ? 0.12 : (fine ? 0.45 : 0.3);
     ctx.beginPath(); ctx.arc(x, y, 6.5 * s, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
     ctx.beginPath(); ctx.moveTo(x - 4.6 * s, y + 2 * s); ctx.lineTo(x - 3.2 * s, y - 2 * s); ctx.lineTo(x + 3.2 * s, y - 2 * s); ctx.lineTo(x + 4.6 * s, y + 2 * s); ctx.closePath();
     ctx.fillStyle = held ? pal.ingotDark : pal.ingot;
     ctx.fill(); ctx.strokeStyle = pal.ingotDark; ctx.lineWidth = 0.8; ctx.stroke();
+    if (fine) { ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.55 + 0.45 * Math.sin(T * 6 + x * 0.3); star(x + 1.6 * s, y - 0.4 * s, 1.5 * s, '#fff', pal.ingotDark); ctx.globalAlpha = 1; }
   }
   function drawPart(kind, x, y, s, heat) {   // what the repair crews carry: raw metal, or the part forged from it
     if (kind === 'ingot') drawIngot(x, y, s);
@@ -1602,6 +1646,22 @@
     ctx.beginPath(); ctx.arc(x1 + 4 * s, y - 5.5 * s, 3 * s, 0, TAU); ctx.fill(); ctx.stroke();
     ctx.fillStyle = pal.metalDark; ctx.beginPath(); ctx.arc(x0 - 4 * s + Math.cos(T * 4) * 1.2 * s, y - 5.5 * s + Math.sin(T * 4) * 1.2 * s, 0.8 * s, 0, TAU); ctx.fill();
     for (i = 0; i < S.belt.length; i++) drawNod(X(S.belt[i].x), y - 9.5 * s, 3.4 * s, 1, i * 0.7 + S.belt[i].x * 0.05);   // the nodules riding it
+    ctx.restore();
+  }
+  function rim2Pos() { var px = X(K.RIM2); return { x: px, y: groundY(px, K.RIM2_D), s: scaleAt(K.RIM2_D) }; }
+  function drawRim2() {                // the second smelting rim: a pocket of lava open in the cavern side, ringed with dark rock
+    var p = rim2Pos(), s = p.s, i, g, t, bx;
+    ctx.save(); ctx.translate(p.x, p.y);
+    ctx.fillStyle = pal.rock; ctx.beginPath(); ctx.ellipse(0, 0, 21 * s, 8.5 * s, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = pal.rockLine; ctx.lineWidth = 1; ctx.globalAlpha = 0.7; ctx.stroke(); ctx.globalAlpha = 1;
+    g = ctx.createRadialGradient(0, 0, 1, 0, 0, 15 * s);
+    g.addColorStop(0, pal.lavaHot); g.addColorStop(0.55, pal.lava); g.addColorStop(1, pal.lavaDeep);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0.5 * s, 15 * s, 5.5 * s, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = pal.rockDark; ctx.globalAlpha = 0.45;                            // crust drifting on the pocket
+    for (i = 0; i < 2; i++) { t = (T * 0.05 + i * 0.5) % 1; ctx.beginPath(); ctx.ellipse((-9 + 18 * t) * s, (1.5 - i * 2) * s, 3.6 * s, 1.2 * s, 0, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1; ctx.fillStyle = pal.lavaHot;                               // bubbles breaking its skin
+    for (i = 0; i < 3; i++) { t = (T * 0.5 + i * 0.37) % 1; bx = (-7 + 7 * i) * s; if (t < 0.7) { ctx.beginPath(); ctx.arc(bx, 0.5 * s, 2 * s * t / 0.7, Math.PI, TAU); ctx.fill(); } }
+    ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.ellipse(0, 0.5 * s, 15 * s, 5.5 * s, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
     ctx.restore();
   }
   function padPos() { var px = X(S.pos.PAD); return { x: px, y: groundY(px, K.PAD_D), s: scaleAt(K.PAD_D) }; }
@@ -2146,8 +2206,8 @@
   function drawGroundNodule(n) {
     var px = X(n.x), y = groundY(px, n.d), s = scaleAt(n.d), a;
     if (n.vr === undefined) n.vr = 2.8 + ((n.x * 7.31) % 1) * 1.8;
-    if (n.eddy >= 0) { drawEddy(n, px, y, s); a = clamp((n.eddy - 0.5) / 0.5, 0, 1); if (a > 0) drawNod(px, y, n.vr * s * (0.7 + 0.3 * a), a * 0.6, 0); }
-    else drawNod(px, y, n.vr * s, 1, 0);
+    if (n.eddy >= 0) { drawEddy(n, px, y, s); a = clamp((n.eddy - 0.5) / 0.5, 0, 1); if (a > 0) drawNod(px, y, n.vr * s * (0.7 + 0.3 * a), a * 0.6, 0, n.fine); }
+    else drawNod(px, y, n.vr * s, 1, 0, n.fine);
   }
   function drawChest(f, px, y, s, grow) {   // a sunken chest, half in the sand, with a glint of gold under the lid
     var gl = 0.5 + 0.5 * Math.sin(T * 2.4 + f.id);
@@ -2173,6 +2233,7 @@
     ctx.strokeStyle = pal.ink; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
     ctx.fillStyle = pal.nodule;
     for (i = 0; i < Math.min(f.size, 7); i++) { ctx.beginPath(); ctx.arc(-1.5 + (i % 4) * 3.2 - 4, 3 + Math.floor(i / 4) * 2.6, 1.1, 0, TAU); ctx.fill(); }
+    if (f.q >= K.FINE_Q) { ctx.fillStyle = pal.ingot; ctx.globalAlpha = 0.7 + 0.3 * Math.sin(T * 4 + f.id); star(6, -18 + wave * 0.7, 2.2, pal.ingot, pal.ink); ctx.globalAlpha = 1; }   // a fine deposit: a gold star on the pennant
     if (f.by) { ctx.strokeStyle = pal.drillDark; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(0, 1, 10, 3, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
     ctx.restore();
   }
@@ -2180,9 +2241,9 @@
     for (var i = 0; i < flights.length; i++) {
       var f = flights[i], t = clamp(f.t, 0, 1), x = f.x0 + (f.to.x - f.x0) * t, y = f.y0 + (f.to.y - f.y0) * t - Math.sin(Math.PI * t) * 10 * CS;
       if (f.kind === 'pearl') { ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(x, y, 7 * CS, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; ctx.fillStyle = '#f4f0ff'; ctx.beginPath(); ctx.arc(x, y, 3.4 * CS, 0, TAU); ctx.fill(); ctx.strokeStyle = pal.scout; ctx.lineWidth = 0.8; ctx.stroke(); }
-      else if (f.kind === 'nod') drawNod(x, y, 3.8 * CS, 1, t * 4);
-      else if (f.kind === 'bar') drawBar(x, y, CS, 0);
-      else drawIngot(x, y, CS * (1 - 0.2 * t));
+      else if (f.kind === 'nod') drawNod(x, y, 3.8 * CS, 1, t * 4, f.fine);
+      else if (f.kind === 'bar') drawBar(x, y, CS, 0, f.fine);
+      else drawIngot(x, y, CS * (1 - 0.2 * t), false, f.fine);
     }
   }
   function drawRings() {
@@ -2646,6 +2707,30 @@
     var p = c.state === 'help' && c.held ? c.helping : (c.helper && c.helper.held && c.helper.helping === c ? c.helper : null);
     return p && !p.gone ? (crabX(p) >= crabX(c) ? 1 : -1) : 0;
   }
+  // Every kind wears a mark on its shell as well as its colour, so no two roles are told apart by colour alone:
+  // scout ▲, drill ◆, hauler two bars, crusher ■, smelter ●, energy bot a bolt, repair bot +, maintenance bot ○.
+  // The crew rows and the roster show the same marks (markSVG).
+  var MARK_PATH = { scout: 'M6 1.6 10.6 10.2H1.4z', drill: 'M6 1 11 6 6 11 1 6z', haul: 'M2 4.2h8M2 8h8', crush: 'M2.6 2.6h6.8v6.8H2.6z',
+    smelt: 'M6 6m-3.8 0a3.8 3.8 0 1 0 7.6 0a3.8 3.8 0 1 0-7.6 0', energy: 'M7.6 1 3.8 6.6h4.2L4.4 11', repair: 'M6 1.5v9M1.5 6h9', mech: 'M6 6m-3.4 0a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0-6.8 0' };
+  var MARK_FILLED = { scout: 1, drill: 1, crush: 1, smelt: 1 };
+  function markSVG(role) {
+    return '<svg class="mark" viewBox="0 0 12 12" aria-hidden="true"><path d="' + MARK_PATH[role] + '"' + (MARK_FILLED[role] ? ' fill="currentColor"' : ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"') + '/></svg>';
+  }
+  function roleDot(role) { var c = role === 'haul' ? 'crab' : role; return '<span class="dot" style="background:var(--c-' + c + ');color:var(--c-' + c + '-dark)">' + markSVG(role) + '</span>'; }
+  function drawRoleMark(role, s, by, dark) {
+    var y = by - 0.8 * s, r = 2.3 * s;
+    ctx.save(); ctx.fillStyle = dark; ctx.strokeStyle = dark; ctx.globalAlpha = 0.85; ctx.lineWidth = 1.1 * s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    if (role === 'scout') { ctx.moveTo(0, y - r); ctx.lineTo(r, y + r * 0.8); ctx.lineTo(-r, y + r * 0.8); ctx.closePath(); ctx.fill(); }
+    else if (role === 'drill') { ctx.moveTo(0, y - r); ctx.lineTo(r, y); ctx.lineTo(0, y + r); ctx.lineTo(-r, y); ctx.closePath(); ctx.fill(); }
+    else if (role === 'haul') { ctx.moveTo(-r, y - r * 0.55); ctx.lineTo(r, y - r * 0.55); ctx.moveTo(-r, y + r * 0.55); ctx.lineTo(r, y + r * 0.55); ctx.stroke(); }
+    else if (role === 'crush') { ctx.rect(-r * 0.85, y - r * 0.85, r * 1.7, r * 1.7); ctx.fill(); }
+    else if (role === 'smelt') { ctx.arc(0, y, r * 0.9, 0, TAU); ctx.fill(); ctx.fillStyle = pal.lava; ctx.beginPath(); ctx.arc(0, y, r * 0.45, 0, TAU); ctx.fill(); }
+    else if (role === 'energy') { ctx.moveTo(r * 0.5, y - r * 1.2); ctx.lineTo(-r * 0.45, y + r * 0.15); ctx.lineTo(r * 0.45, y - r * 0.15); ctx.lineTo(-r * 0.5, y + r * 1.2); ctx.stroke(); }
+    else if (role === 'repair') { ctx.moveTo(0, y - r); ctx.lineTo(0, y + r); ctx.moveTo(-r, y); ctx.lineTo(r, y); ctx.stroke(); }
+    else { ctx.arc(0, y, r * 0.8, 0, TAU); ctx.stroke(); }
+    ctx.restore();
+  }
   function drawCrab(c) {
     if (burrowed(c)) { drawBurrow(c); return; }
     var role = c.role, st = STYLE[role](), body = st[0], dark = st[1];
@@ -2767,8 +2852,8 @@
       ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + side * w * s, ay + 1.2 * s); ctx.stroke();
       if (carried) drawPart(carried, ax + side * 4 * s, ay - 1 * s, s, 0);
       if (role === 'smelt' && c.carry && side === (c.state === 'smelt' ? 1 : c.dir)) {
-        if (c.carry === 'bar') drawBar(ax + side * 5 * s, ay + 1 * s, s, c.state === 'smelt' ? c.heat : 0);
-        else drawIngot(ax + side * 5 * s, ay, s);
+        if (c.carry === 'bar') drawBar(ax + side * 5 * s, ay + 1 * s, s, c.state === 'smelt' ? c.heat : 0, c.nFine > 0);
+        else drawIngot(ax + side * 5 * s, ay, s, false, c.nFine > 0);
       }
       if ((role === 'repair' || role === 'mech') && c.state === 'forge' && side === 1) drawPart(c.carry, ax + 5 * s, ay, s, c.heat);
       if (role === 'repair' && side === c.dir) {             // a wrench
@@ -2782,8 +2867,7 @@
     // gear on the back
     if (role === 'haul') {
       roundRect(-6.5 * s, by - 14 * s, 13 * s, 8 * s, 2 * s); ctx.fillStyle = pal.metal; ctx.fill(); ctx.strokeStyle = pal.metalDark; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = pal.nodule;
-      for (i = 0; i < c.load; i++) { ctx.beginPath(); ctx.arc((-3.6 + i * 3.6) * s, by - 10.4 * s, 1.35 * s, 0, TAU); ctx.fill(); }
+      for (i = 0; i < c.load; i++) { ctx.fillStyle = i < c.loadFine ? pal.ingot : pal.nodule; ctx.beginPath(); ctx.arc((-3.6 + i * 3.6) * s, by - 10.4 * s, 1.35 * s, 0, TAU); ctx.fill(); }   // fine ones show gold
     } else if (role === 'drill') {
       roundRect(-5 * s, by - 13 * s, 10 * s, 7 * s, 1.5 * s); ctx.fillStyle = dark; ctx.fill();
       ctx.fillStyle = c.bitOk ? pal.metal : pal.warn; ctx.fillRect(-3 * s, by - 11.5 * s, 6 * s, 1.6 * s);
@@ -2816,7 +2900,7 @@
       if (c.state === 'refill') { ctx.strokeStyle = pal.lavaHot; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(7 * s, by - 10 * s); ctx.lineTo(16 * s, by - 6 * s + Math.sin(T * 9) * 1.5); ctx.stroke(); }
     }
     if (c.bload > 0 && role !== 'haul') {                   // nodules picked up on the backup job, balanced on the shell
-      for (i = 0; i < c.bload; i++) drawNod((-3.5 + i * 3.5) * s, by - 9.5 * s - (i % 2) * 2 * s, 1.8 * s, 1, i);
+      for (i = 0; i < c.bload; i++) drawNod((-3.5 + i * 3.5) * s, by - 9.5 * s - (i % 2) * 2 * s, 1.8 * s, 1, i, i < c.bloadFine);
     }
     // antenna lamp
     if (role !== 'energy' && role !== 'repair' && role !== 'mech') {
@@ -2830,6 +2914,7 @@
     ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, by, 11 * s, 6.6 * s, 0, 0, TAU); ctx.fill();
     ctx.strokeStyle = dark; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.22; ctx.beginPath(); ctx.ellipse(-2 * s, by - 2.6 * s, 6 * s, 1.9 * s, -0.12, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    drawRoleMark(role, s, by, dark);
     if (f.mouth === 'open' || f.mouth === 'grin' || (f.eye === 'happy' && !f.party)) {   // rosy cheeks when pleased
       ctx.fillStyle = pal.tongue; ctx.globalAlpha = 0.35;
       ctx.beginPath(); ctx.ellipse(-6 * s, by + 0.8 * s, 1.8 * s, 1 * s, 0, 0, TAU); ctx.ellipse(6 * s, by + 0.8 * s, 1.8 * s, 1 * s, 0, 0, TAU); ctx.fill();
@@ -2925,7 +3010,7 @@
       drill: { go: c.flag ? 'walking to a flag' : 'no flags, so drilling blind', drill: 'drilling', rest: 'resting: the sand is littered' },
       haul: { seek: c.target ? 'fetching a nodule' : 'looking for nodules', pick: 'picking up a nodule', haul: S.lv.belt ? 'carrying nodules to the conveyor' : 'carrying nodules to the ore pile', stack: S.lv.belt ? (S.belt.length >= K.BELT_CAP ? 'waiting: the conveyor is full' : 'dropping nodules on the conveyor') : S.ore >= sim.oreCap() ? 'waiting: the ore pile is full' : 'stacking the ore pile' },
       crush: { home: 'walking to the press', wait: 'waiting for two nodules', crush: 'crushing nodules into a bar', hold: 'waiting: the bar stack is full' },
-      smelt: { toBar: 'walking to the bar stack', grab: S.bars ? 'grabbing a bar' : 'waiting for bars', toLava: 'carrying a bar to the lava', smelt: 'smelting in the lava', toStock: 'carrying an ingot to the stockpile', drop: 'stacking an ingot' },
+      smelt: { toBar: 'walking to the bar stack', grab: S.bars ? 'grabbing a bar' : 'waiting for bars', toLava: 'carrying a ' + (c.nFine ? 'fine ' : '') + 'bar to the ' + (c.rim === 2 && S.lv.rim ? 'second rim' : 'lava'), smelt: 'smelting in the lava' + (c.rim === 2 && S.lv.rim ? ' pocket' : ''), toStock: 'carrying a' + (c.nFine ? ' fine' : 'n') + ' ingot to the stockpile', drop: 'stacking a' + (c.nFine ? ' fine' : 'n') + ' ingot' },
       energy: { idle: 'standing by', go: 'running to recharge a crab', charge: 'recharging a crab', toEngine: 'heading to the Stirling engine', queue: 'queuing at the engine', refill: S.heat < 1 ? 'waiting: the engine is out of charge' : 'charging up at the engine' },
       repair: { idle: 'waiting in the workshop', toMat: 'fetching an ingot for a new bit', fetch: S.stock ? 'taking an ingot' : 'waiting: no metal on the stockpile', toForge: 'taking the ingot to the lava forge', forge: 'forging a new part in the lava', toJob: 'taking the new part to a crab', fix: 'fitting the new part' },
       mech: { idle: 'waiting in the workshop', toMat: 'fetching a bar for a new leg', fetch: S.bars ? 'taking a bar' : 'waiting: no bars on the stack', toForge: 'taking the bar to the lava forge', forge: 'forging a new leg in the lava', toJob: 'taking the new leg to a crab', fix: 'fitting the new leg' }
@@ -2966,6 +3051,10 @@
   function draw() {
     if (!W || !H || !S) return;
     var i, k, list, o, px, layers = [[], [], []], shaking = S.quake && !mqReduce.matches;
+    // the band of the canvas that is on screen, with a margin: sprites outside it are not drawn (the big field and the zoom
+    // make the canvas wider than the stage, and nothing a crab does reaches further than a talk bubble)
+    var vm = 110 * CS, vis0 = stage.scrollLeft / Z - vm, vis1 = (stage.scrollLeft + stage.clientWidth) / Z + vm;
+    if (W <= stage.clientWidth / Z + 2) { vis0 = -1e9; vis1 = 1e9; }
     ctx.clearRect(0, 0, W, H);
     if (shaking) { ctx.save(); ctx.translate(rr(-3, 3) * CS, rr(-2, 2) * CS); }   // the whole sea judders through an earthquake
     drawSurface(); drawSea(Math.min(0.05, T - (draw.lastT || T))); draw.lastT = T; drawCargo(); drawWhale(); drawEcoSurface(); drawSnow();
@@ -2974,11 +3063,16 @@
     drawEcoWater();
     drawWeeds(-1);
     // sort everything on the sand into its dune
-    for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
-    for (i = 0; i < S.flags.length; i++) { o = S.flags[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.01, kind: 1, o: o }); }
+    for (i = 0; i < S.nodules.length; i++) { o = S.nodules[i]; px = X(o.x); if (px < vis0 || px > vis1) continue; layers[layerOf(o.d)].push({ y: groundY(px, o.d), kind: 0, o: o }); }
+    for (i = 0; i < S.flags.length; i++) { o = S.flags[i]; px = X(o.x); if (px < vis0 || px > vis1) continue; layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.01, kind: 1, o: o }); }
     var air = [];
-    for (i = 0; i < S.crabs.length; i++) { o = S.crabs[i]; px = crabX(o); if (o.alt > 0 || o.turtle || o.manta) { air.push(o); continue; } layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o }); }
-    for (i = 0; i < debris.length; i++) { o = debris[i]; px = X(o.x); layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.02, kind: 3, f: drawDebris.bind(null, o) }); }
+    for (i = 0; i < S.crabs.length; i++) {
+      o = S.crabs[i]; px = crabX(o);
+      if (o.alt > 0 || o.turtle || o.manta) { if (o.alt > 0) px = airPos(o).x; if (px >= vis0 && px <= vis1) air.push(o); continue; }
+      if (px < vis0 || px > vis1) continue;
+      layers[o.vfall > 0 ? 2 : crabLayer(o)].push({ y: groundY(px, o.d) + 0.01, kind: 2, o: o });
+    }
+    for (i = 0; i < debris.length; i++) { o = debris[i]; px = X(o.x); if (px < vis0 || px > vis1) continue; layers[layerOf(o.d)].push({ y: groundY(px, o.d) - 0.02, kind: 3, f: drawDebris.bind(null, o) }); }
     layers[2].push({ y: basePos().y, kind: 3, f: drawBase });
     layers[2].push({ y: postPos().y, kind: 3, f: drawPost });
     if (S.trader) layers[2].push({ y: traderPos().y, kind: 3, f: drawTrader });
@@ -2994,6 +3088,7 @@
     if (S.lv.lamp) layers[2].push({ y: lampPos().y, kind: 3, f: drawLamp });
     if (S.lv.belt) layers[2].push({ y: groundY(X(K.BELT_HEAD), K.BELT_D) - 0.5, kind: 3, f: drawBelt });
     if (S.lv.pad) layers[2].push({ y: padPos().y - 6 * CS, kind: 3, f: drawPad });
+    if (S.lv.rim) layers[2].push({ y: rim2Pos().y - 0.5, kind: 3, f: drawRim2 });
     for (i = 0; i < S.pets.length; i++) layers[2].push({ y: petY(S.pets[i]) + 0.02, kind: 3, f: drawPet.bind(null, S.pets[i]) });
     layers[2].push({ y: groundY(X(K.EEL_X), K.EEL_D), kind: 3, f: drawEel });
     for (k = 0; k < 3; k++) {
@@ -3053,7 +3148,8 @@
     lamp: { name: 'Lighthouse lamp', fx: function (v) { return v ? 'Lights ' + v + ' units around the field\'s edge at night: tired crabs there are not slowed by the dark' : 'No lamp: tired crabs work at half speed in the dark'; } },
     kelp: { name: 'Kelp forest claim', fx: function (v) { return v ? 'The kelp at the field\'s left end is yours: deposits there are richer (+0.1) and bigger (+1 nodule), walking through the fronds is slow, and idle crabs weave kelp pieces for the den' : 'The kelp forest at the field\'s left end is roped off'; } },
     belt: { name: 'Ore conveyor', fx: function (v) { return v ? 'A belt from the field\'s edge to the ore pile: haulers drop nodules on it and turn straight back' : 'Haulers walk every nodule all the way to the ore pile'; } },
-    pad: { name: 'Charging pad', fx: function (v) { return v ? 'Crabs standing on it (between the ore pile and the crushing yard) charge ' + (v * 100).toFixed(1) + '% a second by themselves' : 'Only energy bots charge crabs'; } }
+    pad: { name: 'Charging pad', fx: function (v) { return v ? 'Crabs standing on it (between the ore pile and the crushing yard) charge ' + (v * 100).toFixed(1) + '% a second by themselves' : 'Only energy bots charge crabs'; } },
+    rim: { name: 'Second smelting rim', fx: function (v) { return v ? 'A lava pocket in the cavern side, nearer the plots: smelters spread over both rims, and the repair crews forge at the nearer one' : 'One lava rim: every smelter and forge shares it'; } }
   };
   var STAGE_NAME = { scout: 'Scouting', drill: 'Drilling', haul: 'Hauling', crush: 'Crushing', smelt: 'Smelting', sell: 'Selling' };
   var ui = {
@@ -3062,6 +3158,7 @@
     contractCard: $('contract-card'), contractText: $('contract-text'), contractTime: $('contract-time'), contractAccept: $('contract-accept'), contractDecline: $('contract-decline'), appMode: $('app-mode'), insureBtn: $('insure-btn'), insureText: $('insure-text'), soundBtn: $('sound-btn'), tutorial: $('tutorial'), tutStep: $('tut-step'), tutText: $('tut-text'), tutSkip: $('tut-skip'), tutorialBtn: $('tutorial-btn'), siteTech: $('site-tech'), siteTechBtn: $('site-tech-btn'), siteDecorBtn: $('site-decor-btn'), siteCrabBtn: $('site-crab-btn'), roster: $('roster'), rosterBox: $('roster-box'), rosterCount: $('roster-count'), layoutList: $('layout-list'),
     credits: $('h-credits'), rate: $('h-rate'), rank: $('h-rank'), rankBar: $('h-rank-bar'), rankNext: $('h-rank-next'),
     price: $('h-price'), trend: $('h-trend'), stock: $('h-stock'), reserve: $('h-reserve'), rMinus: $('r-minus'), rPlus: $('r-plus'),
+    fineWrap: $('h-fine-wrap'), fine: $('h-fine'), reserveFine: $('h-reserve-fine'), rfMinus: $('rf-minus'), rfPlus: $('rf-plus'), zoomOut: $('zoom-out'), zoomIn: $('zoom-in'), zoomFit: $('zoom-fit'), zoomLevel: $('zoom-level'),
     speeds: document.querySelectorAll('[data-speed]'), advice: $('advice'), used: $('crew-used'), hint: $('crew-hint'),
     roles: $('roles'), cards: $('cards'), ledger: $('ledger'), toasts: $('toasts'),
     intro: $('intro'), start: $('start'), newgame: $('newgame'), win: $('win'), winText: $('win-text'),
@@ -3137,7 +3234,7 @@
     if (ids !== rosterIds) {
       rosterIds = ids;
       ui.roster.innerHTML = crew.map(function (c) {
-        return '<li data-id="' + c.id + '"><span class="dot" style="background:var(--c-' + (c.role === 'haul' ? 'crab' : c.role) + ')"></span>' +
+        return '<li data-id="' + c.id + '">' + roleDot(c.role) +
           '<span class="who"><b></b><span class="stars"></span> <span class="kind"></span></span>' +
           '<button type="button" class="mini wide" data-show="' + c.id + '">Show</button><span class="what"></span></li>';
       }).join('');
@@ -3185,7 +3282,7 @@
   function buildRoles() {
     var html = '';
     K.ROLES.forEach(function (r) {
-      html += '<div class="role" data-role="' + r + '"><span class="dot" style="background:var(--c-' + (r === 'haul' ? 'crab' : r) + ')"></span>' +
+      html += '<div class="role" data-role="' + r + '">' + roleDot(r) +
         '<span class="role-name"><b><em class="long">' + NAMES[r] + 's</em><em class="short">' + SHORT[r] + '</em></b><span>' + ROLE_INFO[r] + '</span></span>' +
         '<span class="role-ctl"><button type="button" class="mini" data-act="retire" aria-label="Retire one ' + NAMES[r].toLowerCase() + '">−</button>' +
         '<output aria-label="' + NAMES[r] + 's">0</output>' +
@@ -3199,7 +3296,7 @@
       K.TECH[id].roles.forEach(function (role) {
         Object.keys(K.WUP).forEach(function (w) {
           if (K.WUP[w].role !== role) return;
-          html += '<div class="card wup" data-wup="' + w + '"><div class="card-top"><h3><span class="dot" style="background:var(--c-' + (role === 'haul' ? 'crab' : role) + ')"></span> ' + WUP_INFO[w][0] + '</h3><button type="button" class="hire" data-act="wup">$' + K.WUP[w].cost + '</button></div><p class="now">' + NAMES[role] + 's: ' + WUP_INFO[w][1] + '</p></div>';
+          html += '<div class="card wup" data-wup="' + w + '"><div class="card-top"><h3>' + roleDot(role) + ' ' + WUP_INFO[w][0] + '</h3><button type="button" class="hire" data-act="wup">$' + K.WUP[w].cost + '</button></div><p class="now">' + NAMES[role] + 's: ' + WUP_INFO[w][1] + '</p></div>';
         });
       });
     });
@@ -3378,9 +3475,13 @@
     var nk = S.news && S.news.kind;
     ui.trend.textContent = nk === 'boom' ? '▲ boom! ' + fmtTime(S.news.until - S.t) : nk === 'glut' ? '▼ glut ' + fmtTime(S.news.until - S.t) : d > 0.15 ? '▲ rising' : (d < -0.15 ? '▼ falling' : 'steady');
     ui.trend.className = 'hud-rate ' + (nk === 'boom' || (!nk && d > 0.15) ? 'up' : (nk === 'glut' || (!nk && d < -0.15) ? 'down' : ''));
-    ui.stock.textContent = String(S.stock);
+    ui.stock.textContent = String(S.stock - S.stockFine);
     ui.reserve.textContent = String(S.reserve);
     ui.rMinus.disabled = S.reserve <= 0; ui.rPlus.disabled = S.reserve >= 12;
+    ui.fineWrap.hidden = !(S.stockFine || S.reserveFine || S.stat.fineIngots);   // the fine shelf shows once there is fine metal
+    ui.fine.textContent = String(S.stockFine);
+    ui.reserveFine.textContent = String(S.reserveFine);
+    ui.rfMinus.disabled = S.reserveFine <= 0; ui.rfPlus.disabled = S.reserveFine >= 12;
     ui.advice.innerHTML = advice();
     var si = sim.shiftInfo();
     ui.shift.textContent = (S.site > 1 ? 'Site ' + S.site + ' · ' : '') + 'Day ' + si.day + (S.festival ? ' festival' : '') + ' · ' + clock(si.hour) + (si.night ? ' night' : '') + (si.periods > 1 ? ' · ' + si.name : '');
@@ -3471,6 +3572,7 @@
     var lost = r.metalUsed * avgPrice, share = r.sold + r.metalUsed ? Math.round(r.sold / (r.sold + r.metalUsed) * 100) : 100;
     html = '<h3>Money, last minute</h3><table class="ltable"><tbody>' +
       '<tr><th scope="row">Ingots sold up the riser</th><td class="n">' + r.sold.toFixed(1) + ' at ' + money(avgPrice) + '</td><td class="n">+' + money(r.revenue) + '</td></tr>' +
+      '<tr><th scope="row">Of them fine ingots, at half as much again</th><td class="n">' + r.fineSold.toFixed(1) + '</td><td class="n">+' + money(r.fineCredits) + ' extra</td></tr>' +
       '<tr><th scope="row">Ingots spent on repairs</th><td class="n">' + r.metalUsed.toFixed(1) + '</td><td class="n">' + (lost ? '−' : '') + money(lost) + '</td></tr>' +
       '<tr class="total"><td>Metal that reached the surface</td><td></td><td class="n">' + share + '%</td></tr>' +
       '</tbody></table>' +
@@ -3505,6 +3607,8 @@
       '<tr><th scope="row">Apprentices</th><td class="n">' + S.stat.apprentices + ' hired, ' + S.stat.graduates + ' graduated, ' + S.crabs.filter(function (c2) { return c2.apprentice; }).length + ' learning now</td></tr>' +
       '<tr><th scope="row">Ore conveyor</th><td class="n">' + (S.lv.belt ? S.stat.belted + ' nodules ridden to the pile, ' + S.belt.length + ' on the belt now' : 'not built (Build tab)') + '</td></tr>' +
       '<tr><th scope="row">Charging pad</th><td class="n">' + (S.lv.pad ? S.stat.padCharge.toFixed(1) + ' batteries\' worth given, ' + S.crabs.filter(function (c2) { return c2.onPad; }).length + ' crab' + (S.crabs.filter(function (c2) { return c2.onPad; }).length === 1 ? '' : 's') + ' on it now' : 'not built (Build tab)') + '</td></tr>' +
+      '<tr><th scope="row">Second smelting rim</th><td class="n">' + (S.lv.rim ? S.stat.rim2 + ' smeltings at the lava pocket, ' + S.crabs.filter(function (c2) { return c2.role === 'smelt' && c2.rim === 2 && (c2.state === 'toLava' || c2.state === 'smelt'); }).length + ' smelter' + (S.crabs.filter(function (c2) { return c2.role === 'smelt' && c2.rim === 2 && (c2.state === 'toLava' || c2.state === 'smelt'); }).length === 1 ? '' : 's') + ' there now' : 'not built (Build tab)') + '</td></tr>' +
+      '<tr><th scope="row">Metal grades</th><td class="n">fine now: ' + S.oreFine + ' nodule' + (S.oreFine === 1 ? '' : 's') + ' on the pile, ' + S.barsFine + ' bar' + (S.barsFine === 1 ? '' : 's') + ', ' + S.stockFine + ' ingot' + (S.stockFine === 1 ? '' : 's') + ' on the shelf · ' + S.stat.fineIngots + ' fine ingots smelted, ' + S.stat.fineSold + ' sold for ' + money(S.stat.fineCredits) + ' extra (deposits of richness ' + K.FINE_Q + ' and up)</td></tr>' +
       '</tbody></table>';
     var cov = sim.coverage(), ri, si2, cell;
     html += '<h3>Shifts: crabs on duty in each part of the day</h3><table class="ltable"><thead><tr><th scope="col">Role</th>';
@@ -3650,7 +3754,7 @@
       money(S.earned) + ' earned in ' + fmtTime(S.t) + ' of crab time',
       ranks.length ? 'Ranks: ' + ranks.join(' · ') : 'No rank-ups yet',
       'Crew of ' + S.crabs.length + ': ' + crew.join(', '),
-      S.stat.sold.toLocaleString('en-US') + ' ingots delivered, best pace ' + bestRate.toFixed(1) + ' a minute, ' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' ship orders, ' + S.stat.pearls + ' pearls' + (S.stat.chests ? ', ' + S.stat.chests + ' sunken chest' + (S.stat.chests === 1 ? '' : 's') : '') + ', ' + Object.keys(S.ach).length + ' of ' + sim.achievements().length + ' achievements',
+      S.stat.sold.toLocaleString('en-US') + ' ingots delivered' + (S.stat.fineSold ? ' (' + S.stat.fineSold + ' fine)' : '') + ', best pace ' + bestRate.toFixed(1) + ' a minute, ' + S.stat.ordersFilled + ' of ' + S.stat.orders + ' ship orders, ' + S.stat.pearls + ' pearls' + (S.stat.chests ? ', ' + S.stat.chests + ' sunken chest' + (S.stat.chests === 1 ? '' : 's') : '') + ', ' + Object.keys(S.ach).length + ' of ' + sim.achievements().length + ' achievements',
       'https://crabminer.com'].join('\n');
   }
   function copySummary() {
@@ -3806,6 +3910,7 @@
 
   function wire() {
     buildRoles();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mark]'), function (el) { el.innerHTML = markSVG(el.getAttribute('data-mark')); });   // the intro's legend wears the marks too
     function onRoleClick(e) {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var r = b.closest('.role').getAttribute('data-role'), res;
@@ -3891,6 +3996,12 @@
     });
     ui.rMinus.addEventListener('click', function () { sim.setReserve(S.reserve - 1); renderHUD(); });
     ui.rPlus.addEventListener('click', function () { sim.setReserve(S.reserve + 1); renderHUD(); });
+    ui.rfMinus.addEventListener('click', function () { sim.setReserveFine(S.reserveFine - 1); renderHUD(); });
+    ui.rfPlus.addEventListener('click', function () { sim.setReserveFine(S.reserveFine + 1); renderHUD(); });
+    ui.zoomIn.addEventListener('click', function () { setZoom(zoom * 1.25); });
+    ui.zoomOut.addEventListener('click', function () { setZoom(zoom / 1.25); });
+    ui.zoomFit.addEventListener('click', function () { setZoom(1); });
+    wireGestures();
     for (var i = 0; i < ui.speeds.length; i++) ui.speeds[i].addEventListener('click', function () { setSpeed(parseFloat(this.getAttribute('data-speed'))); });
     var tabs = document.querySelectorAll('[role="tab"]');
     Array.prototype.forEach.call(tabs, function (t) {
@@ -3925,6 +4036,9 @@
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       var k = e.key.length === 1 ? e.key.toLowerCase() : e.key, list = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]')), j;
       if (k === '1' || k === '2' || k === '3') setSpeed([1, 2, 4][+k - 1]);
+      else if (k === '+' || k === '=') setZoom(zoom * 1.25);
+      else if (k === '-') setZoom(zoom / 1.25);
+      else if (k === '0') setZoom(1);
       else if (k === 's') shoo();
       else if (k === 't') openShop();
       else if (k === 'c') openContract();
@@ -3936,7 +4050,8 @@
       } else if (k === '?') { setSpeed(0); openIntro(); }
     });
     cv.addEventListener('click', function (e) {
-      var rect = cv.getBoundingClientRect(), x = (e.clientX - rect.left) / Z, y = (e.clientY - rect.top) / Z, bestC = null, bd = 1e9, i, c, px, py, d, z;
+      var rect = cv.getBoundingClientRect(), x = (e.clientX - rect.left) / Z, y = (e.clientY - rect.top) / Z, bestC, i, c, z;
+      if (suppressClick) { suppressClick = false; return; }   // the end of a drag, a pinch or a long press is not a click
       if (S.trader) {                     // the trader: show its goods
         var trp = traderPos();
         if (Math.abs(trp.x - x) < 26 * CS && y > trp.y - 60 * CS && y < trp.y + 6) {
@@ -3969,13 +4084,8 @@
         sim.drain(); renderPanel(); draw();
         return;
       }
-      for (i = 0; i < S.crabs.length; i++) {
-        c = S.crabs[i]; px = crabX(c); py = groundY(px, c.d) - 10 * scaleAt(c.d);
-        if (c.alt > 0) { var ap = airPos(c); px = ap.x; py = ap.y; }
-        d = Math.hypot(px - x, py - y);
-        if (d < bd) { bd = d; bestC = c; }
-      }
-      if (bestC && bd < 26 * CS) { selected = bestC; selectedUntil = T + 5; return; }
+      bestC = crabAt(x, y);
+      if (bestC) { selected = bestC; selectedUntil = T + 5; return; }
       for (z in lockHit) {
         c = lockHit[z];
         if ((z === 'kelp' || z >= sim.up('field')) && x >= c.x0 && x <= c.x1 && y >= c.y0 && y <= c.y1) {
@@ -3988,6 +4098,86 @@
       }
       selected = null;
     });
+  }
+  function crabAt(x, y) {                // the crab under a point on the canvas (canvas units), or null
+    var bestC = null, bd = 1e9, i, c, px, py, d;
+    for (i = 0; i < S.crabs.length; i++) {
+      c = S.crabs[i]; px = crabX(c); py = groundY(px, c.d) - 10 * scaleAt(c.d);
+      if (c.alt > 0) { var ap = airPos(c); px = ap.x; py = ap.y; }
+      d = Math.hypot(px - x, py - y);
+      if (d < bd) { bd = d; bestC = c; }
+    }
+    return bestC && bd < 26 * CS ? bestC : null;
+  }
+  // ----- the field under the fingers: drag to pan, pinch to zoom, long-press a crab for its card -----
+  // The canvas takes every pointer itself (touch-action: none), so one finger pans the stage, two fingers pinch the
+  // zoom about their midpoint, and a finger held still on a crab opens its card and keeps it open. A mouse drags and
+  // Ctrl-scrolls the same way. A pointer that moved, or that long-pressed, swallows the click that follows it.
+  var zoom = 1, ZOOM_MAX = 2.5, suppressClick = false;
+  function setZoom(z, cx, cy) {          // zoom the field about a point of the stage's viewport (CSS px), or its middle
+    z = clamp(z, 1, ZOOM_MAX);
+    if (Math.abs(z - zoom) < 0.002) return;
+    if (cx === undefined) { cx = stage.clientWidth / 2; cy = stage.clientHeight / 2; }
+    var fx = (stage.scrollLeft + cx) / Math.max(1, stage.scrollWidth), fy = (stage.scrollTop + cy) / Math.max(1, stage.scrollHeight);   // the world point under the finger, as a share of the canvas
+    zoom = z;
+    stage.classList.toggle('zoomed', zoom > 1.002);
+    measure();
+    stage.scrollLeft = fx * stage.scrollWidth - cx;
+    stage.scrollTop = fy * stage.scrollHeight - cy;
+    if (ui.zoomLevel) { ui.zoomLevel.textContent = '×' + zoom.toFixed(zoom >= 2 ? 1 : 2).replace(/\.?0+$/, ''); ui.zoomOut.disabled = zoom <= 1.002; ui.zoomIn.disabled = zoom >= ZOOM_MAX - 0.002; ui.zoomFit.disabled = zoom <= 1.002; }
+    if (!running) draw();
+  }
+  function wireGestures() {
+    var ptrs = {}, g = null, pressTimer = 0, lastPinch = 0;
+    function count() { return Object.keys(ptrs).length; }
+    function two() { var k = Object.keys(ptrs); return [ptrs[k[0]], ptrs[k[1]]]; }
+    function endPress() { if (pressTimer) { clearTimeout(pressTimer); pressTimer = 0; } }
+    function swallow() { suppressClick = true; setTimeout(function () { suppressClick = false; }, 400); }   // a touch drag raises no click at all
+    cv.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY };
+      try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      endPress();
+      if (count() === 2) { var p = two(); g = { kind: 'pinch', d0: Math.max(10, Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y)), z0: zoom, moved: true }; }
+      else if (count() === 1) {
+        g = { kind: 'drag', moved: false, sl: stage.scrollLeft, st: stage.scrollTop };
+        pressTimer = setTimeout(function () {                // a finger held still: the crab under it, card pinned open
+          pressTimer = 0; if (!g || g.moved) return;
+          var rect = cv.getBoundingClientRect(), c = crabAt((e.clientX - rect.left) / Z, (e.clientY - rect.top) / Z);
+          g.pressed = true; swallow();
+          if (c) { selected = c; selectedUntil = T + 20; if (navigator.vibrate) try { navigator.vibrate(12); } catch (err) {} play(c, ['wave', 'salute'], 1); }
+        }, 550);
+      }
+    });
+    cv.addEventListener('pointermove', function (e) {
+      var p = ptrs[e.pointerId], rect, q, d, mx, my;
+      if (!p || !g) return;
+      p.x = e.clientX; p.y = e.clientY;
+      if (g.kind === 'pinch' && count() === 2) {
+        q = two(); d = Math.hypot(q[0].x - q[1].x, q[0].y - q[1].y); rect = stage.getBoundingClientRect();
+        mx = (q[0].x + q[1].x) / 2 - rect.left; my = (q[0].y + q[1].y) / 2 - rect.top;
+        if (performance.now() - lastPinch > 60) { lastPinch = performance.now(); setZoom(g.z0 * d / g.d0, mx, my); }   // re-measuring is the dear part: not on every event
+      } else if (g.kind === 'drag') {
+        var dx = p.x - p.x0, dy = p.y - p.y0;
+        if (!g.moved && Math.hypot(dx, dy) > 6) { g.moved = true; endPress(); }
+        if (g.moved) { stage.scrollLeft = g.sl - dx; if (stage.classList.contains('zoomed')) stage.scrollTop = g.st - dy; }
+      }
+    });
+    function up(e) {
+      if (!ptrs[e.pointerId]) return;
+      delete ptrs[e.pointerId];
+      endPress();
+      if (g && (g.moved || g.pressed)) swallow();
+      if (count() === 0) g = null;
+      else if (count() === 1) { var k = Object.keys(ptrs)[0], p = ptrs[k]; p.x0 = p.x; p.y0 = p.y; g = { kind: 'drag', moved: true, sl: stage.scrollLeft, st: stage.scrollTop }; }   // one finger left after a pinch: it pans
+    }
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    stage.addEventListener('wheel', function (e) {              // Ctrl (or ⌘) and the wheel: zoom about the cursor
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      var rect = stage.getBoundingClientRect();
+      setZoom(zoom * Math.exp(-e.deltaY * 0.0025), e.clientX - rect.left, e.clientY - rect.top);
+    }, { passive: false });
   }
   function selectTab(id) {
     Array.prototype.forEach.call(document.querySelectorAll('[role="tab"]'), function (t) {
@@ -4039,7 +4229,7 @@
     new IntersectionObserver(function (en) { stageVisible = en[0].isIntersecting; }).observe($('game'));
   }
 
-  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z, sound: sfx.isOn(), tutorial: tut.step }; }, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
+  window.crabminer = { sim: sim, state: function () { return S; }, view: function () { return { stormA: stormA, lavaA: lavaA, nightA: nightA, rain: rain.length, T: T, whale: !!whale, cargo: cargo.phase, selected: selected && selected.id, Z: Z, zoom: zoom, W: W, sound: sfx.isOn(), tutorial: tut.step }; }, setZoom: setZoom, at: function (c) { var px = crabX(c); return { x: px * Z, y: (groundY(px, c.d) - 10 * scaleAt(c.d)) * Z }; }, summary: runSummary, talk: function () { var o = {}; Object.keys(TALK).forEach(function (k) { o[k] = talkCount[k] || 0; }); return o; }, select: function (c) { selected = c; selectedUntil = T + 5; }, summonWhale: function () { whale = { x: W * 0.5, y: (surfH + base[0]) / 2, v: 50, id: ++whaleId, ph: 0 }; }, summonManta: function () { S.nextManta = S.t; }, quake: function () { S.nextQuake = S.t; }, news: function (k) { S.nextNews = S.t; if (k) { var i2 = K.NEWS_KINDS.indexOf(k); if (i2 >= 0) K.NEWS_KINDS.splice(0, K.NEWS_KINDS.length, k, k, k); } }, festival: function () { S.festival = true; S.decor.push({ kind: 'lanterns', at: S.t }); handle({ type: 'festival', a: S.day }); }, adopt: function (kind) { sim.adopt(kind, 'shop'); sim.drain().forEach(handle); }, chimney: function () { S.nextChimney = S.t; }, contract: function () { S.nextContract = S.t; }, apprentice: function (role) { S.credits += 200; sim.hire(role || 'haul', true); sim.drain().forEach(handle); }, eco: function () { return eco ? eco.report() : null; }, anims: ANIM_NAMES.length, drawMs: function (n) { var t = performance.now(), i; for (i = 0; i < (n || 20); i++) draw(); return (performance.now() - t) / (n || 20); } };   // for poking at the economy from the console
   try { best = parseFloat(localStorage.getItem('crabminer-best')) || null; } catch (e) { best = null; }
   readPalette();
   var bigPref = null;

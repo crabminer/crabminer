@@ -112,6 +112,13 @@ you can have (section 14).
 
 Walk speeds are in track units per second. Haulers walk at 88 with Spring legs.
 
+**Telling the kinds apart.** Each kind has its own colour and its own gear, and also a mark on its shell, so no two
+kinds are told apart by colour alone: scout ▲, drill ◆, hauler two bars, crusher ■, smelter ● (with a hot centre),
+energy bot a bolt, repair bot +, maintenance bot ○. The same mark sits in the coloured dot beside each kind in the
+Crew tab, the crew list, the Tech tab and the introduction. (`node tests/colour.js` reports how far apart the eight
+colours are with normal vision and with the three common colour deficiencies: under protanopia and deuteranopia the
+hauler's and the maintenance bot's colours are nearly the same, which is why the marks exist.)
+
 ### Apprentices
 
 - Any kind can be hired as an **apprentice** (the 🎓 button beside +, or on phones the "hire apprentices" toggle above the crew rows) for half the price of the next crab of that kind.
@@ -197,12 +204,30 @@ bar stack and again at the stockpile, and the repair crews and energy bots wait 
 about the anvil and the post rather than in a row.
 
 **Smelter.**
-- Takes a bar (two with Twin tongs), holds it in the lava for 3.0 s, and carries the ingot to the stockpile.
-- The stockpile holds 40.
+- Takes a bar (two with Twin tongs), fine bars first, holds it in the lava for 3.0 s, and carries the ingot to the stockpile.
+- It smelts at the lava rim (x = 874). With the second smelting rim built (section 14) it picks, as it leaves the bar
+  stack, whichever of the two rims has fewer smelters at it or on the way (ties go by its number), and the repair
+  crews forge at the lava pocket, which is nearer.
+- The stockpile holds 40, fine and plain together.
 
 **Riser.**
-- Sends one ingot up every 3.0 s (1.8 s, then 1.0 s with upgrades), as long as the stockpile holds more than the **reserve**.
-- The reserve is the number of ingots you keep back for repairs, 0 to 12, and starts at 2.
+- Sends one ingot up every 3.0 s (1.8 s, then 1.0 s with upgrades): a fine ingot if the fine shelf holds more than
+  the **fine reserve**, else a plain one if the plain stockpile holds more than the **reserve**.
+- The reserve is the number of plain ingots you keep back for repairs, 0 to 12, and starts at 2. The fine reserve
+  (0 to 12, starting at 0) keeps fine ingots back the same way; its stepper appears in the top bar once the first
+  fine ingot is smelted.
+
+**Metal grades.** A deposit of richness 0.85 or more yields **fine** nodules (a gold glint on the nodule, a gold
+star on the flag). The grade travels with the metal:
+- A hauler counts the fine nodules in its load and sets them down first; the pile keeps them on top. The conveyor
+  carries the grade along.
+- A crusher that finds two fine nodules on the pile presses a fine bar (a gold band); a mixed pressing is plain.
+- A smelter takes fine bars first and smelts fine ingots, which go on their own shelf beside the stockpile.
+- A fine ingot sells for half as much again (×1.5 on the price, before the flow bonus and the order premium). The
+  Ledger counts fine ingots smelted and sold and the extra credits; fifty sold is the Fine metal achievement.
+- The forge and the trader take plain metal first, and only touch fine bars or ingots when there are no plain ones.
+  The octopus takes plain nodules first too; what it, the eel or a gull drops keeps its grade.
+- Mixed loads: a gull takes a plain nodule from a load before a fine one.
 
 ## 6. Getting about
 
@@ -399,7 +424,7 @@ are slow haulers.
   - **Running out** costs a reputation star, like a missed order.
   - **Letting it lapse** (the button, or the 90 s passing) costs nothing. The Ledger counts contracts filled, run out and let lapse, and the credits earned.
 - **A new dig site.** Once you are Crab Tycoon, the win card (and a button in the Ledger's Career note) offers a new dig site: fresh dunes with a new random stream, the starting crew, the same workday, and **one perk** carried over: a technology you researched (chosen from a list), the den's decorations (all of them, beyond the den's room if need be), or your best crab (most stars, then most jobs) with its name, record, stars and mood. Everything else starts over, achievements included. The site number shows in the top bar and the run summary, and the Ledger's Career note keeps the sites, credits, ingots and crab time before this one and what came along. New game under ? starts site 1 again.
-- **Achievements.** Thirty, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), forester (20 deposits flagged in the kelp forest), belt and braces (200 nodules ridden on the conveyor), self-service (10 batteries' worth from the charging pad), second claim (a new dig site), covered (100 credits paid out by the insurer), nature's way (the shark chases the octopus off 3 times), and Crab Tycoon.
+- **Achievements.** Thirty-one, each won once, checked every second and listed in the Ledger with the time it was won: first pearl, treasure hunter (a chest), a hundred ingots, a thousand ingots, frequent flyer (10 turtle rides), manta riders (5), homely (a full den), five stars, a quiet night (60 crab-seconds of night work with no breakdown), old claws (a three-star crab), a crowd (20 crabs), lab coat (every technology), party animal (a festival), bouncer (10 shoos), reliable (5 orders filled), beat the lobsters (3 races won), menagerie (all four pets), happy crew (8 or more crabs, four in five happy), shaken not stirred (an earthquake), teacher (5 apprentices graduated), under contract (a contract filled), hot shortcut (10 chimney rides), lamplighter (600 crab-seconds of night work under the lighthouse lamp), forester (20 deposits flagged in the kelp forest), belt and braces (200 nodules ridden on the conveyor), self-service (10 batteries' worth from the charging pad), second claim (a new dig site), covered (100 credits paid out by the insurer), nature's way (the shark chases the octopus off 3 times), fine metal (50 fine ingots delivered), and Crab Tycoon.
 - **Flow bonus.** An ingot sold within 6 s of the last keeps the flow going. Each one in a row adds 2% to the price, up to 40% for 20 in a row. A gap resets the flow.
 - **Overclock.**
   - Every sale banks 0.6 s of overclock, multiplied by (1 + streak / 10), up to 30 s.
@@ -442,11 +467,13 @@ are slow haulers.
 | Kelp forest claim | The field's left end (x 20 to 130) opens for mining | 350 |
 | Ore conveyor | A belt from the field's edge to the ore pile | 300 |
 | Charging pad | Crabs on it charge 0.8%, then 1.6% a second | 180, 420 |
+| Second smelting rim | A lava pocket in the cavern side at x = 846, nearer the plots | 280 |
 
 - **The lighthouse lamp.** A striped tower at the field's edge (x = 548, depth 0.74), between the den and the near field. At night it lights the sand within its reach (120 units along the track, or across the dunes at 300 units a dune's depth; 220 at the second level): a tired crab in its light works and walks at full speed, as in the plankton light (section 17), and its light shows warm rather than blue-green. The Ledger counts the crab-seconds of night work it lit.
 - **The kelp forest claim.** The field's left end, from 20 to 130 along the track on every dune, is a stand of kelp, roped off with a paper tag (click it to jump to the card). Scouts do not scan there until it is claimed, so the open field is 400 units wide until then. Claimed, it is part of every claimed dune: a deposit flagged in it is richer by 0.1 (up to 0.97) and one nodule bigger, walking through the fronds is at 70% speed (section 6), and idle crabs weave kelp pieces for the den (section 12). The Ledger counts the deposits flagged in it.
 - **The ore conveyor.** A belt from the field's edge (x = 546) to 10 units short of the ore pile, wherever that stands. Haulers (and crabs on the backup job) queue at its head instead of the pile and drop each nodule on it; the belt carries nodules at 60 units a second, 7 units apart, and puts each one on the pile as it arrives. When the pile is full the nodules queue on the belt, up to 14; when the belt is full, or backed up to its head, haulers wait as they would at a full pile. The capacity estimate counts haulers 30% stronger with it.
 - **The charging pad.** A disc halfway between the ore pile and the crushing yard, at depth 0.86. Every crab but an energy bot within 40 units of it (across the dunes at 300 units a depth) charges 0.8% of its battery a second, 1.6% at the second level, working, waiting or idle. Energy bots still come when a battery drops below 60%. The Ledger counts the batteries' worth given.
+- **The second smelting rim.** A pocket of lava that opens in the cavern side between the last plot and the Stirling engine (x = 846, depth 0.94), ringed with rock. Smelters stand on its left edge (x = 832, three spots at depths 0.90 to 0.96) and spread themselves over the two rims (section 5), and the repair and maintenance crews forge at the pocket instead of the far rim. From the default bar stack it is 34 units nearer than the rim, and the stockpile 34 units nearer again on the way back, so a smelter's round trip is about 1.3 s shorter; in a 20-minute run with three smelters and smelting the slowest stage, output rose from 13.4 to 15.0 ingots a minute, and the capacity estimate counts smelters 10% stronger with it. The Ledger counts the smeltings at the pocket.
 ## 15. Research and worker upgrades (Tech tab)
 
 Research a technology to unlock its worker upgrades. A worker upgrade is bought once and
@@ -587,7 +614,10 @@ trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | --- | --- | --- |
 | ❚❚ 1× 2× 4× | Top bar | Pause and game speed (Space pauses; 1, 2, 3 set 1×, 2×, 4×) |
 | ⚡ Overclock | Top bar | Spend banked overclock (O) |
-| Stockpile − + | Top bar | Ingots kept back for repairs |
+| Stockpile − + | Top bar | Plain ingots kept back for repairs |
+| ✨ fine − + | Top bar | Fine ingots kept back on their shelf; appears once the first fine ingot is smelted |
+| Pinch, drag, long press | Field (touch) | Pinch to zoom the field up to 2.5×, drag to pan it (both ways when zoomed), hold a finger on a crab to open its card and keep it open 20 s |
+| + − 0 | Keys, and the View tab | Zoom in, zoom out, fit the field to the screen; Ctrl (or ⌘) and the mouse wheel zoom about the cursor |
 | Big field | Top bar | Big field (default) or side panel (B); hidden on small screens |
 | 🔇 / 🔊 | Top bar | Sound on or off (N); off by default and remembered. Synthesised: clicks on buttons, a coin on each sale, a chime for pearls, chests and achievements, a crack for breakdowns, a fanfare and a crab-rave tune on rank-ups, festivals and filled contracts, bubbles and a splash for vent rides, a rumble for quakes and surges, wind for storms, and the whale's song |
 | ? | Top bar | The introduction, with the keys, Listen all (read aloud), Tutorial and New game (? key) |
@@ -600,7 +630,7 @@ trouble. A rank-up sets off a five-second crab rave. They are cosmetic.
 | Build tab | Panel | Upgrades, Move buildings (M), the plots with ◀ ▶ to move buildings and the post, refuel post pinning, den decorations, the trader's goods, the contract on offer or under way (Accept, Let it lapse), Insure |
 | Tech tab | Panel | Research and worker upgrades |
 | Ledger tab | Panel | Copy a summary of the run, whole-game charts of money and output, money, whole-game bars from sand to ship and for upkeep, crab talk by count, the food web's lab report, prices, stage capacities, overheads, coverage, the sea, bonuses |
-| View tab | Panel | Fold the panel away and scroll the field |
+| View tab | Panel | Fold the panel away, scroll the field, and zoom it (− ×1 + and Fit) |
 | [ ] | Keys | The previous or next tab |
 | Click a crab | Field | See what it is doing |
 | Click the octopus | Field | Shoo it |

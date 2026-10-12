@@ -32,7 +32,8 @@ function act(sim, r) {
   if (x < 0.79) return sim.setShift(pick(K.SHIFTS));
   if (x < 0.83) return sim.setWork({ start: r() * 24, len: 2 + r() * 10, count: 1 + Math.round(r()), rest: r() * 8, groups: 1 + Math.floor(r() * 3) });
   if (x < 0.85) return sim.setScoutsNight(r() < 0.5);
-  if (x < 0.89) return sim.setReserve(Math.floor(r() * 13));
+  if (x < 0.87) return sim.setReserve(Math.floor(r() * 13));
+  if (x < 0.89) return sim.setReserveFine(Math.floor(r() * 13));
   if (x < 0.94) return sim.overclock(r() < 0.7);
   if (x < 0.95) return sim.shoo();
   if (x < 0.965) return S.contract ? (r() < 0.7 ? sim.acceptContract() : sim.declineContract()) : sim.shooEel();

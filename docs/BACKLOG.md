@@ -18,29 +18,24 @@ of 119 animations with dances that cheer up the crabs around them, the manta-ray
 festival every tenth day, the den's pets, crab moods, earthquakes, surface news, achievements,
 apprentices, contracts, the hydrothermal chimney, the lighthouse lamp, the kelp forest claim, the ore
 conveyor, the charging pad, the new dig site after Crab Tycoon, insurance, the food web's two bites at the
-game (the shark and the gulls), sound, and the tutorial.
-
-## Economy and progression
-
-- **Metal grades.** Rich flags make "fine" ingots worth 50% more; the smelter keeps them on
-  a separate shelf of the stockpile, and the reserve can be set per grade.
+game (the shark and the gulls), sound, the tutorial, metal grades (fine ingots from rich deposits, on their own
+shelf with their own reserve), the second smelting rim, a mark on every kind's shell (with `tests/colour.js`, the
+colour-vision report that showed why), pinch zoom, drag to pan and the long-press crab card, and skipping the
+sprites outside the visible part of the field.
 
 ## Buildings and layout
 
-- **Second smelting rim.** A buildable lava rim further along the cavern so smelters do not
-  queue; a plot-like slot on the cavern side.
 - **More plots.** A den upgrade or claim that adds plots on the middle dune for a second
-  ore pile near the deep deposits.
+  ore pile near the deep deposits. Needs haulers to choose a pile, crushers to work from
+  both, and the belt and the pad to know which pile they serve, so it is a round of its own.
 
 ## Interface and accessibility
 
-- **Colour-blind check.** Run the role colours through a contrast and CVD validator and add
-  a shape or letter to each crab's gear so roles are never told apart by colour alone.
-- **Touch gestures.** Pinch to zoom the field on phones, drag to pan, long-press a crab for
-  its card.
+- **Role marks as an option.** The shell marks are always on. A View-tab toggle could make
+  them bolder (a letter instead of a shape) or hide them for players who prefer bare shells.
 
 ## Engineering
 
-- **Skip offscreen sprites.** Drawing already stops while the game is scrolled out of view
-  and the loop stops in a hidden tab. On the wide big field, crabs and particles outside the
-  visible part of the canvas could be skipped too.
+- **Skip offscreen particles.** Nodules, flags, crabs and debris outside the visible band of
+  the canvas are skipped. Puffs, sparks, confetti, plankton and the food web still draw
+  everywhere; on a zoomed phone they are the next cost worth cutting.

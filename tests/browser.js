@@ -230,8 +230,51 @@ async function check(b, size) {
   expect(await js('crabminer.state().lv.kelp === 1 && crabminer.state().lv.belt === 1 && crabminer.state().lv.pad === 1'), 'the Build tab did not build the kelp claim, the conveyor and the pad');
   expect(await js('crabminer.state().stat.belted > 0'), 'no nodule rode the conveyor to the pile');
   await shot('belt');
+
+  // metal grades and the second rim: fine nodules on the pile press into fine bars and smelt into fine ingots on their shelf,
+  // the top bar shows the shelf, and with the rim built a smelter goes to the lava pocket
+  await js('crabminer.sim.buy("rim"); crabminer.sim.drain().forEach(() => 0); const S4 = crabminer.state(); S4.ore = 8; S4.oreFine = 8; S4.bars = 2; S4.barsFine = 2; document.querySelector(\'[data-speed="4"]\').click(); true');
+  for (let i = 0; i < 400 && !(await js('crabminer.state().stat.fineIngots > 0 && crabminer.state().stat.rim2 > 0')); i++) await wait(100);
+  await key('1');
+  await wait(400);
+  expect(await js('crabminer.state().lv.rim === 1'), 'the rim upgrade did not build');
+  expect(await js('crabminer.state().stat.fineIngots > 0'), 'no fine ingot was smelted from fine bars');
+  expect(await js('crabminer.state().stat.rim2 > 0'), 'no smelter used the lava pocket');
+  expect(await js('!document.getElementById("h-fine-wrap").hidden'), 'the top bar does not show the fine shelf');
+  await js('document.getElementById("rf-plus").click(); true');
+  expect(await js('crabminer.state().reserveFine === 1'), 'the fine reserve button did not raise the fine reserve');
+  await shot('fine');
   await js('document.getElementById("t-ledger").click(); true'); await wait(600);
   expect(await js('/Ore conveyor/.test(document.getElementById("ledger").textContent) && /Kelp forest/.test(document.getElementById("ledger").textContent) && /Insurance/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no conveyor, kelp or insurance rows');
+  expect(await js('/Metal grades/.test(document.getElementById("ledger").textContent) && /Second smelting rim/.test(document.getElementById("ledger").textContent)'), 'the Ledger has no metal grades or second rim rows');
+
+  // the field under the fingers: two pointers pinch the zoom, one dragged pans, one held on a crab opens its card
+  await js('document.getElementById("t-view").click(); true');
+  const pinch = async (d0, d1) => {
+    const r = await js('(() => { const r = document.getElementById("stage").getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()');
+    const ev = (type, id, x, y) => js(`document.getElementById("scene").dispatchEvent(new PointerEvent("${type}", { pointerId: ${id}, pointerType: "touch", clientX: ${x}, clientY: ${y}, bubbles: true, isPrimary: ${id === 1} })); true`);
+    await ev('pointerdown', 1, r.x - d0 / 2, r.y); await ev('pointerdown', 2, r.x + d0 / 2, r.y);
+    for (let i = 1; i <= 4; i++) { const d = d0 + (d1 - d0) * i / 4; await ev('pointermove', 1, r.x - d / 2, r.y); await ev('pointermove', 2, r.x + d / 2, r.y); await wait(90); }
+    await ev('pointerup', 1, r.x - d1 / 2, r.y); await ev('pointerup', 2, r.x + d1 / 2, r.y);
+  };
+  const w0 = await js('document.getElementById("stage").scrollWidth');
+  await pinch(100, 200);
+  expect(await js('crabminer.view().zoom') > 1.5, 'a pinch did not zoom the field (zoom ' + (await js('crabminer.view().zoom')) + ')');
+  expect(await js('document.getElementById("stage").scrollWidth') > w0 * 1.3 && await js('document.getElementById("stage").classList.contains("zoomed")'), 'the zoomed field did not grow');
+  expect(await js('document.getElementById("stage").scrollHeight > document.getElementById("stage").clientHeight + 10'), 'the zoomed field does not scroll up and down');
+  await shot('zoom');
+  const sl0 = await js('document.getElementById("stage").scrollLeft = 200; document.getElementById("stage").scrollLeft');
+  const drag = await js('(() => { const cv = document.getElementById("scene"), r = cv.getBoundingClientRect(), x = r.left + 300, y = r.top + 200, ev = (t, cx) => cv.dispatchEvent(new PointerEvent(t, { pointerId: 7, pointerType: "touch", clientX: cx, clientY: y, bubbles: true, isPrimary: true })); ev("pointerdown", x); ev("pointermove", x - 40); ev("pointermove", x - 80); ev("pointerup", x - 80); return document.getElementById("stage").scrollLeft; })()');
+  expect(drag > sl0 + 50, 'a drag did not pan the field (' + sl0 + ' → ' + drag + ')');
+  await js('document.getElementById("zoom-fit").click(); true');
+  expect(await js('crabminer.view().zoom') === 1 && !(await js('document.getElementById("stage").classList.contains("zoomed")')), 'Fit did not reset the zoom');
+  await js('crabminer.select(null); const c5 = crabminer.state().crabs[0]; crabminer._lp = c5.id; const p = crabminer.at(c5); document.getElementById("stage").scrollLeft = Math.max(0, p.x - 200); true');
+  await wait(300);
+  await js('(() => { const c = crabminer.state().crabs.find(k => k.id === crabminer._lp), p = crabminer.at(c), cv = document.getElementById("scene"), r = cv.getBoundingClientRect(); cv.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 9, pointerType: "touch", clientX: r.left + p.x, clientY: r.top + p.y, bubbles: true, isPrimary: true })); return true; })()');
+  await wait(750);
+  await js('document.getElementById("scene").dispatchEvent(new PointerEvent("pointerup", { pointerId: 9, pointerType: "touch", bubbles: true, isPrimary: true })); true');
+  expect(await js('crabminer.view().selected') === await js('crabminer._lp'), 'a long press on a crab did not open its card (got ' + (await js('crabminer.view().selected')) + ')');
+  await js('document.getElementById("t-ledger").click(); true'); await wait(300);
   await js('const S2 = crabminer.state(); S2.rank = 5; S2.earned = 7000; S2.tech.sonar = true; document.getElementById("t-ledger").click(); true'); await wait(1200);
   await js('document.querySelector("#ledger [data-site]").click(); true');
   expect(await js('!document.getElementById("win").hidden && !document.getElementById("site-tech-btn").disabled'), 'the Ledger did not open the new-site card with a technology to keep');

@@ -1,6 +1,6 @@
 # Crabminer: Technical Architecture
 
-This document describes how the game is built: the files, the three scripts, every
+This document describes how the game is built: the files, the scripts, every
 system inside them, and how data moves between them. [RULES.md](RULES.md) gives the game
 rules themselves.
 
@@ -20,15 +20,18 @@ rules themselves.
 
 ## 1. Overview
 
-Crabminer is a static page with no build step and no dependencies: one HTML file and its four
-scripts. GitHub Pages serves them from the `main` branch of `crabminer/crabminer` at crabminer.com.
+Crabminer is a static page with no build step and no dependencies: one HTML file and its seven
+script files. GitHub Pages serves them from the `main` branch of `crabminer/crabminer` at crabminer.com.
 
 ```
 crabminer/
 ├── index.html        the page: CSS, markup, and the paper
 ├── sim.js            Script 1: the simulation, CrabSim()
 ├── eco.js            Script 4: the sea's food web, CrabEco() (view-only, like the plankton)
-├── game.js           Script 2: drawing, animation, crab talk, and the controls
+├── game.js           Script 2, chapter 1: the view's state, sound, crab talk, the sim's events, update()
+├── scene.js          Script 2, chapter 2: drawing everything but the crabs, and draw() itself
+├── crabs.js          Script 2, chapter 3: the crabs' animations and drawCrab()
+├── controls.js       Script 2, chapter 4: the HUD, the panel, the Ledger, the tutorial, the gestures, the boot
 ├── reader.js         Script 3: read aloud
 ├── CNAME             crabminer.com, for GitHub Pages
 ├── LICENSE
@@ -43,7 +46,8 @@ crabminer/
 ```
 
 `index.html` has these parts, top to bottom. The scripts are plain `<script src>` tags at the
-end of the body, so they run in order, and Script 2 finds `CrabSim` as a global.
+end of the body, so they run in order, and Script 2 finds `CrabSim` as a global. Script 2 itself is four
+files that share one global scope (section 5), so their order matters too.
 
 | Part | What it holds |
 | --- | --- |
@@ -53,7 +57,7 @@ end of the body, so they run in order, and Script 2 finds `CrabSim` as a global.
 | `<div class="below">` | The paper `<main class="paper">`: the rules and economy review as an IEEE-style article |
 | `sim.js` | **Script 1**: the simulation, `CrabSim()` |
 | `eco.js` | **Script 4**: the sea's food web, `CrabEco()`; loaded before Script 2, which drives it |
-| `game.js` | **Script 2**: drawing, animation, crab talk, and the controls |
+| `game.js`, `scene.js`, `crabs.js`, `controls.js` | **Script 2**: the view in four chapters: state, talk and events; the scene; the crabs; the controls and the boot |
 | `reader.js` | **Script 3**: read aloud (speech synthesis over the intro and the paper) |
 
 The guiding rule: **the simulation owns the game, the view only watches.** Script 1 knows
@@ -442,8 +446,21 @@ Levers return `true` on success, or a reason string (`'credits'`, `'den'`, `'max
 
 ## 5. Script 2: the view and the controls
 
-Script 2 is one IIFE. It creates `sim = CrabSim()`, keeps `S = sim.state()`, and runs the
-page.
+Script 2 is four classic scripts that share one global scope: every top-level `var` and `function` in
+`game.js`, `scene.js`, `crabs.js` and `controls.js` is a property of `window`, so a function in one file calls
+a function in another as if they were one file (they were, until the split of 2026-10-12; nothing was renamed
+but `stop()`, now `halt()`, which would have shadowed `window.stop()`). The order of the tags matters only for
+the boot at the end of `controls.js`, which is the one place that runs code at load time beyond declarations.
+The chapters, in load order:
+
+| File | What it holds |
+| --- | --- |
+| `game.js` | the view's state (`sim`, `S`, the canvas, the clock, the palette), the sound (`sfx`), the dunes' geometry, the small effects, the crabs' talk, `handle(e)` for the sim's events, and `update(dt)` |
+| `scene.js` | the water, the paper dunes, the cavern and the engine, the stations, the den and its pets, goods and flags, the ship, the plankton, the wreck, the tide pool, and `draw()` |
+| `crabs.js` | the repertoire of animations (`ANIMS`), moods, and `drawCrab(c)` with its faces, props, tags and bubbles |
+| `controls.js` | the HUD and the panel, every action, the workday editor, the Ledger with its portraits and charts, sharing a run, new game, save and load, the win, the tutorial, the gestures, and the frame loop and boot |
+
+Script 2 creates `sim = CrabSim()`, keeps `S = sim.state()`, and runs the page.
 
 ### 5.1 The loop
 
@@ -949,6 +966,10 @@ player's choices (separate from the sim's own), and `act()`, one random player a
   them. That is what `release()` and `removeCrab()` do, and the fuzzer checks it.
 - **Decision points:** sleeping and the backup job start only at a role's decision point, so
   crabs finish what they are holding.
+- **One scope for the view:** the four files of Script 2 are chapters of one program, not modules. A new
+  top-level name in any of them must not be one `window` already has (`stop`, `name`, `top`, `parent`,
+  `status`, `length`, `open`, `close`, `find`, `print`, `event` and the like); a file may call functions declared
+  in a later file, but must not run them at load time, since only `controls.js` boots.
 - **Comments:** comments in Script 1 describe rules in plain words and sit next to the code
   that enforces them. When rules change, update the comment, RULES.md, and the paper
   together.

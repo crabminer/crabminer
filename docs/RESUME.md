@@ -7,7 +7,7 @@ Paste this into a new session to pick up the work.
 **Resume: Crabminer (`/home/user/code/crabminer`, remote `git@github.com:crabminer/crabminer.git`, live at crabminer.com via GitHub Pages)**
 
 **What the game is.** Crabminer is a crab mining game: a small city builder on a layered
-paper-dune sea floor: a static page (`index.html` plus `sim.js`, `eco.js`, `game.js` and `reader.js`) with no build step or dependencies. You run a
+paper-dune sea floor: a static page (`index.html` plus `sim.js`, `eco.js`, the view's four files `game.js`, `scene.js`, `crabs.js` and `controls.js`, and `reader.js`) with no build step or dependencies. You run a
 crew of robot crabs that turns buried metal into money:
 - Scouts flag deposits.
 - Drills dig them up; holes can come up dry.
@@ -82,9 +82,10 @@ the line, which the advisor and the Ledger tab point out.
 `docs/BACKLOG.md` (ideas not yet built), `docs/DNS.md`.
 
 **How the code works:** `sim.js` (`CrabSim()`) is a deterministic, seeded simulation that
-runs headless in Node. The view, `game.js`, reads its state and receives its events, and changes
+runs headless in Node. The view (`game.js`, `scene.js`, `crabs.js` and `controls.js`, four classic scripts sharing one
+global scope, in that order) reads its state and receives its events, and changes
 the game only through its API. `eco.js` (`CrabEco()`) is the food web, view-only and driven by
-`game.js`. `reader.js` reads the intro and the paper aloud. Before
+the view. `reader.js` reads the intro and the paper aloud. Before
 committing a change:
 1. `node tests/fuzz.js`, `node tests/save.js` and `node tests/eco.js` (random play with invariants; save round trips; the food web).
 2. `node tests/browser.js` (headless Chromium: console errors, controls, gestures, reload, screenshots).
@@ -94,7 +95,7 @@ committing a change:
 The working style so far: commit locally, and push only when asked.
 
 **What next** (from `docs/BACKLOG.md`; none is committed to):
-1. **Engineering:** split `game.js` into a few script tags with no change in behaviour; watch the GitHub Action runs
+1. **Engineering:** nothing open; `game.js` was split into four files on 2026-10-12. Watch the GitHub Action runs
    (`.github/workflows/test.yml`; the public API at `api.github.com/repos/crabminer/crabminer/actions/runs` shows them).
 2. **Game:** every listed idea has been built. The backlog holds a few seeds (a crab choir, gull raids on the ship, a
    lighthouse keeper, postcards); the next round means building those or inventing more in the same spirit.

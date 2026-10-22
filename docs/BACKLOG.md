@@ -9,7 +9,8 @@ to; move an item into the game, the rules and the paper together when it is buil
 These came from earlier rounds of ideas and are already in the game: tides and storms,
 octopus, pearl jackpots, cargo-ship orders, den decorations, whale shadows, lava surges,
 the hermit-crab trader, the sea turtle, save and load, named crabs with veteran stars, the rival crew,
-the split into `sim.js`, `game.js` and `reader.js`, the checked-in tests and their GitHub Action,
+the split into `sim.js`, `game.js` and `reader.js` (and later of `game.js` into four chapters, `game.js`, `scene.js`,
+`crabs.js` and `controls.js`, sharing one global scope), the checked-in tests and their GitHub Action,
 cached paper-dune sheets, whole-game charts in the Ledger, sharing a run, plankton
 light that lets tired crabs work at full speed at night, sunken chests on the back dune,
 the moray eel, lending a claw, the closed food web with the fisherman and the gulls (`eco.js`)
@@ -29,9 +30,7 @@ an automatic player in `tests/balance.js` that buys upgrades, with a second econ
 
 ## Engineering
 
-- **Split `game.js`.** It is 380 KB in one file. A few script tags (drawing, crabs and animations, controls) need no
-  build step; `tests/browser.js` catches load-order mistakes. Do it as its own commit with no change in behaviour, so
-  the screenshots can be compared before and after.
+Nothing open.
 
 ## Seeds
 

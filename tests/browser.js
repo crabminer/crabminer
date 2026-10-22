@@ -158,7 +158,7 @@ async function check(b, size) {
   expect(await js('document.querySelector(\'[data-speed="2"]\').getAttribute("aria-pressed") === "true"'), 'the 2 key did not set 2× speed');
   await key(']');
   expect(await js('document.getElementById("t-build").getAttribute("aria-selected") === "true"'), 'the ] key did not move to the next tab');
-  await js('const S = crabminer.state(); S.ore = Math.max(S.ore, 4); S.nextOcto = S.t; S.nextTrader = S.t; true');
+  await js('const S1 = crabminer.state(); S1.ore = Math.max(S1.ore, 4); S1.nextOcto = S1.t; S1.nextTrader = S1.t; true');
   for (let i = 0; i < 100 && await js('document.getElementById("a-octo").hidden || document.getElementById("a-trader").hidden'); i++) await wait(100);
   expect(!(await js('document.getElementById("a-octo").hidden')) || await js('crabminer.state().stat.sharkScares > 0'), 'no Shoo button in the top bar when the octopus came');   // unless the shark got there first
   expect(!(await js('document.getElementById("a-trader").hidden')), 'no trader button in the top bar when the trader came');

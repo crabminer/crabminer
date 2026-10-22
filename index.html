@@ -1116,8 +1116,11 @@ tr[data-say].saying{box-shadow:none}
 <!-- ===== SCRIPT 1 of 3: the economy (rules, timings, prices). Tune the game here. ===== -->
 <script src="sim.js"></script>
 <script src="eco.js"></script>
-<!-- ===== SCRIPT 2 of 3: drawing, the crabs' faces, and the controls ===== -->
+<!-- ===== SCRIPT 2 of 3: the view, in four chapters that share one scope and must load in this order ===== -->
 <script src="game.js"></script>
+<script src="scene.js"></script>
+<script src="crabs.js"></script>
+<script src="controls.js"></script>
 <!-- ===== SCRIPT 3 of 3: read aloud ===== -->
 <script src="reader.js"></script>
 </body>
